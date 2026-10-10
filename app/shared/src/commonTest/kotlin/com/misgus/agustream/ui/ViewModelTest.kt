@@ -55,6 +55,7 @@ class LibraryViewModelTest {
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.hasLoaded)
+            assertTrue(viewModel.state.value.isSignedIn)
             assertEquals(2, viewModel.state.value.visibleItems.size)
 
             viewModel.setFilter(LibraryFilter.MOVIES)
@@ -127,6 +128,7 @@ class HomeViewModelTest {
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.hasLoaded)
+            assertTrue(viewModel.state.value.isSignedIn)
             assertEquals(1, viewModel.state.value.rows.size)
             assertEquals(
                 "tt1",

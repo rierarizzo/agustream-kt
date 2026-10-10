@@ -94,7 +94,7 @@ class LibraryViewModel(
     }
 
     private suspend fun doLoad() {
-        _state.update { it.copy(isLoading = true, error = null) }
+        _state.update { it.copy(isSignedIn = true, isLoading = true, error = null) }
         var progressEntries: List<WatchProgress> = emptyList()
         var loaded = false
         try {
