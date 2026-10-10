@@ -15,7 +15,10 @@ import com.misgus.agustream.core.player.PlayerService
  * targets it shows a placeholder until a native surface is wired up.
  */
 @Composable
-expect fun VideoSurface(player: PlayerService, modifier: Modifier = Modifier)
+expect fun VideoSurface(
+    player: PlayerService,
+    modifier: Modifier = Modifier,
+)
 
 /** Fallback surface shown when the engine has no output. */
 @Composable

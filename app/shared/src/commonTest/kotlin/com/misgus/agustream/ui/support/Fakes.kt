@@ -20,33 +20,44 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /** In-memory [AccountRepository] for tests. */
-class FakeAccountRepository(initial: AccountState = AccountState(isSignedIn = true)) : AccountRepository {
+class FakeAccountRepository(
+    initial: AccountState = AccountState(isSignedIn = true),
+) : AccountRepository {
     private val _state = MutableStateFlow(initial)
     override val state: StateFlow<AccountState> = _state
 
-    override suspend fun signIn(email: String, password: String) {
+    override suspend fun signIn(
+        email: String,
+        password: String,
+    ) {
         _state.value = AccountState(isSignedIn = true, email = email)
     }
 
     override suspend fun restoreSession(): Boolean = _state.value.isSignedIn
+
     override suspend fun signOut() {
         _state.value = AccountState(isSignedIn = false)
     }
 
     override suspend fun loadProfiles() = Unit
+
     override suspend fun selectProfile(profile: com.misgus.agustream.core.model.BackendProfile) {
         _state.value = _state.value.copy(activeProfile = profile)
     }
 }
 
 /** In-memory [LibraryRepository] for tests. */
-class FakeLibraryRepository(initial: List<LibraryItem> = emptyList()) : LibraryRepository {
+class FakeLibraryRepository(
+    initial: List<LibraryItem> = emptyList(),
+) : LibraryRepository {
     private val items = initial.toMutableList()
     private val _changes = MutableStateFlow(0L)
     override val changes: StateFlow<Long> = _changes
 
     override suspend fun all(): List<LibraryItem> = items.toList()
+
     override suspend fun contains(contentId: String): Boolean = items.any { it.contentId == contentId }
+
     override suspend fun add(item: LibraryItem) {
         if (contains(item.contentId)) return
         items.add(item)
@@ -68,7 +79,9 @@ class FakeProgressRepository(
     override val changes: StateFlow<Long> = _changes
 
     override suspend fun all(): List<WatchProgress> = progress
+
     override suspend fun save(progress: WatchProgress) = Unit
+
     override suspend fun watchedEntries(candidateIds: Collection<String>): List<WatchedEntry> =
         entries.filter { it.contentId in candidateIds }
 
@@ -79,13 +92,27 @@ class FakeProgressRepository(
         episode: Int?,
     ) = Unit
 
-    override suspend fun unmarkWatched(contentId: String, season: Int?, episode: Int?) = Unit
+    override suspend fun unmarkWatched(
+        contentId: String,
+        season: Int?,
+        episode: Int?,
+    ) = Unit
 }
 
 /** In-memory [MetadataRepository] for tests. */
-class FakeMetadataRepository(private val detail: MetaDetail? = null) : MetadataRepository {
-    override suspend fun detail(type: String, id: String): MetaDetail? = detail
-    override suspend fun similar(type: String, id: String, genre: String?): List<MetaPreview> = emptyList()
+class FakeMetadataRepository(
+    private val detail: MetaDetail? = null,
+) : MetadataRepository {
+    override suspend fun detail(
+        type: String,
+        id: String,
+    ): MetaDetail? = detail
+
+    override suspend fun similar(
+        type: String,
+        id: String,
+        genre: String?,
+    ): List<MetaPreview> = emptyList()
 }
 
 /** In-memory [CatalogRepository] for tests. */
@@ -94,16 +121,26 @@ class FakeCatalogRepository(
     private val items: Map<String, List<MetaPreview>> = emptyMap(),
 ) : CatalogRepository {
     override suspend fun catalogs(): List<CatalogRef> = refs
-    override suspend fun items(ref: CatalogRef, extra: Map<String, String>?): List<MetaPreview> =
-        items[ref.key].orEmpty()
+
+    override suspend fun items(
+        ref: CatalogRef,
+        extra: Map<String, String>?,
+    ): List<MetaPreview> = items[ref.key].orEmpty()
 }
 
 /** In-memory [StreamRepository] for tests. */
-class FakeStreamRepository(private val groups: List<StreamGroup> = emptyList()) : StreamRepository {
-    override suspend fun all(type: String, id: String): List<StreamGroup> = groups
+class FakeStreamRepository(
+    private val groups: List<StreamGroup> = emptyList(),
+) : StreamRepository {
+    override suspend fun all(
+        type: String,
+        id: String,
+    ): List<StreamGroup> = groups
 }
 
 /** In-memory [AddonRepository] for tests. */
-class FakeAddonRepository(private val addons: List<Addon> = emptyList()) : AddonRepository {
+class FakeAddonRepository(
+    private val addons: List<Addon> = emptyList(),
+) : AddonRepository {
     override suspend fun all(): List<Addon> = addons
 }

@@ -27,10 +27,11 @@ class NuvioLibraryRepository(
     }
 
     override suspend fun contains(contentId: String): Boolean {
-        val rows = client.select(
-            "library_items",
-            filter = "$profileFilter&content_id=eq.$contentId",
-        )
+        val rows =
+            client.select(
+                "library_items",
+                filter = "$profileFilter&content_id=eq.${postgrestLiteral(contentId)}",
+            )
         return rows.isNotEmpty()
     }
 
@@ -46,14 +47,16 @@ class NuvioLibraryRepository(
     }
 
     override suspend fun remove(contentId: String) {
-        client.delete("library_items", filter = "$profileFilter&content_id=eq.$contentId")
+        client.delete("library_items", filter = "$profileFilter&content_id=eq.${postgrestLiteral(contentId)}")
         _changes.value += 1
     }
 
     private val profileFilter: String get() = "profile_id=eq.${requireProfileId()}"
 
-    private fun requireProfileId(): Int = account.state.value.activeProfile?.profileId
-        ?: throw BackendException("No profile selected")
+    private fun requireProfileId(): Int =
+        account.state.value.activeProfile
+            ?.profileId
+            ?: throw BackendException("No profile selected")
 
     private fun requireUserId(): String {
         val userId = client.session?.userId

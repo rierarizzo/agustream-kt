@@ -11,11 +11,12 @@ import kotlinx.serialization.json.longOrNull
 import kotlin.time.Instant
 
 /** Shared, lenient JSON codec. */
-internal val appJson: Json = Json {
-    ignoreUnknownKeys = true
-    isLenient = true
-    explicitNulls = false
-}
+internal val appJson: Json =
+    Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        explicitNulls = false
+    }
 
 /**
  * Small, defensive JSON coercion helpers.
@@ -70,5 +71,4 @@ internal fun JsonElement?.boolOrNull(): Boolean? {
 }
 
 /** Converts an epoch-milliseconds value to a [Instant]. */
-internal fun JsonElement?.instantMillisOrNull(): Instant? =
-    longOrNull()?.let { Instant.fromEpochMilliseconds(it) }
+internal fun JsonElement?.instantMillisOrNull(): Instant? = longOrNull()?.let { Instant.fromEpochMilliseconds(it) }

@@ -1,5 +1,10 @@
 package com.misgus.agustream.ui.theme
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.ibm_plex_sans_bold
+import agustream.app.shared.generated.resources.ibm_plex_sans_medium
+import agustream.app.shared.generated.resources.ibm_plex_sans_regular
+import agustream.app.shared.generated.resources.ibm_plex_sans_semibold
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
@@ -13,11 +18,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
-import agustream.app.shared.generated.resources.Res
-import agustream.app.shared.generated.resources.ibm_plex_sans_bold
-import agustream.app.shared.generated.resources.ibm_plex_sans_medium
-import agustream.app.shared.generated.resources.ibm_plex_sans_regular
-import agustream.app.shared.generated.resources.ibm_plex_sans_semibold
 
 /** Design tokens taken from the AIOStreams reference UI. */
 object AppColors {
@@ -82,50 +82,51 @@ object AppSizes {
  * with a slightly smaller size and a tighter line height.
  */
 object PosterCaption {
-    fun title(base: TextStyle): TextStyle =
-        base.copy(fontSize = 15.sp, lineHeight = 18.sp, color = AppColors.posterTitle)
+    fun title(base: TextStyle): TextStyle = base.copy(fontSize = 15.sp, lineHeight = 18.sp, color = AppColors.posterTitle)
 
-    fun year(base: TextStyle): TextStyle =
-        base.copy(fontSize = 13.sp, lineHeight = 15.6.sp, color = AppColors.posterYear)
+    fun year(base: TextStyle): TextStyle = base.copy(fontSize = 13.sp, lineHeight = 15.6.sp, color = AppColors.posterYear)
 }
 
-private val darkScheme = darkColorScheme(
-    primary = AppColors.accent,
-    onPrimary = AppColors.onAccent,
-    secondary = AppColors.accent,
-    onSecondary = AppColors.onAccent,
-    background = AppColors.background,
-    onBackground = AppColors.textPrimary,
-    surface = AppColors.surface,
-    onSurface = AppColors.textPrimary,
-    surfaceVariant = AppColors.surfaceHigh,
-    onSurfaceVariant = AppColors.textSecondary,
-    outline = AppColors.divider,
-)
+private val darkScheme =
+    darkColorScheme(
+        primary = AppColors.accent,
+        onPrimary = AppColors.onAccent,
+        secondary = AppColors.accent,
+        onSecondary = AppColors.onAccent,
+        background = AppColors.background,
+        onBackground = AppColors.textPrimary,
+        surface = AppColors.surface,
+        onSurface = AppColors.textPrimary,
+        surfaceVariant = AppColors.surfaceHigh,
+        onSurfaceVariant = AppColors.textSecondary,
+        outline = AppColors.divider,
+    )
 
 /** The app's dark Material3 theme, with the IBM Plex Sans typeface. */
 @Composable
 fun AgustreamTheme(content: @Composable () -> Unit) {
-    val plex = FontFamily(
-        Font(Res.font.ibm_plex_sans_regular, FontWeight.Normal),
-        Font(Res.font.ibm_plex_sans_medium, FontWeight.Medium),
-        Font(Res.font.ibm_plex_sans_semibold, FontWeight.SemiBold),
-        Font(Res.font.ibm_plex_sans_bold, FontWeight.Bold),
-    )
+    val plex =
+        FontFamily(
+            Font(Res.font.ibm_plex_sans_regular, FontWeight.Normal),
+            Font(Res.font.ibm_plex_sans_medium, FontWeight.Medium),
+            Font(Res.font.ibm_plex_sans_semibold, FontWeight.SemiBold),
+            Font(Res.font.ibm_plex_sans_bold, FontWeight.Bold),
+        )
 
     val base = Typography()
-    val typography = base.copy(
-        displaySmall = base.displaySmall.copy(fontFamily = plex, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        headlineLarge = base.headlineLarge.copy(fontFamily = plex, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        headlineMedium = base.headlineMedium.copy(fontFamily = plex, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        headlineSmall = base.headlineSmall.copy(fontFamily = plex, fontWeight = FontWeight.Bold),
-        titleLarge = base.titleLarge.copy(fontFamily = plex, fontWeight = FontWeight.SemiBold),
-        titleMedium = base.titleMedium.copy(fontFamily = plex, fontWeight = FontWeight.SemiBold),
-        bodyLarge = base.bodyLarge.copy(fontFamily = plex, fontWeight = FontWeight.Medium, color = AppColors.textPrimary),
-        bodyMedium = base.bodyMedium.copy(fontFamily = plex, fontWeight = FontWeight.Medium, color = AppColors.textPrimary),
-        bodySmall = base.bodySmall.copy(fontFamily = plex, fontWeight = FontWeight.Medium, color = AppColors.textSecondary),
-        labelLarge = base.labelLarge.copy(fontFamily = plex, fontWeight = FontWeight.SemiBold),
-    )
+    val typography =
+        base.copy(
+            displaySmall = base.displaySmall.copy(fontFamily = plex, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+            headlineLarge = base.headlineLarge.copy(fontFamily = plex, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+            headlineMedium = base.headlineMedium.copy(fontFamily = plex, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+            headlineSmall = base.headlineSmall.copy(fontFamily = plex, fontWeight = FontWeight.Bold),
+            titleLarge = base.titleLarge.copy(fontFamily = plex, fontWeight = FontWeight.SemiBold),
+            titleMedium = base.titleMedium.copy(fontFamily = plex, fontWeight = FontWeight.SemiBold),
+            bodyLarge = base.bodyLarge.copy(fontFamily = plex, fontWeight = FontWeight.Medium, color = AppColors.textPrimary),
+            bodyMedium = base.bodyMedium.copy(fontFamily = plex, fontWeight = FontWeight.Medium, color = AppColors.textPrimary),
+            bodySmall = base.bodySmall.copy(fontFamily = plex, fontWeight = FontWeight.Medium, color = AppColors.textSecondary),
+            labelLarge = base.labelLarge.copy(fontFamily = plex, fontWeight = FontWeight.SemiBold),
+        )
 
     MaterialTheme(
         colorScheme = darkScheme,

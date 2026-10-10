@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests and builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Lint and formatting
+        run: ./gradlew ktlintCheck --console=plain
+
+      - name: Domain and data tests
+        run: ./gradlew :core:jvmTest :data:jvmTest :app:shared:jvmTest --console=plain
+
+      - name: Compile desktop
+        run: ./gradlew :app:desktopApp:classes --console=plain
+
+      - name: Build Android debug APK
+        run: ./gradlew :app:androidApp:assembleDebug --console=plain
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: "**/build/reports/tests/"
+          if-no-files-found: ignore

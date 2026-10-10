@@ -32,5 +32,8 @@ interface CatalogRepository {
     suspend fun catalogs(): List<CatalogRef>
 
     /** Items of [ref]. [extra] holds protocol params such as `genre` or `search`. */
-    suspend fun items(ref: CatalogRef, extra: Map<String, String>? = null): List<MetaPreview>
+    suspend fun items(
+        ref: CatalogRef,
+        extra: Map<String, String>? = null,
+    ): List<MetaPreview>
 }

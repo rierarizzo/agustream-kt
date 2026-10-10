@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -39,17 +38,19 @@ fun MetaPosterCard(
 ) {
     val shape = RoundedCornerShape(AppRadii.md)
     Column(
-        modifier = Modifier
-            .then(if (width != null) Modifier.width(width) else Modifier)
-            .fillMaxHeight()
-            .clip(shape)
-            .clickable(onClick = onTap),
+        modifier =
+            Modifier
+                .then(if (width != null) Modifier.width(width) else Modifier)
+                .fillMaxHeight()
+                .clip(shape)
+                .clickable(onClick = onTap),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .clip(shape),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(shape),
         ) {
             PosterImage(preview.poster, Modifier.fillMaxWidth().fillMaxHeight())
             if (watched) {

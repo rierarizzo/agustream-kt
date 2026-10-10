@@ -20,8 +20,11 @@ data class WatchedKey(
 )
 
 /** Builds a [WatchedKey]. */
-fun watchedKey(contentId: String, season: Int? = null, episode: Int? = null) =
-    WatchedKey(contentId, season, episode)
+fun watchedKey(
+    contentId: String,
+    season: Int? = null,
+    episode: Int? = null,
+) = WatchedKey(contentId, season, episode)
 
 /**
  * Whether every released main-season episode of [meta] is watched or completed.
@@ -47,7 +50,10 @@ fun hasWatchedAllMainSeasonEpisodes(
 }
 
 /** `false` only when [released] is a future date; an unknown date means aired. */
-fun isEpisodeAired(released: String?, today: Instant): Boolean {
+fun isEpisodeAired(
+    released: String?,
+    today: Instant,
+): Boolean {
     if (released.isNullOrEmpty()) return true
     val parsed = parseReleaseInstant(released) ?: return true
     return parsed <= today

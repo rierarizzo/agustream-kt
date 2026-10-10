@@ -3,7 +3,6 @@ package com.misgus.agustream.ui.player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,21 +34,23 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.MetaVideo
 import com.misgus.agustream.core.model.Subtitle
 import com.misgus.agustream.core.player.MediaTrack
 import com.misgus.agustream.core.player.PlaybackTarget
-import com.misgus.agustream.core.player.PlayerState
+import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.video.VideoSurface
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Integrated player: custom controls, track selection, fullscreen, autoplay of
@@ -90,16 +91,20 @@ fun PlayerScreen(
     LaunchedEffect(target) {
         reporter.resumePosition()?.let { position ->
             // Wait until the media is parsed, then jump to the saved position.
-            repeat(50) {
-                if (state.duration > Duration.ZERO) return@repeat
-                delay(100)
+            // A timeout keeps a stream that never reports a duration from
+            // leaving the resume pending forever.
+            withTimeoutOrNull(RESUME_TIMEOUT) {
+                player.state.first { it.duration > Duration.ZERO }
             }
             player.seek(position)
         }
         val id = target.videoId ?: target.contentId
         val type = target.contentType
         if (id != null && type != null) {
-            addonSubtitles = runCatching { services.subtitles.all(type, id) }.getOrDefault(emptyList())
+            addonSubtitles =
+                runCatchingCancellable {
+                    services.subtitles.all(type, id)
+                }.getOrDefault(emptyList())
         }
     }
 
@@ -130,32 +135,38 @@ fun PlayerScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .focusRequester(focusRequester)
-            .focusable()
-            .onPreviewKeyEvent { event ->
-                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                when (event.key) {
-                    Key.Spacebar, Key.K -> {
-                        player.playOrPause(); true
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .focusRequester(focusRequester)
+                .focusable()
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    when (event.key) {
+                        Key.Spacebar, Key.K -> {
+                            player.playOrPause()
+                            true
+                        }
+                        Key.DirectionLeft -> {
+                            player.seekBy(Duration.parse("-10s"))
+                            true
+                        }
+                        Key.DirectionRight -> {
+                            player.seekBy(Duration.parse("10s"))
+                            true
+                        }
+                        Key.F -> {
+                            window.setFullScreen(!window.isFullScreen.value)
+                            true
+                        }
+                        Key.Escape -> {
+                            onBack()
+                            true
+                        }
+                        else -> false
                     }
-                    Key.DirectionLeft -> {
-                        player.seekBy(Duration.parse("-10s")); true
-                    }
-                    Key.DirectionRight -> {
-                        player.seekBy(Duration.parse("10s")); true
-                    }
-                    Key.F -> {
-                        window.setFullScreen(!window.isFullScreen.value); true
-                    }
-                    Key.Escape -> {
-                        onBack(); true
-                    }
-                    else -> false
-                }
-            },
+                },
     ) {
         LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
@@ -170,10 +181,22 @@ fun PlayerScreen(
             duration = state.duration,
             volume = state.volume,
             visible = controlsVisible,
-            onPlayPause = { player.playOrPause(); revealControls() },
-            onSeek = { player.seek(it); revealControls() },
-            onSeekBy = { player.seekBy(it); revealControls() },
-            onVolumeChanged = { player.setVolume(it); revealControls() },
+            onPlayPause = {
+                player.playOrPause()
+                revealControls()
+            },
+            onSeek = {
+                player.seek(it)
+                revealControls()
+            },
+            onSeekBy = {
+                player.seekBy(it)
+                revealControls()
+            },
+            onVolumeChanged = {
+                player.setVolume(it)
+                revealControls()
+            },
             onToggleFullscreen = { window.setFullScreen(!window.isFullScreen.value) },
             onSubtitles = { showSubtitleMenu = true },
             onAudio = { showAudioMenu = true },
@@ -190,35 +213,39 @@ fun PlayerScreen(
     if (showSubtitleMenu) {
         TrackMenu(
             title = "Subtitles",
-            rows = buildList {
-                add(TrackRow(label = "Off", selected = state.selectedSubtitleId == null) {
-                    player.selectSubtitleTrack(null)
-                })
-                state.subtitleTracks.forEach { track ->
+            rows =
+                buildList {
                     add(
-                        TrackRow(
-                            label = trackLabel(track),
-                            selected = state.selectedSubtitleId == track.id,
-                        ) { player.selectSubtitleTrack(track) },
+                        TrackRow(label = "Off", selected = state.selectedSubtitleId == null) {
+                            player.selectSubtitleTrack(null)
+                        },
                     )
-                }
-                addonSubtitles.forEach { subtitle ->
-                    val track = MediaTrack(
-                        id = subtitle.url,
-                        title = subtitleSubtitleTitle(subtitle),
-                        language = subtitle.langCode ?: subtitle.lang,
-                        uri = subtitle.url,
-                        isExternal = true,
-                    )
-                    add(
-                        TrackRow(
-                            label = subtitleTrackLabel(subtitle),
-                            detail = subtitleDetail(subtitle),
-                            selected = state.selectedSubtitleId == subtitle.url,
-                        ) { player.selectSubtitleTrack(track) },
-                    )
-                }
-            },
+                    state.subtitleTracks.forEach { track ->
+                        add(
+                            TrackRow(
+                                label = trackLabel(track),
+                                selected = state.selectedSubtitleId == track.id,
+                            ) { player.selectSubtitleTrack(track) },
+                        )
+                    }
+                    addonSubtitles.forEach { subtitle ->
+                        val track =
+                            MediaTrack(
+                                id = subtitle.url,
+                                title = subtitleSubtitleTitle(subtitle),
+                                language = subtitle.langCode ?: subtitle.lang,
+                                uri = subtitle.url,
+                                isExternal = true,
+                            )
+                        add(
+                            TrackRow(
+                                label = subtitleTrackLabel(subtitle),
+                                detail = subtitleDetail(subtitle),
+                                selected = state.selectedSubtitleId == subtitle.url,
+                            ) { player.selectSubtitleTrack(track) },
+                        )
+                    }
+                },
             onDismiss = { showSubtitleMenu = false },
         )
     }
@@ -226,21 +253,31 @@ fun PlayerScreen(
     if (showAudioMenu) {
         TrackMenu(
             title = "Audio",
-            rows = state.audioTracks.map { track ->
-                TrackRow(
-                    label = trackLabel(track),
-                    selected = state.selectedAudioId == track.id,
-                ) { player.selectAudioTrack(track) }
-            },
+            rows =
+                state.audioTracks.map { track ->
+                    TrackRow(
+                        label = trackLabel(track),
+                        selected = state.selectedAudioId == track.id,
+                    ) { player.selectAudioTrack(track) }
+                },
             onDismiss = { showAudioMenu = false },
         )
     }
 }
 
-private data class TrackRow(val label: String, val detail: String? = null, val selected: Boolean, val onSelect: () -> Unit)
+private data class TrackRow(
+    val label: String,
+    val detail: String? = null,
+    val selected: Boolean,
+    val onSelect: () -> Unit,
+)
 
 @Composable
-private fun TrackMenu(title: String, rows: List<TrackRow>, onDismiss: () -> Unit) {
+private fun TrackMenu(
+    title: String,
+    rows: List<TrackRow>,
+    onDismiss: () -> Unit,
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
@@ -254,10 +291,13 @@ private fun TrackMenu(title: String, rows: List<TrackRow>, onDismiss: () -> Unit
                 }
                 rows.forEach { row ->
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { row.onSelect(); onDismiss() }
-                            .padding(vertical = AppSpacing.sm),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    row.onSelect()
+                                    onDismiss()
+                                }.padding(vertical = AppSpacing.sm),
                     ) {
                         Text(
                             text = if (row.selected) "● ${row.label}" else "○ ${row.label}",
@@ -289,12 +329,13 @@ private fun subtitleSubtitleTitle(subtitle: Subtitle): String {
 private fun subtitleTrackLabel(subtitle: Subtitle): String = subtitleSubtitleTitle(subtitle)
 
 private fun subtitleDetail(subtitle: Subtitle): String? {
-    val parts = buildList {
-        subtitle.title?.takeIf { it.isNotEmpty() }?.let { add(it) }
-        subtitle.addonName?.takeIf { it.isNotEmpty() }?.let { add(it) }
-        if (subtitle.aiTranslated) add("AI")
-        if (subtitle.fromTrusted) add("Trusted")
-    }
+    val parts =
+        buildList {
+            subtitle.title?.takeIf { it.isNotEmpty() }?.let { add(it) }
+            subtitle.addonName?.takeIf { it.isNotEmpty() }?.let { add(it) }
+            if (subtitle.aiTranslated) add("AI")
+            if (subtitle.fromTrusted) add("Trusted")
+        }
     return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
 }
 
@@ -304,27 +345,33 @@ private suspend fun playNextIfPossible(
     services: com.misgus.agustream.ui.services.AppServices,
 ): PlaybackTarget? {
     val seriesId = target.contentId ?: return null
-    return runCatching {
-        val meta = services.metadata.detail("series", seriesId) ?: return@runCatching null
-        val episodes = meta.videos
-            .filter { (it.season ?: 0) > 0 && (it.episode ?: 0) > 0 }
-            .sortedBy { episodeOrder(it) }
+    return runCatchingCancellable {
+        val meta = services.metadata.detail("series", seriesId) ?: return@runCatchingCancellable null
+        val episodes =
+            meta.videos
+                .filter { (it.season ?: 0) > 0 && (it.episode ?: 0) > 0 }
+                .sortedBy { episodeOrder(it) }
         val index = episodes.indexOfFirst { it.season == target.season && it.episode == target.episode }
-        if (index < 0 || index + 1 >= episodes.size) return@runCatching null
+        if (index < 0 || index + 1 >= episodes.size) return@runCatchingCancellable null
         val next = episodes[index + 1]
         val nextId = "$seriesId:${next.season}:${next.episode}"
         val groups = services.streams.all("series", nextId)
-        val stream = groups.firstNotNullOfOrNull { group ->
-            group.streams.firstOrNull { it.isDirectPlayable }
-        } ?: return@runCatching null
+        val stream =
+            groups.firstNotNullOfOrNull { group ->
+                group.streams.firstOrNull { it.isDirectPlayable }
+            } ?: return@runCatchingCancellable null
+        val url = stream.url ?: return@runCatchingCancellable null
         PlaybackTarget.fromContent(
             type = "series",
             id = nextId,
             title = "${meta.name} · S${next.season}E${next.episode}",
-            source = stream.url!!,
+            source = url,
             httpHeaders = stream.httpHeaders,
         )
     }.getOrNull()
 }
 
 private fun episodeOrder(video: MetaVideo): Int = (video.season ?: 0) * 1000 + (video.episode ?: 0)
+
+/** How long to wait for a parsed duration before resuming anyway. */
+private val RESUME_TIMEOUT = 5.seconds

@@ -9,6 +9,8 @@ import com.misgus.agustream.data.stringOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -16,31 +18,44 @@ import kotlinx.serialization.json.JsonPrimitive
  * [LibraryRepository] backed by a local JSON file.
  *
  * Rows use the same shape as the backend table, so the shared mappers apply.
+ * A mutex serializes read-modify-write cycles so two concurrent writes cannot
+ * drop each other's rows.
  */
-class LocalLibraryRepository(private val store: JsonFileStore) : LibraryRepository {
+class LocalLibraryRepository(
+    private val store: JsonFileStore,
+) : LibraryRepository {
     private val _changes = MutableStateFlow(0L)
     override val changes: StateFlow<Long> = _changes.asStateFlow()
 
+    private val mutex = Mutex()
+
     override suspend fun all(): List<LibraryItem> =
-        store.read()
-            .map(::libraryItemFromRow)
-            .sortedWith(compareByDescending { it.addedAt })
+        mutex.withLock {
+            store
+                .read()
+                .map(::libraryItemFromRow)
+                .sortedWith(compareByDescending { it.addedAt })
+        }
 
     override suspend fun contains(contentId: String): Boolean =
-        store.read().any { it["content_id"].stringOrNull() == contentId }
+        mutex.withLock {
+            store.read().any { it["content_id"].stringOrNull() == contentId }
+        }
 
-    override suspend fun add(item: LibraryItem) {
-        val rows = store.read()
-        if (rows.any { it["content_id"].stringOrNull() == item.contentId }) return
-        val row = libraryItemToRow(item)
-        val withId = JsonObject(row + ("id" to JsonPrimitive(item.id.ifEmpty { item.contentId })))
-        store.write(rows + withId)
-        _changes.value += 1
-    }
+    override suspend fun add(item: LibraryItem) =
+        mutex.withLock {
+            val rows = store.read()
+            if (rows.any { it["content_id"].stringOrNull() == item.contentId }) return@withLock
+            val row = libraryItemToRow(item)
+            val withId = JsonObject(row + ("id" to JsonPrimitive(item.id.ifEmpty { item.contentId })))
+            store.write(rows + withId)
+            _changes.value += 1
+        }
 
-    override suspend fun remove(contentId: String) {
-        val rows = store.read()
-        store.write(rows.filterNot { it["content_id"].stringOrNull() == contentId })
-        _changes.value += 1
-    }
+    override suspend fun remove(contentId: String) =
+        mutex.withLock {
+            val rows = store.read()
+            store.write(rows.filterNot { it["content_id"].stringOrNull() == contentId })
+            _changes.value += 1
+        }
 }

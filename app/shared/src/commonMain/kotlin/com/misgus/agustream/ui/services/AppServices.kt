@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui.services
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.misgus.agustream.core.player.NoopPlayerService
 import com.misgus.agustream.core.player.PlayerService
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.AddonRepository
@@ -59,8 +60,18 @@ class AppServices(
     /** Watched-badge resolver, shared by the library and Home. */
     val watchedBadges: WatchedBadgeResolver =
         WatchedBadgeResolver(progress = progress, metadata = metadata, cache = watchedCache)
+
+    /**
+     * Whether [player] can actually play media on this target.
+     *
+     * Android wires a [NoopPlayerService] until a native video surface exists,
+     * so the UI can tell the user instead of opening a player that only reports
+     * an error.
+     */
+    val playbackSupported: Boolean get() = player !is NoopPlayerService
 }
 
-val LocalAppServices = staticCompositionLocalOf<AppServices> {
-    error("No AppServices provided in the composition")
-}
+val LocalAppServices =
+    staticCompositionLocalOf<AppServices> {
+        error("No AppServices provided in the composition")
+    }

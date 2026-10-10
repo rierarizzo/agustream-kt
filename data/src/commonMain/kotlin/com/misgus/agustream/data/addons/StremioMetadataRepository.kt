@@ -5,6 +5,7 @@ import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.AddonRepository
 import com.misgus.agustream.core.repository.MetadataRepository
+import com.misgus.agustream.core.util.runCatchingCancellable
 import io.ktor.client.HttpClient
 
 /**
@@ -19,15 +20,22 @@ class StremioMetadataRepository(
 ) : MetadataRepository {
     private val clients = mutableMapOf<String, StremioAddonClient>()
 
-    override suspend fun detail(type: String, id: String): MetaDetail? {
+    override suspend fun detail(
+        type: String,
+        id: String,
+    ): MetaDetail? {
         for (baseUrl in candidates()) {
-            val meta = runCatching { clientFor(baseUrl).fetchMeta(type, id) }.getOrNull()
+            val meta = runCatchingCancellable { clientFor(baseUrl).fetchMeta(type, id) }.getOrNull()
             if (meta != null) return meta
         }
         return null
     }
 
-    override suspend fun similar(type: String, id: String, genre: String?): List<MetaPreview> {
+    override suspend fun similar(
+        type: String,
+        id: String,
+        genre: String?,
+    ): List<MetaPreview> {
         for (baseUrl in candidates()) {
             val items = tryCatalog(baseUrl, type, id, genre)
             if (items != null) return items
@@ -38,7 +46,7 @@ class StremioMetadataRepository(
     /** Enabled addon base URLs, in the account's order, without duplicates. */
     private suspend fun candidates(): List<String> {
         val urls = mutableListOf<String>()
-        val installed = runCatching { addons.all() }.getOrNull() ?: return urls
+        val installed = runCatchingCancellable { addons.all() }.getOrNull() ?: return urls
         for (addon in installed) {
             val normalized = normalizeAddonBaseUrl(addon.url)
             if (normalized.isNotEmpty() && normalized !in urls) urls += normalized
@@ -62,19 +70,24 @@ class StremioMetadataRepository(
             val hasGenre = !genre.isNullOrEmpty()
             if (hasGenre && !supportsGenre) return null
 
-            val extra = if (hasGenre) mapOf("genre" to genre!!) else null
-            val items = addonClient.fetchCatalog(type, catalog.id, extra)
-                .filter { it.id != id }
+            val extra = if (hasGenre) mapOf("genre" to genre) else null
+            val items =
+                addonClient
+                    .fetchCatalog(type, catalog.id, extra)
+                    .filter { it.id != id }
             items.ifEmpty { null }
+        } catch (cancellation: kotlinx.coroutines.CancellationException) {
+            throw cancellation
         } catch (_: Exception) {
             null
         }
     }
 
-    private fun clientFor(baseUrl: String): StremioAddonClient =
-        clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
+    private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
 
     /** First catalog of [type], which is good enough for a "similar" row. */
-    private fun pickCatalog(catalogs: List<AddonCatalog>, type: String): AddonCatalog? =
-        catalogs.firstOrNull { it.type == type }
+    private fun pickCatalog(
+        catalogs: List<AddonCatalog>,
+        type: String,
+    ): AddonCatalog? = catalogs.firstOrNull { it.type == type }
 }

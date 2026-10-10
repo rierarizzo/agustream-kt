@@ -32,8 +32,10 @@ class LibraryViewModelTest {
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun item(id: String, type: String) =
-        LibraryItem(id = id, contentId = id, contentType = type, name = id)
+    private fun item(
+        id: String,
+        type: String,
+    ) = LibraryItem(id = id, contentId = id, contentType = type, name = id)
 
     private fun viewModel(library: FakeLibraryRepository): LibraryViewModel {
         val account = FakeAccountRepository()
@@ -43,39 +45,48 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun loadsAndFiltersByType() = runTest(dispatcher) {
-        val viewModel = viewModel(
-            FakeLibraryRepository(listOf(item("m1", "movie"), item("s1", "series"))),
-        )
-        viewModel.load()
-        advanceUntilIdle()
+    fun loadsAndFiltersByType() =
+        runTest(dispatcher) {
+            val viewModel =
+                viewModel(
+                    FakeLibraryRepository(listOf(item("m1", "movie"), item("s1", "series"))),
+                )
+            viewModel.load()
+            advanceUntilIdle()
 
-        assertTrue(viewModel.state.value.hasLoaded)
-        assertEquals(2, viewModel.state.value.visibleItems.size)
+            assertTrue(viewModel.state.value.hasLoaded)
+            assertEquals(2, viewModel.state.value.visibleItems.size)
 
-        viewModel.setFilter(LibraryFilter.MOVIES)
-        assertEquals(1, viewModel.state.value.visibleItems.size)
-        assertEquals("m1", viewModel.state.value.visibleItems.single().contentId)
-    }
+            viewModel.setFilter(LibraryFilter.MOVIES)
+            assertEquals(1, viewModel.state.value.visibleItems.size)
+            assertEquals(
+                "m1",
+                viewModel.state.value.visibleItems
+                    .single()
+                    .contentId,
+            )
+        }
 
     @Test
-    fun clearsWhenSignedOut() = runTest(dispatcher) {
-        val account = FakeAccountRepository()
-        val viewModel = LibraryViewModel(
-            account,
-            FakeLibraryRepository(listOf(item("m1", "movie"))),
-            FakeProgressRepository(),
-            WatchedBadgeResolver(FakeProgressRepository(), FakeMetadataRepository()),
-        )
-        viewModel.load()
-        advanceUntilIdle()
-        assertEquals(1, viewModel.state.value.items.size)
+    fun clearsWhenSignedOut() =
+        runTest(dispatcher) {
+            val account = FakeAccountRepository()
+            val viewModel =
+                LibraryViewModel(
+                    account,
+                    FakeLibraryRepository(listOf(item("m1", "movie"))),
+                    FakeProgressRepository(),
+                    WatchedBadgeResolver(FakeProgressRepository(), FakeMetadataRepository()),
+                )
+            viewModel.load()
+            advanceUntilIdle()
+            assertEquals(1, viewModel.state.value.items.size)
 
-        account.signOut()
-        advanceUntilIdle()
-        assertEquals(0, viewModel.state.value.items.size)
-        assertEquals(false, viewModel.state.value.isSignedIn)
-    }
+            account.signOut()
+            advanceUntilIdle()
+            assertEquals(0, viewModel.state.value.items.size)
+            assertEquals(false, viewModel.state.value.isSignedIn)
+        }
 }
 
 class HomeViewModelTest {
@@ -88,31 +99,40 @@ class HomeViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     @Test
-    fun loadsCatalogRowsAndFeatured() = runTest(dispatcher) {
-        val ref = CatalogRef(
-            addonName = "Addon",
-            addonBaseUrl = "https://addon",
-            type = "movie",
-            id = "top",
-            name = "Top",
-        )
-        val preview = com.misgus.agustream.core.model.MetaPreview(
-            id = "tt1",
-            type = "movie",
-            name = "Movie",
-        )
-        val viewModel = HomeViewModel(
-            account = FakeAccountRepository(),
-            catalogs = FakeCatalogRepository(listOf(ref), mapOf(ref.key to listOf(preview))),
-            library = FakeLibraryRepository(),
-            progress = FakeProgressRepository(),
-            badges = WatchedBadgeResolver(FakeProgressRepository(), FakeMetadataRepository()),
-        )
-        viewModel.load()
-        advanceUntilIdle()
+    fun loadsCatalogRowsAndFeatured() =
+        runTest(dispatcher) {
+            val ref =
+                CatalogRef(
+                    addonName = "Addon",
+                    addonBaseUrl = "https://addon",
+                    type = "movie",
+                    id = "top",
+                    name = "Top",
+                )
+            val preview =
+                com.misgus.agustream.core.model.MetaPreview(
+                    id = "tt1",
+                    type = "movie",
+                    name = "Movie",
+                )
+            val viewModel =
+                HomeViewModel(
+                    account = FakeAccountRepository(),
+                    catalogs = FakeCatalogRepository(listOf(ref), mapOf(ref.key to listOf(preview))),
+                    library = FakeLibraryRepository(),
+                    progress = FakeProgressRepository(),
+                    badges = WatchedBadgeResolver(FakeProgressRepository(), FakeMetadataRepository()),
+                )
+            viewModel.load()
+            advanceUntilIdle()
 
-        assertTrue(viewModel.state.value.hasLoaded)
-        assertEquals(1, viewModel.state.value.rows.size)
-        assertEquals("tt1", viewModel.state.value.featured.single().id)
-    }
+            assertTrue(viewModel.state.value.hasLoaded)
+            assertEquals(1, viewModel.state.value.rows.size)
+            assertEquals(
+                "tt1",
+                viewModel.state.value.featured
+                    .single()
+                    .id,
+            )
+        }
 }

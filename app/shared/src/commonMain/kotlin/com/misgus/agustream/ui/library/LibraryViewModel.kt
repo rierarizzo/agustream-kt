@@ -7,8 +7,10 @@ import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.LibraryRepository
 import com.misgus.agustream.core.repository.ProgressRepository
+import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.core.watched.WatchedBadgeResolver
 import com.misgus.agustream.core.watched.WatchedCandidate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +19,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Kind of titles the library grid shows. */
-enum class LibraryFilter(val label: String) {
+enum class LibraryFilter(
+    val label: String,
+) {
     ALL("All"),
     MOVIES("Movies"),
     SHOWS("Shows"),
@@ -37,11 +41,12 @@ data class LibraryUiState(
 ) {
     /** Titles matching the active [filter]. */
     val visibleItems: List<LibraryItem>
-        get() = when (filter) {
-            LibraryFilter.ALL -> items
-            LibraryFilter.MOVIES -> items.filter { it.contentType == "movie" }
-            LibraryFilter.SHOWS -> items.filter { it.contentType == "series" }
-        }
+        get() =
+            when (filter) {
+                LibraryFilter.ALL -> items
+                LibraryFilter.MOVIES -> items.filter { it.contentType == "movie" }
+                LibraryFilter.SHOWS -> items.filter { it.contentType == "series" }
+            }
 }
 
 /**
@@ -104,6 +109,8 @@ class LibraryViewModel(
                 )
             }
             loaded = true
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (error: Throwable) {
             _state.update { it.copy(isLoading = false, error = error) }
         }
@@ -115,13 +122,17 @@ class LibraryViewModel(
         val candidates = _state.value.items.map { WatchedCandidate(it.contentId, it.contentType) }
         if (candidates.isEmpty()) return
         _state.update { it.copy(isSyncingWatched = true) }
-        val watched = runCatching {
-            badges.resolve(
-                candidates = candidates,
-                progressEntries = progressEntries,
-                profileKey = account.state.value.activeProfile?.profileId?.toString() ?: "",
-            )
-        }.getOrDefault(emptySet())
+        val watched =
+            runCatchingCancellable {
+                badges.resolve(
+                    candidates = candidates,
+                    progressEntries = progressEntries,
+                    profileKey =
+                        account.state.value.activeProfile
+                            ?.profileId
+                            ?.toString() ?: "",
+                )
+            }.getOrDefault(emptySet())
         if (request != watchedRequest) return
         _state.update { it.copy(watchedIds = watched, isSyncingWatched = false) }
     }

@@ -55,6 +55,12 @@ Development shortcuts (environment variables, read for the run only):
 - Data: `./gradlew :data:jvmTest`
 - UI/ViewModels: `./gradlew :app:shared:jvmTest`
 
+## Quality gates
+
+- Lint and formatting: `./gradlew ktlintCheck` (apply with `./gradlew ktlintFormat`).
+- CI (`.github/workflows/ci.yml`) runs lint, the three test suites, the desktop
+  compile and the Android debug build.
+
 ## References
 
 - Stremio addon protocol: `https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/protocol.md`

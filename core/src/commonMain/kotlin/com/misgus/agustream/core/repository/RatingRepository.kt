@@ -11,11 +11,18 @@ interface RatingRepository {
     suspend fun ratingOf(contentId: String): Int?
 
     /** Sets the rating for [contentId], or clears it when [rating] is `null`. */
-    suspend fun setRating(contentId: String, rating: Int?)
+    suspend fun setRating(
+        contentId: String,
+        rating: Int?,
+    )
 }
 
 /** Repository that stores no ratings (used when running without a store). */
 class NoRatingRepository : RatingRepository {
     override suspend fun ratingOf(contentId: String): Int? = null
-    override suspend fun setRating(contentId: String, rating: Int?) = Unit
+
+    override suspend fun setRating(
+        contentId: String,
+        rating: Int?,
+    ) = Unit
 }

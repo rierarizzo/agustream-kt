@@ -20,5 +20,8 @@ interface StreamRepository {
      * Streams for [id], where [id] is a movie id or a series episode id
      * (`tt123:1:2`). [type] is `movie`, `series`, ...
      */
-    suspend fun all(type: String, id: String): List<StreamGroup>
+    suspend fun all(
+        type: String,
+        id: String,
+    ): List<StreamGroup>
 }

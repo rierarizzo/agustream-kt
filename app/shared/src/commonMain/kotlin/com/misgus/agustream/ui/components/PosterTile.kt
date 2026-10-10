@@ -58,17 +58,19 @@ fun PosterTile(
     val inProgress = !watched && fraction != null && fraction > 0.02 && fraction < 0.95
 
     Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .clickable(interactionSource = interaction, indication = null, onClick = onTap)
-            .pointerHoverIcon(PointerIcon.Hand),
+        modifier =
+            Modifier
+                .fillMaxHeight()
+                .clickable(interactionSource = interaction, indication = null, onClick = onTap)
+                .pointerHoverIcon(PointerIcon.Hand),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .border(1.dp, borderColor, shape)
-                .clip(shape),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .border(1.dp, borderColor, shape)
+                    .clip(shape),
         ) {
             PosterImage(item.poster, Modifier.fillMaxSize())
             if (watched) {
@@ -76,13 +78,14 @@ fun PosterTile(
             }
             if (inProgress) {
                 LinearProgressIndicator(
-                    progress = { fraction!!.toFloat() },
+                    progress = { fraction.toFloat() },
                     color = AppColors.accent,
                     trackColor = Color.Black.copy(alpha = 0.54f),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(3.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(3.dp),
                 )
             }
         }

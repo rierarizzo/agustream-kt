@@ -35,10 +35,11 @@ import com.misgus.agustream.ui.theme.AppSpacing
 @Composable
 fun WatchedBadge(iconSize: Int = 14) {
     Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.54f))
-            .padding(3.dp),
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.54f))
+                .padding(3.dp),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -57,10 +58,11 @@ fun WatchedBadge(iconSize: Int = 14) {
 @Composable
 fun SyncingIndicator() {
     Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(AppRadii.lg))
-            .background(AppColors.surfaceHigh)
-            .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs),
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(AppRadii.lg))
+                .background(AppColors.surfaceHigh)
+                .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
@@ -99,7 +101,10 @@ fun Message(
 
 /** Artwork with a graceful placeholder while it loads or fails. */
 @Composable
-fun PosterImage(url: String?, modifier: Modifier = Modifier) {
+fun PosterImage(
+    url: String?,
+    modifier: Modifier = Modifier,
+) {
     Box(modifier.background(AppColors.surface)) {
         if (url.isNullOrEmpty()) {
             PosterFallback()

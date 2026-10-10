@@ -38,10 +38,11 @@ fun SideRail(
     activeProfile: BackendProfile? = null,
 ) {
     Column(
-        modifier = Modifier
-            .width(AppSizes.sideRailWidth)
-            .fillMaxHeight()
-            .background(AppColors.background),
+        modifier =
+            Modifier
+                .width(AppSizes.sideRailWidth)
+                .fillMaxHeight()
+                .background(AppColors.background),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.size(AppSpacing.sm))
@@ -61,14 +62,19 @@ fun SideRail(
 }
 
 @Composable
-private fun RailButton(section: AppSection, selected: Boolean, onTap: () -> Unit) {
+private fun RailButton(
+    section: AppSection,
+    selected: Boolean,
+    onTap: () -> Unit,
+) {
     Box(
-        modifier = Modifier
-            .padding(vertical = AppSpacing.xs)
-            .size(AppSizes.railButton)
-            .clip(RoundedCornerShape(AppRadii.md))
-            .background(if (selected) AppColors.surfaceHigh else Color.Transparent)
-            .clickable(onClick = onTap),
+        modifier =
+            Modifier
+                .padding(vertical = AppSpacing.xs)
+                .size(AppSizes.railButton)
+                .clip(RoundedCornerShape(AppRadii.md))
+                .background(if (selected) AppColors.surfaceHigh else Color.Transparent)
+                .clickable(onClick = onTap),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -84,10 +90,11 @@ private fun RailButton(section: AppSection, selected: Boolean, onTap: () -> Unit
 private fun ProfileAvatar(profile: BackendProfile?) {
     val color = profile?.avatarColorHex?.let(::parseHex) ?: AppColors.surfaceHigh
     Box(
-        modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .background(color),
+        modifier =
+            Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(color),
         contentAlignment = Alignment.Center,
     ) {
         val avatarUrl = profile?.avatarUrl
@@ -98,7 +105,11 @@ private fun ProfileAvatar(profile: BackendProfile?) {
                 }
             }
             profile != null -> {
-                val initial = profile.name.trim().firstOrNull()?.uppercase() ?: "?"
+                val initial =
+                    profile.name
+                        .trim()
+                        .firstOrNull()
+                        ?.uppercase() ?: "?"
                 Text(
                     text = initial,
                     style = MaterialTheme.typography.titleMedium,
@@ -106,12 +117,13 @@ private fun ProfileAvatar(profile: BackendProfile?) {
                     color = AppColors.textPrimary,
                 )
             }
-            else -> Icon(
-                Icons.Outlined.Person,
-                contentDescription = "Profile",
-                tint = AppColors.textSecondary,
-                modifier = Modifier.size(18.dp),
-            )
+            else ->
+                Icon(
+                    Icons.Outlined.Person,
+                    contentDescription = "Profile",
+                    tint = AppColors.textSecondary,
+                    modifier = Modifier.size(18.dp),
+                )
         }
     }
 }

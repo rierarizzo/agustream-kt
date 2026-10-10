@@ -10,7 +10,10 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 /** A title to resolve a watched state for. */
-data class WatchedCandidate(val id: String, val type: String)
+data class WatchedCandidate(
+    val id: String,
+    val type: String,
+)
 
 /**
  * Decides which titles the account has watched, mirroring Nuvio.
@@ -47,16 +50,18 @@ class WatchedBadgeResolver(
         val entries = progress.watchedEntries(candidates.map { it.id }.toSet())
         val allProgress = progressEntries ?: progress.all()
 
-        val watchedKeys = entries.mapTo(mutableSetOf()) {
-            watchedKey(it.contentId, it.season, it.episode)
-        }
-        val completedKeys = allProgress.mapNotNullTo(mutableSetOf()) {
-            if ((it.fraction ?: 0.0) >= COMPLETION_THRESHOLD) {
+        val watchedKeys =
+            entries.mapTo(mutableSetOf()) {
                 watchedKey(it.contentId, it.season, it.episode)
-            } else {
-                null
             }
-        }
+        val completedKeys =
+            allProgress.mapNotNullTo(mutableSetOf()) {
+                if ((it.fraction ?: 0.0) >= COMPLETION_THRESHOLD) {
+                    watchedKey(it.contentId, it.season, it.episode)
+                } else {
+                    null
+                }
+            }
 
         val watched = mutableSetOf<String>()
         val series = mutableListOf<WatchedCandidate>()
@@ -70,18 +75,21 @@ class WatchedBadgeResolver(
                 watched.add(candidate.id)
                 continue
             }
-            val hasActivity = entries.any { it.contentId == candidate.id } ||
-                completedKeys.any { it.contentId == candidate.id }
+            val hasActivity =
+                entries.any { it.contentId == candidate.id } ||
+                    completedKeys.any { it.contentId == candidate.id }
             if (hasActivity) series.add(candidate)
         }
 
         val toCache = mutableMapOf<String, CachedSeriesState>()
         for (batch in series.chunked(MAX_CONCURRENT_LOOKUPS)) {
-            val results = coroutineScope {
-                batch.map { candidate ->
-                    async { resolveSeries(candidate, watchedKeys, completedKeys, now, profileKey) }
-                }.awaitAll()
-            }
+            val results =
+                coroutineScope {
+                    batch
+                        .map { candidate ->
+                            async { resolveSeries(candidate, watchedKeys, completedKeys, now, profileKey) }
+                        }.awaitAll()
+                }
             results.forEachIndexed { index, result ->
                 if (result.watched) watched.add(batch[index].id)
                 result.cachedState?.let { toCache[batch[index].id] = it }
@@ -106,12 +114,16 @@ class WatchedBadgeResolver(
         }
 
         val meta = metadata.detail("series", candidate.id)
-        val isWatched = meta != null &&
-            hasWatchedAllMainSeasonEpisodes(meta, watchedKeys, completedKeys, today)
+        val isWatched =
+            meta != null &&
+                hasWatchedAllMainSeasonEpisodes(meta, watchedKeys, completedKeys, today)
         return SeriesResult(isWatched, CachedSeriesState(signature, isWatched))
     }
 
-    private data class SeriesResult(val watched: Boolean, val cachedState: CachedSeriesState?)
+    private data class SeriesResult(
+        val watched: Boolean,
+        val cachedState: CachedSeriesState?,
+    )
 
     private fun seriesSignature(
         seriesId: String,
@@ -119,20 +131,21 @@ class WatchedBadgeResolver(
         completed: Set<WatchedKey>,
         today: Instant,
     ): String {
-        val watchedValues = watched
-            .filter { it.contentId == seriesId }
-            .map(::serialize)
-            .sorted()
-        val completedValues = completed
-            .filter { it.contentId == seriesId }
-            .map(::serialize)
-            .sorted()
+        val watchedValues =
+            watched
+                .filter { it.contentId == seriesId }
+                .map(::serialize)
+                .sorted()
+        val completedValues =
+            completed
+                .filter { it.contentId == seriesId }
+                .map(::serialize)
+                .sorted()
         val day = today.toString().substringBefore('T')
         return "$day#${hash(watchedValues)}#${hash(completedValues)}"
     }
 
-    private fun serialize(key: WatchedKey) =
-        "${key.contentId}|${key.season ?: -1}|${key.episode ?: -1}"
+    private fun serialize(key: WatchedKey) = "${key.contentId}|${key.season ?: -1}|${key.episode ?: -1}"
 
     /** Stable FNV-1a (32-bit) hash of a sorted list, so it survives restarts. */
     private fun hash(values: List<String>): String {
@@ -148,8 +161,7 @@ class WatchedBadgeResolver(
         return hash.toString(16)
     }
 
-    private fun isSeries(type: String) =
-        type.trim().lowercase() in SERIES_TYPES
+    private fun isSeries(type: String) = type.trim().lowercase() in SERIES_TYPES
 
     private companion object {
         const val COMPLETION_THRESHOLD = 0.9

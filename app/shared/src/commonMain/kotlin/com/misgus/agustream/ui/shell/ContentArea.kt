@@ -3,22 +3,16 @@ package com.misgus.agustream.ui.shell
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.ui.player.PlayerScreen
 import com.misgus.agustream.ui.screens.CatalogScreen
 import com.misgus.agustream.ui.screens.DetailScreen
-import com.misgus.agustream.ui.streams.StreamsDialog
 import com.misgus.agustream.ui.streams.StreamsRequest
-import kotlinx.coroutines.launch
 
 /** Host for transient snackbars, so any screen can show one. */
 val LocalSnackbarHost = staticCompositionLocalOf<SnackbarHostState?> { null }
@@ -50,21 +44,25 @@ fun ContentArea(
     }
     androidx.compose.runtime.CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
         when (current) {
-            is ContentRoute.Detail -> DetailScreen(
-                item = current.item,
-                onBack = navigator::pop,
-                onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
-                onOpenStreams = onOpenStreams,
-            )
-            is ContentRoute.Catalog -> CatalogScreen(
-                ref = current.ref,
-                onBack = navigator::pop,
-                onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
-            )
-            is ContentRoute.Player -> PlayerScreen(
-                target = current.target,
-                onBack = navigator::pop,
-            )
+            is ContentRoute.Detail ->
+                DetailScreen(
+                    item = current.item,
+                    onBack = navigator::pop,
+                    onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
+                    onOpenStreams = onOpenStreams,
+                )
+            is ContentRoute.Catalog ->
+                CatalogScreen(
+                    ref = current.ref,
+                    onBack = navigator::pop,
+                    onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
+                )
+            is ContentRoute.Player ->
+                PlayerScreen(
+                    target = current.target,
+                    onBack = navigator::pop,
+                    onPlayNext = { navigator.replace(ContentRoute.Player(it)) },
+                )
         }
     }
 }

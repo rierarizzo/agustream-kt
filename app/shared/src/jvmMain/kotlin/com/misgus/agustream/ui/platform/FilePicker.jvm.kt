@@ -1,19 +1,32 @@
 package com.misgus.agustream.ui.platform
 
-import java.awt.FileDialog
-import java.awt.Frame
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.awt.FileDialog
+import java.awt.Frame
+import javax.swing.SwingUtilities
 
 private val videoExtensions = setOf("mp4", "mkv", "webm", "mov", "avi", "m4v")
 
-actual suspend fun pickVideoFile(): String? = withContext(Dispatchers.IO) {
-    val dialog = FileDialog(null as Frame?, "Open video", FileDialog.LOAD)
-    dialog.setFilenameFilter { _, name ->
-        name.substringAfterLast('.', "").lowercase() in videoExtensions
+/**
+ * Opens a native file dialog and returns the chosen path, or `null`.
+ *
+ * AWT dialogs must be created and shown on the Event Dispatch Thread, so the
+ * blocking modal call runs there while this coroutine waits on the IO
+ * dispatcher.
+ */
+actual suspend fun pickVideoFile(): String? =
+    withContext(Dispatchers.IO) {
+        var selected: String? = null
+        SwingUtilities.invokeAndWait {
+            val dialog = FileDialog(null as Frame?, "Open video", FileDialog.LOAD)
+            dialog.setFilenameFilter { _, name ->
+                name.substringAfterLast('.', "").lowercase() in videoExtensions
+            }
+            dialog.isVisible = true
+            val file = dialog.file
+            val directory = dialog.directory
+            selected = if (file != null && directory != null) "$directory$file" else null
+        }
+        selected
     }
-    dialog.isVisible = true
-    val file = dialog.file ?: return@withContext null
-    val directory = dialog.directory ?: return@withContext null
-    "$directory$file"
-}

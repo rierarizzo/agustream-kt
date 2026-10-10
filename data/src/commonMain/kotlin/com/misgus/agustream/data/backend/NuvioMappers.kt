@@ -24,68 +24,73 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
 /** Builds a [BackendProfile] from a `profiles` row. */
-fun backendProfileFromRow(json: JsonObject): BackendProfile = BackendProfile(
-    id = json["id"].stringOrNull() ?: "",
-    name = json["name"].stringOrNull() ?: "",
-    profileId = json["profile_id"].intOrNull(),
-    profileIndex = json["profile_index"].intOrNull(),
-    avatarId = json["avatar_id"].stringOrNull(),
-    avatarUrl = json["avatar_url"].stringOrNull(),
-    avatarColorHex = json["avatar_color_hex"].stringOrNull(),
-    pinEnabled = json["pin_enabled"].boolOrNull() ?: false,
-)
+fun backendProfileFromRow(json: JsonObject): BackendProfile =
+    BackendProfile(
+        id = json["id"].stringOrNull() ?: "",
+        name = json["name"].stringOrNull() ?: "",
+        profileId = json["profile_id"].intOrNull(),
+        profileIndex = json["profile_index"].intOrNull(),
+        avatarId = json["avatar_id"].stringOrNull(),
+        avatarUrl = json["avatar_url"].stringOrNull(),
+        avatarColorHex = json["avatar_color_hex"].stringOrNull(),
+        pinEnabled = json["pin_enabled"].boolOrNull() ?: false,
+    )
 
 /** Builds a [LibraryItem] from a `library_items` row. */
-fun libraryItemFromRow(json: JsonObject): LibraryItem = LibraryItem(
-    id = json["id"].stringOrNull() ?: "",
-    contentId = json["content_id"].stringOrNull() ?: "",
-    contentType = json["content_type"].stringOrNull() ?: "",
-    name = json["name"].stringOrNull() ?: "",
-    poster = json["poster"].stringOrNull(),
-    posterShape = json["poster_shape"].stringOrNull(),
-    background = json["background"].stringOrNull(),
-    logo = json["logo"].stringOrNull(),
-    description = json["description"].stringOrNull(),
-    releaseInfo = json["release_info"].stringOrNull(),
-    imdbRating = json["imdb_rating"].doubleOrNull(),
-    genres = json["genres"].stringList(),
-    addonBaseUrl = json["addon_base_url"].stringOrNull(),
-    addedAt = json["added_at"].instantMillisOrNull(),
-    profileId = json["profile_id"].intOrNull(),
-)
+fun libraryItemFromRow(json: JsonObject): LibraryItem =
+    LibraryItem(
+        id = json["id"].stringOrNull() ?: "",
+        contentId = json["content_id"].stringOrNull() ?: "",
+        contentType = json["content_type"].stringOrNull() ?: "",
+        name = json["name"].stringOrNull() ?: "",
+        poster = json["poster"].stringOrNull(),
+        posterShape = json["poster_shape"].stringOrNull(),
+        background = json["background"].stringOrNull(),
+        logo = json["logo"].stringOrNull(),
+        description = json["description"].stringOrNull(),
+        releaseInfo = json["release_info"].stringOrNull(),
+        imdbRating = json["imdb_rating"].doubleOrNull(),
+        genres = json["genres"].stringList(),
+        addonBaseUrl = json["addon_base_url"].stringOrNull(),
+        addedAt = json["added_at"].instantMillisOrNull(),
+        profileId = json["profile_id"].intOrNull(),
+    )
 
 /** Builds a [WatchProgress] from a `watch_progress` row. */
-fun watchProgressFromRow(json: JsonObject): WatchProgress = WatchProgress(
-    id = json["id"].stringOrNull() ?: "",
-    contentId = json["content_id"].stringOrNull() ?: "",
-    contentType = json["content_type"].stringOrNull() ?: "",
-    videoId = json["video_id"].stringOrNull(),
-    season = json["season"].intOrNull(),
-    episode = json["episode"].intOrNull(),
-    position = json["position"].intOrNull()?.milliseconds,
-    duration = json["duration"].intOrNull()?.milliseconds,
-    lastWatched = json["last_watched"].instantMillisOrNull(),
-    progressKey = json["progress_key"].stringOrNull(),
-    profileId = json["profile_id"].intOrNull(),
-)
+fun watchProgressFromRow(json: JsonObject): WatchProgress =
+    WatchProgress(
+        id = json["id"].stringOrNull() ?: "",
+        contentId = json["content_id"].stringOrNull() ?: "",
+        contentType = json["content_type"].stringOrNull() ?: "",
+        videoId = json["video_id"].stringOrNull(),
+        season = json["season"].intOrNull(),
+        episode = json["episode"].intOrNull(),
+        position = json["position"].intOrNull()?.milliseconds,
+        duration = json["duration"].intOrNull()?.milliseconds,
+        lastWatched = json["last_watched"].instantMillisOrNull(),
+        progressKey = json["progress_key"].stringOrNull(),
+        profileId = json["profile_id"].intOrNull(),
+    )
 
 /** Builds an [Addon] from an `addons` row. */
-fun addonFromRow(json: JsonObject): Addon = Addon(
-    id = json["id"].stringOrNull() ?: "",
-    url = json["url"].stringOrNull() ?: "",
-    name = json["name"].stringOrNull(),
-    enabled = json["enabled"].boolOrNull() ?: true,
-    sortOrder = json["sort_order"].intOrNull() ?: 0,
-    profileId = json["profile_id"].intOrNull(),
-)
+fun addonFromRow(json: JsonObject): Addon =
+    Addon(
+        id = json["id"].stringOrNull() ?: "",
+        url = json["url"].stringOrNull() ?: "",
+        name = json["name"].stringOrNull(),
+        enabled = json["enabled"].boolOrNull() ?: true,
+        sortOrder = json["sort_order"].intOrNull() ?: 0,
+        profileId = json["profile_id"].intOrNull(),
+    )
 
 /** Builds a [WatchedEntry] from a `watched_items` row. */
-fun watchedEntryFromRow(json: JsonObject): WatchedEntry = WatchedEntry(
-    contentId = json["content_id"].stringOrNull() ?: "",
-    contentType = json["content_type"].stringOrNull() ?: "",
-    season = json["season"].intOrNull(),
-    episode = json["episode"].intOrNull(),
-)
+fun watchedEntryFromRow(json: JsonObject): WatchedEntry =
+    WatchedEntry(
+        contentId = json["content_id"].stringOrNull() ?: "",
+        contentType = json["content_type"].stringOrNull() ?: "",
+        season = json["season"].intOrNull(),
+        episode = json["episode"].intOrNull(),
+    )
 
 /**
  * Serializes a [LibraryItem] into the writable columns of `library_items`.
@@ -121,7 +126,10 @@ fun libraryItemToRow(
  * Serializes a [WatchProgress] into the fields `sync_push_watch_progress`
  * expects. Times are sent in milliseconds.
  */
-fun watchProgressToRow(progress: WatchProgress, profileId: Int? = null): JsonObject {
+fun watchProgressToRow(
+    progress: WatchProgress,
+    profileId: Int? = null,
+): JsonObject {
     val map = mutableMapOf<String, JsonElement>()
     map["content_id"] = JsonPrimitive(progress.contentId)
     map["content_type"] = JsonPrimitive(progress.contentType)

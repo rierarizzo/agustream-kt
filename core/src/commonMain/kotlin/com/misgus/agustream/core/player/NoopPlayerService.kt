@@ -25,11 +25,17 @@ class NoopPlayerService(
     }
 
     override fun playOrPause() = Unit
+
     override fun seek(position: Duration) = Unit
+
     override fun seekBy(offset: Duration) = Unit
+
     override fun setVolume(volume: Double) = Unit
+
     override fun selectAudioTrack(track: MediaTrack) = Unit
+
     override fun selectSubtitleTrack(track: MediaTrack?) = Unit
+
     override fun stop() {
         _state.value = PlayerState()
     }

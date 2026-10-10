@@ -2,30 +2,27 @@ package com.misgus.agustream.ui.player
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Forward10
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay10
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Audiotrack
 import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -71,10 +68,11 @@ fun PlayerControls(
         if (!playing) {
             IconButton(
                 onClick = onPlayPause,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(64.dp)
-                    .background(Color.Black.copy(alpha = 0.45f), androidx.compose.foundation.shape.CircleShape),
+                modifier =
+                    Modifier
+                        .align(Alignment.Center)
+                        .size(64.dp)
+                        .background(Color.Black.copy(alpha = 0.45f), androidx.compose.foundation.shape.CircleShape),
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = "Play", modifier = Modifier.size(40.dp))
             }
@@ -97,18 +95,22 @@ fun PlayerControls(
 }
 
 @Composable
-private fun TopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modifier) {
+private fun TopBar(
+    title: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.8f), Color.Transparent)),
-            )
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.8f), Color.Transparent)),
+                ).padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
         }
         Spacer(Modifier.width(4.dp))
         Text(
@@ -141,12 +143,12 @@ private fun BottomBar(
     val value = position.inWholeMilliseconds.coerceIn(0, if (totalMs <= 0) 0 else totalMs).toFloat()
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))),
-            )
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))),
+                ).padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         Slider(
             value = value,
@@ -176,7 +178,7 @@ private fun BottomBar(
                 fontSize = 13.sp,
             )
             Spacer(Modifier.weight(1f))
-            Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
             Box(Modifier.width(110.dp)) {
                 Slider(
                     value = volume.coerceIn(0.0, 100.0).toFloat(),

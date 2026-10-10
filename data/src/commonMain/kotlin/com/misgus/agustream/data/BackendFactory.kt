@@ -70,25 +70,28 @@ fun createBackend(
     sessionStore: SessionStore = NoopSessionStore(),
     localDir: String? = null,
     localAddons: List<Addon>? = null,
-): BackendBundle = when (kind) {
-    BackendKind.NUVIO -> createNuvioBackend(
-        baseUrl = baseUrl ?: NuvioClient.DEFAULT_BASE_URL,
-        httpClient = httpClient,
-        sessionStore = sessionStore,
-    )
-    BackendKind.LOCAL -> {
-        val dir = localDir ?: AppPaths.localStoreDir
-        BackendBundle(
-            account = LocalAccountRepository(),
-            library = LocalLibraryRepository(JsonFileStore("$dir/library.json")),
-            progress = LocalProgressRepository(
-                store = JsonFileStore("$dir/progress.json"),
-                watched = JsonFileStore("$dir/watched.json"),
-            ),
-            addons = LocalAddonRepository(localAddons ?: emptyList()),
-        )
+): BackendBundle =
+    when (kind) {
+        BackendKind.NUVIO ->
+            createNuvioBackend(
+                baseUrl = baseUrl ?: NuvioClient.DEFAULT_BASE_URL,
+                httpClient = httpClient,
+                sessionStore = sessionStore,
+            )
+        BackendKind.LOCAL -> {
+            val dir = localDir ?: AppPaths.localStoreDir
+            BackendBundle(
+                account = LocalAccountRepository(),
+                library = LocalLibraryRepository(JsonFileStore("$dir/library.json")),
+                progress =
+                    LocalProgressRepository(
+                        store = JsonFileStore("$dir/progress.json"),
+                        watched = JsonFileStore("$dir/watched.json"),
+                    ),
+                addons = LocalAddonRepository(localAddons ?: emptyList()),
+            )
+        }
     }
-}
 
 /** Builds the Nuvio backend, using [httpClient] for every request. */
 fun createNuvioBackend(

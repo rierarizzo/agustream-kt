@@ -53,7 +53,10 @@ interface AccountRepository {
      * A profile load failure does not undo the session: it is reported through
      * [AccountState.profilesError] so the UI can offer a retry.
      */
-    suspend fun signIn(email: String, password: String)
+    suspend fun signIn(
+        email: String,
+        password: String,
+    )
 
     /**
      * Restores a previously persisted session, if there is one.

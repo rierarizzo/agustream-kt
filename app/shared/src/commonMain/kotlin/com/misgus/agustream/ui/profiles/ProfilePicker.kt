@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -22,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -38,7 +36,6 @@ import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import kotlinx.coroutines.launch
 
@@ -71,38 +68,45 @@ fun ProfilePicker(modifier: Modifier = Modifier) {
             val isFirstLoad = state.isLoadingProfiles && state.profiles.isEmpty()
             when {
                 isFirstLoad -> CircularProgressIndicator()
-                state.profilesError != null -> Problem(
-                    message = state.profilesError.toString(),
-                    onRetry = { scope.launch { account.loadProfiles() } },
-                )
-                state.profiles.isEmpty() -> Problem(
-                    message = "This account has no profiles.",
-                    onRetry = { scope.launch { account.loadProfiles() } },
-                )
-                else -> androidx.compose.foundation.layout.FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
-                ) {
-                    state.profiles.forEach { profile ->
-                        ProfileTile(profile) { scope.launch { account.selectProfile(profile) } }
+                state.profilesError != null ->
+                    Problem(
+                        message = state.profilesError.toString(),
+                        onRetry = { scope.launch { account.loadProfiles() } },
+                    )
+                state.profiles.isEmpty() ->
+                    Problem(
+                        message = "This account has no profiles.",
+                        onRetry = { scope.launch { account.loadProfiles() } },
+                    )
+                else ->
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg, Alignment.CenterHorizontally),
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
+                    ) {
+                        state.profiles.forEach { profile ->
+                            ProfileTile(profile) { scope.launch { account.selectProfile(profile) } }
+                        }
                     }
-                }
             }
         }
     }
 }
 
 @Composable
-private fun ProfileTile(profile: BackendProfile, onTap: () -> Unit) {
+private fun ProfileTile(
+    profile: BackendProfile,
+    onTap: () -> Unit,
+) {
     Column(
         modifier = Modifier.clickable(onClick = onTap).padding(AppSpacing.sm),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier
-                .size(102.dp)
-                .clip(CircleShape)
-                .border(2.dp, Color.Transparent, CircleShape),
+            modifier =
+                Modifier
+                    .size(102.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.Transparent, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             ProfileAvatar(profile)
@@ -127,7 +131,11 @@ private fun ProfileAvatar(profile: BackendProfile) {
             PosterImage(avatarUrl, Modifier.size(96.dp))
         } else {
             Text(
-                text = profile.name.trim().firstOrNull()?.uppercase() ?: "?",
+                text =
+                    profile.name
+                        .trim()
+                        .firstOrNull()
+                        ?.uppercase() ?: "?",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
             )
@@ -136,7 +144,10 @@ private fun ProfileAvatar(profile: BackendProfile) {
 }
 
 @Composable
-private fun Problem(message: String, onRetry: () -> Unit) {
+private fun Problem(
+    message: String,
+    onRetry: () -> Unit,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
             Icons.Outlined.ErrorOutline,

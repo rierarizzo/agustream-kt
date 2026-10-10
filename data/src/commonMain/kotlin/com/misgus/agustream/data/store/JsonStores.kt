@@ -16,19 +16,26 @@ import kotlinx.serialization.json.JsonObject
  * A missing or corrupt file reads as empty instead of throwing, so the app
  * degrades to "no data" rather than failing to start.
  */
-class JsonFileStore(private val path: String) {
-    suspend fun read(): List<JsonObject> = withContext(ioDispatcher) {
-        val text = readTextFile(path) ?: return@withContext emptyList()
-        runCatching {
-            appJson.parseToJsonElement(text).arrOrNull()?.mapNotNull { it.objOrNull() }
-                ?: emptyList()
-        }.getOrDefault(emptyList())
-    }
+class JsonFileStore(
+    private val path: String,
+) {
+    suspend fun read(): List<JsonObject> =
+        withContext(ioDispatcher) {
+            val text = readTextFile(path) ?: return@withContext emptyList()
+            runCatching {
+                appJson.parseToJsonElement(text).arrOrNull()?.mapNotNull { it.objOrNull() }
+                    ?: emptyList()
+            }.getOrDefault(emptyList())
+        }
 
-    suspend fun write(rows: List<JsonObject>) = withContext(ioDispatcher) {
-        runCatching { writeTextFile(path, JsonArray(rows).toString()) }
-        Unit
-    }
+    /**
+     * Persists [rows]. Throws when the write fails: a silently dropped save
+     * would look like success to the caller.
+     */
+    suspend fun write(rows: List<JsonObject>) =
+        withContext(ioDispatcher) {
+            writeTextFile(path, JsonArray(rows).toString())
+        }
 }
 
 /**
@@ -36,15 +43,19 @@ class JsonFileStore(private val path: String) {
  *
  * A missing or corrupt file reads as `{}` instead of throwing.
  */
-class JsonMapStore(private val path: String) {
-    suspend fun read(): JsonObject = withContext(ioDispatcher) {
-        val text = readTextFile(path) ?: return@withContext JsonObject(emptyMap())
-        runCatching { appJson.parseToJsonElement(text).objOrNull() }
-            .getOrNull() ?: JsonObject(emptyMap())
-    }
+class JsonMapStore(
+    private val path: String,
+) {
+    suspend fun read(): JsonObject =
+        withContext(ioDispatcher) {
+            val text = readTextFile(path) ?: return@withContext JsonObject(emptyMap())
+            runCatching { appJson.parseToJsonElement(text).objOrNull() }
+                .getOrNull() ?: JsonObject(emptyMap())
+        }
 
-    suspend fun write(data: JsonObject) = withContext(ioDispatcher) {
-        runCatching { writeTextFile(path, data.toString()) }
-        Unit
-    }
+    /** Persists [data]. Throws when the write fails, like [JsonFileStore.write]. */
+    suspend fun write(data: JsonObject) =
+        withContext(ioDispatcher) {
+            writeTextFile(path, data.toString())
+        }
 }

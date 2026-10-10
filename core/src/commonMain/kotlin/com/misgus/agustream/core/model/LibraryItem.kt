@@ -35,19 +35,20 @@ data class LibraryItem(
          * Builds a library item from a catalog preview, so a title found outside
          * the library opens the same detail screen.
          */
-        fun fromPreview(preview: MetaPreview): LibraryItem = LibraryItem(
-            id = preview.id,
-            contentId = preview.id,
-            contentType = preview.type,
-            name = preview.name,
-            poster = preview.poster,
-            posterShape = preview.posterShape,
-            background = preview.background,
-            logo = preview.logo,
-            description = preview.description,
-            releaseInfo = preview.releaseInfo,
-            imdbRating = preview.imdbRating,
-            genres = preview.genres,
-        )
+        fun fromPreview(preview: MetaPreview): LibraryItem =
+            LibraryItem(
+                id = preview.id,
+                contentId = preview.id,
+                contentType = preview.type,
+                name = preview.name,
+                poster = preview.poster,
+                posterShape = preview.posterShape,
+                background = preview.background,
+                logo = preview.logo,
+                description = preview.description,
+                releaseInfo = preview.releaseInfo,
+                imdbRating = preview.imdbRating,
+                genres = preview.genres,
+            )
     }
 }

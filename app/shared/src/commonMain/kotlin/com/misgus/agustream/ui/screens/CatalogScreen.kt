@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,10 +37,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.ui.catalog.CatalogViewModel
-import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.Message
+import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.services.LocalAppServices
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
 
 /**
@@ -55,16 +54,20 @@ fun CatalogScreen(
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     val services = LocalAppServices.current
-    val viewModel: CatalogViewModel = viewModel(key = "catalog-${ref.key}") {
-        CatalogViewModel(services.catalogs, ref)
-    }
+    val viewModel: CatalogViewModel =
+        viewModel(key = "catalog-${ref.key}") {
+            CatalogViewModel(services.catalogs, ref)
+        }
     LaunchedEffect(ref) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
 
     val shouldLoadMore by remember {
         derivedStateOf {
-            val last = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val last =
+                gridState.layoutInfo.visibleItemsInfo
+                    .lastOrNull()
+                    ?.index ?: 0
             last >= state.items.size - 6
         }
     }
@@ -75,7 +78,7 @@ fun CatalogScreen(
     Column(Modifier.fillMaxSize().padding(AppSpacing.xl)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
             Spacer(Modifier.size(AppSpacing.sm))
             Column(Modifier.weight(1f)) {
@@ -100,38 +103,42 @@ private fun CatalogContent(
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     when {
-        state.isLoading && !state.hasLoaded -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        state.error != null && !state.hasLoaded -> Message(
-            icon = Icons.Outlined.ErrorOutline,
-            title = "Could not load this catalog",
-            message = "Try again later.",
-        )
-        state.items.isEmpty() -> Message(
-            icon = Icons.Outlined.Inbox,
-            title = "Nothing to show",
-            message = "This catalog is empty.",
-        )
-        else -> LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Adaptive(230.dp),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
-            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
-        ) {
-            items(state.items, key = { it.id }) { item ->
-                Box(Modifier.aspectRatio(0.58f)) {
-                    MetaPosterCard(
-                        preview = item,
-                        onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },
-                    )
+        state.isLoading && !state.hasLoaded ->
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        state.error != null && !state.hasLoaded ->
+            Message(
+                icon = Icons.Outlined.ErrorOutline,
+                title = "Could not load this catalog",
+                message = "Try again later.",
+            )
+        state.items.isEmpty() ->
+            Message(
+                icon = Icons.Outlined.Inbox,
+                title = "Nothing to show",
+                message = "This catalog is empty.",
+            )
+        else ->
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Adaptive(230.dp),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+            ) {
+                items(state.items, key = { it.id }) { item ->
+                    Box(Modifier.aspectRatio(0.58f)) {
+                        MetaPosterCard(
+                            preview = item,
+                            onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },
+                        )
+                    }
+                }
+                if (state.isLoadingMore) {
+                    item {
+                        Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
+                    }
                 }
             }
-            if (state.isLoadingMore) {
-                item {
-                    Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
-                }
-            }
-        }
     }
 }

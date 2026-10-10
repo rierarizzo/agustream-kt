@@ -42,7 +42,10 @@ import com.misgus.agustream.ui.theme.AppSpacing
 
 /** Library section: every title saved in the account. */
 @Composable
-fun LibraryScreen(viewModel: LibraryViewModel, navigator: ContentNavigator) {
+fun LibraryScreen(
+    viewModel: LibraryViewModel,
+    navigator: ContentNavigator,
+) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -84,49 +87,62 @@ fun LibraryScreen(viewModel: LibraryViewModel, navigator: ContentNavigator) {
 }
 
 @Composable
-private fun LibraryContent(state: LibraryUiState, onOpen: (LibraryItem) -> Unit) {
+private fun LibraryContent(
+    state: LibraryUiState,
+    onOpen: (LibraryItem) -> Unit,
+) {
     when {
-        !state.isSignedIn -> Message(
-            icon = Icons.Outlined.Lock,
-            title = "Not signed in",
-            message = "Sign in from Settings to load your library.",
-        )
-        state.isLoading && !state.hasLoaded -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        state.error != null && !state.hasLoaded -> Message(
-            icon = Icons.Outlined.ErrorOutline,
-            title = "Could not load the library",
-            message = state.error.toString(),
-        )
-        state.visibleItems.isEmpty() -> Message(
-            icon = Icons.Outlined.Inbox,
-            title = "Nothing to show",
-            message = if (state.items.isEmpty()) "Your library is empty."
-            else "No titles match this filter.",
-        )
-        else -> LazyVerticalGrid(
-            columns = GridCells.Adaptive(230.dp),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
-            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
-        ) {
-            items(state.visibleItems, key = { it.contentId }) { item ->
-                Box(Modifier.aspectRatio(0.58f)) {
-                    PosterTile(
-                        item = item,
-                        progress = state.progressByContentId[item.contentId],
-                        watched = item.contentId in state.watchedIds,
-                        onTap = { onOpen(item) },
-                    )
+        !state.isSignedIn ->
+            Message(
+                icon = Icons.Outlined.Lock,
+                title = "Not signed in",
+                message = "Sign in from Settings to load your library.",
+            )
+        state.isLoading && !state.hasLoaded ->
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        state.error != null && !state.hasLoaded ->
+            Message(
+                icon = Icons.Outlined.ErrorOutline,
+                title = "Could not load the library",
+                message = state.error.toString(),
+            )
+        state.visibleItems.isEmpty() ->
+            Message(
+                icon = Icons.Outlined.Inbox,
+                title = "Nothing to show",
+                message =
+                    if (state.items.isEmpty()) {
+                        "Your library is empty."
+                    } else {
+                        "No titles match this filter."
+                    },
+            )
+        else ->
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(230.dp),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+            ) {
+                items(state.visibleItems, key = { it.contentId }) { item ->
+                    Box(Modifier.aspectRatio(0.58f)) {
+                        PosterTile(
+                            item = item,
+                            progress = state.progressByContentId[item.contentId],
+                            watched = item.contentId in state.watchedIds,
+                            onTap = { onOpen(item) },
+                        )
+                    }
                 }
             }
-        }
     }
 }
 
-private fun subtitle(state: LibraryUiState): String = when {
-    !state.isSignedIn -> "Sign in to see your library"
-    state.isLoading && !state.hasLoaded -> "Loading…"
-    state.items.size == 1 -> "1 title"
-    else -> "${state.items.size} titles"
-}
+private fun subtitle(state: LibraryUiState): String =
+    when {
+        !state.isSignedIn -> "Sign in to see your library"
+        state.isLoading && !state.hasLoaded -> "Loading…"
+        state.items.size == 1 -> "1 title"
+        else -> "${state.items.size} titles"
+    }

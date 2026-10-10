@@ -2,6 +2,7 @@ package com.misgus.agustream.data.backend
 
 import com.misgus.agustream.data.instantMillisOrNull
 import com.misgus.agustream.data.intOrNull
+import com.misgus.agustream.data.longOrNull
 import com.misgus.agustream.data.objOrNull
 import com.misgus.agustream.data.stringOrNull
 import kotlinx.serialization.json.JsonObject
@@ -25,20 +26,22 @@ data class BackendSession(
     val expiresAt: Instant? = null,
 ) {
     val isExpired: Boolean
-        get() = expiresAt != null && Clock.System.now() >= expiresAt!!
+        get() = expiresAt != null && Clock.System.now() >= expiresAt
 
     /** Serializes the session for the [com.misgus.agustream.data.store.SessionStore]. */
     fun toJson(): JsonObject {
-        val map = mutableMapOf<String, kotlinx.serialization.json.JsonElement>(
-            "access_token" to JsonPrimitive(accessToken),
-            "refresh_token" to JsonPrimitive(refreshToken),
-            "user" to JsonObject(
-                buildMap {
-                    put("id", JsonPrimitive(userId))
-                    email?.let { put("email", JsonPrimitive(it)) }
-                },
-            ),
-        )
+        val map =
+            mutableMapOf<String, kotlinx.serialization.json.JsonElement>(
+                "access_token" to JsonPrimitive(accessToken),
+                "refresh_token" to JsonPrimitive(refreshToken),
+                "user" to
+                    JsonObject(
+                        buildMap {
+                            put("id", JsonPrimitive(userId))
+                            email?.let { put("email", JsonPrimitive(it)) }
+                        },
+                    ),
+            )
         // `expires_at` is stored in seconds, matching the auth API.
         expiresAt?.let { map["expires_at"] = JsonPrimitive(it.epochSeconds) }
         return JsonObject(map)
@@ -47,14 +50,16 @@ data class BackendSession(
     companion object {
         fun fromJson(json: JsonObject): BackendSession {
             val user = json["user"].objOrNull()
-            val expiresAtSeconds = json["expires_at"].intOrNull()
+            // Seconds since the epoch do not fit in an Int for far-future values.
+            val expiresAtSeconds = json["expires_at"].longOrNull()
             return BackendSession(
                 accessToken = json["access_token"].stringOrNull() ?: "",
                 refreshToken = json["refresh_token"].stringOrNull() ?: "",
                 userId = user?.get("id").stringOrNull() ?: "",
                 email = user?.get("email").stringOrNull(),
-                expiresAt = expiresAtSeconds?.let { Instant.fromEpochSeconds(it.toLong()) }
-                    ?: json["expires_at"].instantMillisOrNull(),
+                expiresAt =
+                    expiresAtSeconds?.let { Instant.fromEpochSeconds(it) }
+                        ?: json["expires_at"].instantMillisOrNull(),
             )
         }
     }
@@ -84,14 +89,16 @@ data class BackendConnection(
                 service = json["service"].stringOrNull() ?: "",
                 backendUrl = json["backend_url"].stringOrNull() ?: "",
                 publishableKey = json["publishable_key"].stringOrNull() ?: "",
-                selfHosted = json["self_hosted"].let {
-                    (it as? JsonPrimitive)?.content?.lowercase() == "true"
-                },
-                capabilities = BackendCapabilities(
-                    emailPasswordAuth =
-                        (capabilities?.get("email_password_auth") as? JsonPrimitive)?.content == "true",
-                    tvLogin = (capabilities?.get("tv_login") as? JsonPrimitive)?.content == "true",
-                ),
+                selfHosted =
+                    json["self_hosted"].let {
+                        (it as? JsonPrimitive)?.content?.lowercase() == "true"
+                    },
+                capabilities =
+                    BackendCapabilities(
+                        emailPasswordAuth =
+                            (capabilities?.get("email_password_auth") as? JsonPrimitive)?.content == "true",
+                        tvLogin = (capabilities?.get("tv_login") as? JsonPrimitive)?.content == "true",
+                    ),
             )
         }
     }

@@ -13,7 +13,10 @@ import com.misgus.agustream.core.player.PlayerService
  * so a `PlayerView`-backed actual can be added later without touching the UI.
  */
 @Composable
-actual fun VideoSurface(player: PlayerService, modifier: Modifier) {
+actual fun VideoSurface(
+    player: PlayerService,
+    modifier: Modifier,
+) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("Video playback is not available on this target yet.")
     }

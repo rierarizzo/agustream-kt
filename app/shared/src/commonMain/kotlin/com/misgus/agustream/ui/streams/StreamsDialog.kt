@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,7 +51,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.CompositionLocalProvider
 import com.misgus.agustream.core.model.Stream
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.services.LocalAppServices
@@ -80,18 +80,20 @@ fun StreamsDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
-            val viewModel: StreamsViewModel = viewModel(key = request.id) {
-                StreamsViewModel(services.streams, request.type, request.id)
-            }
+            val viewModel: StreamsViewModel =
+                viewModel(key = request.id) {
+                    StreamsViewModel(services.streams, request.type, request.id)
+                }
             LaunchedEffect(request) { viewModel.load() }
             val state by viewModel.state.collectAsStateWithLifecycle()
 
             Box(
-                modifier = Modifier
-                    .width(900.dp)
-                    .fillMaxHeight(0.82f)
-                    .clip(RoundedCornerShape(AppRadii.lg))
-                    .background(AppColors.background),
+                modifier =
+                    Modifier
+                        .width(900.dp)
+                        .fillMaxHeight(0.82f)
+                        .clip(RoundedCornerShape(AppRadii.lg))
+                        .background(AppColors.background),
             ) {
                 Column(Modifier.fillMaxSize()) {
                     Header(
@@ -106,9 +108,10 @@ fun StreamsDialog(
                         leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                         placeholder = { Text("Filter versions") },
                         singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = AppSpacing.xl, vertical = AppSpacing.md),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = AppSpacing.xl, vertical = AppSpacing.md),
                     )
                     Content(state = state, onPlay = onSelect)
                 }
@@ -149,9 +152,10 @@ private fun Header(
             }
         }
         Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(AppSpacing.xl),
+            modifier =
+                Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(AppSpacing.xl),
         ) {
             Text(
                 request.title,
@@ -169,47 +173,64 @@ private fun Header(
 }
 
 @Composable
-private fun Content(state: StreamsUiState, onPlay: (Stream) -> Unit) {
+private fun Content(
+    state: StreamsUiState,
+    onPlay: (Stream) -> Unit,
+) {
     when {
-        state.isLoading && !state.hasLoaded -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        state.error != null && !state.hasLoaded -> Message(
-            icon = Icons.Outlined.ErrorOutline,
-            text = "Could not load sources from your addons.",
-        )
-        state.entries.isEmpty() -> Message(
-            icon = Icons.Outlined.SearchOff,
-            text = if (state.groups.isEmpty()) "No sources found for this title."
-            else "No versions match the filter.",
-        )
-        else -> LazyColumn(Modifier.fillMaxSize()) {
-            items(state.entries) { entry ->
-                StreamCard(
-                    stream = entry.stream,
-                    addonName = entry.addonName,
-                    onPlay = { onPlay(entry.stream) },
-                )
+        state.isLoading && !state.hasLoaded ->
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
+                CircularProgressIndicator()
             }
-        }
+        state.error != null && !state.hasLoaded ->
+            Message(
+                icon = Icons.Outlined.ErrorOutline,
+                text = "Could not load sources from your addons.",
+            )
+        state.entries.isEmpty() ->
+            Message(
+                icon = Icons.Outlined.SearchOff,
+                text =
+                    if (state.groups.isEmpty()) {
+                        "No sources found for this title."
+                    } else {
+                        "No versions match the filter."
+                    },
+            )
+        else ->
+            LazyColumn(Modifier.fillMaxSize()) {
+                items(state.entries) { entry ->
+                    StreamCard(
+                        stream = entry.stream,
+                        addonName = entry.addonName,
+                        onPlay = { onPlay(entry.stream) },
+                    )
+                }
+            }
     }
 }
 
 @Composable
-private fun StreamCard(stream: Stream, addonName: String, onPlay: () -> Unit) {
+private fun StreamCard(
+    stream: Stream,
+    addonName: String,
+    onPlay: () -> Unit,
+) {
     val clipboard = LocalClipboardManager.current
     val primary = listOf(stream.name, stream.title).firstOrNull { !it.isNullOrEmpty() } ?: addonName
-    val secondary = listOf(stream.description, stream.title)
-        .firstOrNull { !it.isNullOrEmpty() && it != primary }
+    val secondary =
+        listOf(stream.description, stream.title)
+            .firstOrNull { !it.isNullOrEmpty() && it != primary }
     val size = formatSize(stream.behaviorHints?.videoSize)
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = AppSpacing.xl, vertical = AppSpacing.xs)
-            .clip(RoundedCornerShape(AppRadii.md))
-            .background(AppColors.surface)
-            .padding(AppSpacing.md),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = AppSpacing.xl, vertical = AppSpacing.xs)
+                .clip(RoundedCornerShape(AppRadii.md))
+                .background(AppColors.surface)
+                .padding(AppSpacing.md),
         verticalAlignment = Alignment.Top,
     ) {
         IconButton(
@@ -243,7 +264,10 @@ private fun StreamCard(stream: Stream, addonName: String, onPlay: () -> Unit) {
 }
 
 @Composable
-private fun Message(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
+private fun Message(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+) {
     Box(Modifier.fillMaxSize(), Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(icon, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(40.dp))
@@ -253,12 +277,13 @@ private fun Message(icon: androidx.compose.ui.graphics.vector.ImageVector, text:
     }
 }
 
-private fun subtitle(state: StreamsUiState): String = when {
-    state.isLoading && !state.hasLoaded -> "Loading…"
-    state.error != null && !state.hasLoaded -> "Could not load sources"
-    state.totalCount == 1 -> "1 version"
-    else -> "${state.totalCount} versions"
-}
+private fun subtitle(state: StreamsUiState): String =
+    when {
+        state.isLoading && !state.hasLoaded -> "Loading…"
+        state.error != null && !state.hasLoaded -> "Could not load sources"
+        state.totalCount == 1 -> "1 version"
+        else -> "${state.totalCount} versions"
+    }
 
 private fun formatSize(bytes: Long?): String? {
     if (bytes == null || bytes <= 0) return null
@@ -273,7 +298,10 @@ private fun formatSize(bytes: Long?): String? {
     return "${round(value, decimals)} ${units[unit]}"
 }
 
-private fun round(value: Double, decimals: Int): String {
+private fun round(
+    value: Double,
+    decimals: Int,
+): String {
     var factor = 1.0
     repeat(decimals) { factor *= 10 }
     val scaled = kotlin.math.round(value * factor) / factor

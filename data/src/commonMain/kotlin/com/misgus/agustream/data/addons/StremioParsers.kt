@@ -23,21 +23,24 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-internal fun addonManifestFromJson(json: JsonObject): AddonManifest = AddonManifest(
-    id = json["id"].stringOrNull() ?: "",
-    name = json["name"].stringOrNull() ?: "",
-    version = json["version"].stringOrNull() ?: "",
-    description = json["description"].stringOrNull(),
-    logo = json["logo"].stringOrNull(),
-    background = json["background"].stringOrNull(),
-    contactEmail = json["contactEmail"].stringOrNull(),
-    types = json["types"].stringList(),
-    idPrefixes = json["idPrefixes"].stringList(),
-    resources = json["resources"].arrOrNull()?.map(::addonResourceFromJson) ?: emptyList(),
-    catalogs = json["catalogs"].arrOrNull()
-        ?.mapNotNull { it.objOrNull()?.let(::addonCatalogFromJson) }
-        ?: emptyList(),
-)
+internal fun addonManifestFromJson(json: JsonObject): AddonManifest =
+    AddonManifest(
+        id = json["id"].stringOrNull() ?: "",
+        name = json["name"].stringOrNull() ?: "",
+        version = json["version"].stringOrNull() ?: "",
+        description = json["description"].stringOrNull(),
+        logo = json["logo"].stringOrNull(),
+        background = json["background"].stringOrNull(),
+        contactEmail = json["contactEmail"].stringOrNull(),
+        types = json["types"].stringList(),
+        idPrefixes = json["idPrefixes"].stringList(),
+        resources = json["resources"].arrOrNull()?.map(::addonResourceFromJson) ?: emptyList(),
+        catalogs =
+            json["catalogs"]
+                .arrOrNull()
+                ?.mapNotNull { it.objOrNull()?.let(::addonCatalogFromJson) }
+                ?: emptyList(),
+    )
 
 internal fun addonResourceFromJson(element: JsonElement?): AddonResource {
     (element as? JsonPrimitive)?.takeIf { it.isString }?.let {
@@ -51,35 +54,40 @@ internal fun addonResourceFromJson(element: JsonElement?): AddonResource {
     )
 }
 
-internal fun addonCatalogFromJson(json: JsonObject): AddonCatalog = AddonCatalog(
-    type = json["type"].stringOrNull() ?: "",
-    id = json["id"].stringOrNull() ?: "",
-    name = json["name"].stringOrNull() ?: "",
-    extra = json["extra"].arrOrNull()
-        ?.mapNotNull { it.objOrNull()?.let(::addonCatalogExtraFromJson) }
-        ?: emptyList(),
-    genres = json["genres"].stringList(),
-)
+internal fun addonCatalogFromJson(json: JsonObject): AddonCatalog =
+    AddonCatalog(
+        type = json["type"].stringOrNull() ?: "",
+        id = json["id"].stringOrNull() ?: "",
+        name = json["name"].stringOrNull() ?: "",
+        extra =
+            json["extra"]
+                .arrOrNull()
+                ?.mapNotNull { it.objOrNull()?.let(::addonCatalogExtraFromJson) }
+                ?: emptyList(),
+        genres = json["genres"].stringList(),
+    )
 
-internal fun addonCatalogExtraFromJson(json: JsonObject): AddonCatalogExtra = AddonCatalogExtra(
-    name = json["name"].stringOrNull() ?: "",
-    isRequired = json["isRequired"].boolOrNull() ?: false,
-    options = json["options"].stringList(),
-)
+internal fun addonCatalogExtraFromJson(json: JsonObject): AddonCatalogExtra =
+    AddonCatalogExtra(
+        name = json["name"].stringOrNull() ?: "",
+        isRequired = json["isRequired"].boolOrNull() ?: false,
+        options = json["options"].stringList(),
+    )
 
-internal fun metaPreviewFromJson(json: JsonObject): MetaPreview = MetaPreview(
-    id = json["id"].stringOrNull() ?: "",
-    type = json["type"].stringOrNull() ?: "",
-    name = json["name"].stringOrNull() ?: "",
-    poster = json["poster"].stringOrNull(),
-    posterShape = json["posterShape"].stringOrNull(),
-    background = json["background"].stringOrNull(),
-    logo = json["logo"].stringOrNull(),
-    description = json["description"].stringOrNull(),
-    releaseInfo = json["releaseInfo"].stringOrNull(),
-    imdbRating = json["imdbRating"].doubleOrNull(),
-    genres = json["genres"].stringList(),
-)
+internal fun metaPreviewFromJson(json: JsonObject): MetaPreview =
+    MetaPreview(
+        id = json["id"].stringOrNull() ?: "",
+        type = json["type"].stringOrNull() ?: "",
+        name = json["name"].stringOrNull() ?: "",
+        poster = json["poster"].stringOrNull(),
+        posterShape = json["posterShape"].stringOrNull(),
+        background = json["background"].stringOrNull(),
+        logo = json["logo"].stringOrNull(),
+        description = json["description"].stringOrNull(),
+        releaseInfo = json["releaseInfo"].stringOrNull(),
+        imdbRating = json["imdbRating"].doubleOrNull(),
+        genres = json["genres"].stringList(),
+    )
 
 internal fun metaDetailFromJson(json: JsonObject): MetaDetail {
     // Credits come from three sources, in priority order:
@@ -100,45 +108,51 @@ internal fun metaDetailFromJson(json: JsonObject): MetaDetail {
         imdbRating = json["imdbRating"].doubleOrNull(),
         runtime = json["runtime"].stringOrNull(),
         genres = json["genres"].stringList(),
-        videos = json["videos"].arrOrNull()
-            ?.mapNotNull { it.objOrNull()?.let(::metaVideoFromJson) }
-            ?: emptyList(),
-        cast = mergePeople(
-            listOf(
-                appExtras?.get("cast"),
-                json["cast"],
-                linkNames(links, setOf("cast", "actor", "actors")),
+        videos =
+            json["videos"]
+                .arrOrNull()
+                ?.mapNotNull { it.objOrNull()?.let(::metaVideoFromJson) }
+                ?: emptyList(),
+        cast =
+            mergePeople(
+                listOf(
+                    appExtras?.get("cast"),
+                    json["cast"],
+                    linkNames(links, setOf("cast", "actor", "actors")),
+                ),
             ),
-        ),
-        director = mergeNames(
-            listOf(
-                appExtras?.get("directors"),
-                json["director"],
-                linkNames(links, setOf("director", "directors")),
+        director =
+            mergeNames(
+                listOf(
+                    appExtras?.get("directors"),
+                    json["director"],
+                    linkNames(links, setOf("director", "directors")),
+                ),
             ),
-        ),
-        writer = mergeNames(
-            listOf(
-                appExtras?.get("writers"),
-                json["writer"],
-                linkNames(links, setOf("writer", "writers", "screenplay")),
+        writer =
+            mergeNames(
+                listOf(
+                    appExtras?.get("writers"),
+                    json["writer"],
+                    linkNames(links, setOf("writer", "writers", "screenplay")),
+                ),
             ),
-        ),
         released = json["released"].stringOrNull(),
         country = json["country"].stringOrNull(),
     )
 }
 
-internal fun metaVideoFromJson(json: JsonObject): MetaVideo = MetaVideo(
-    id = json["id"].stringOrNull() ?: "",
-    // Some addons name episodes with `name`; the protocol uses `title`.
-    title = (json["title"] ?: json["name"]).stringOrNull(),
-    season = json["season"].intOrNull(),
-    episode = json["episode"].intOrNull(),
-    number = json["number"].intOrNull(),
-    released = json["released"].stringOrNull(),
-    thumbnail = json["thumbnail"].stringOrNull(),
-)
+internal fun metaVideoFromJson(json: JsonObject): MetaVideo =
+    MetaVideo(
+        id = json["id"].stringOrNull() ?: "",
+        // Some addons name episodes with `name`; the protocol uses `title`.
+        title = (json["title"] ?: json["name"]).stringOrNull(),
+        season = json["season"].intOrNull(),
+        episode = json["episode"].intOrNull(),
+        number = json["number"].intOrNull(),
+        released = json["released"].stringOrNull(),
+        thumbnail = json["thumbnail"].stringOrNull(),
+    )
 
 /** Accepts the object form (`{name, character, photo}`) or a bare name. */
 internal fun metaPersonFromJson(element: JsonElement?): MetaPerson {
@@ -169,30 +183,34 @@ internal fun streamFromJson(json: JsonObject): Stream {
     )
 }
 
-private fun streamBehaviorHintsFromJson(json: JsonObject): StreamBehaviorHints = StreamBehaviorHints(
-    bingeGroup = json["bingeGroup"].stringOrNull(),
-    filename = json["filename"].stringOrNull(),
-    videoSize = json["videoSize"].longOrNull(),
-)
+private fun streamBehaviorHintsFromJson(json: JsonObject): StreamBehaviorHints =
+    StreamBehaviorHints(
+        bingeGroup = json["bingeGroup"].stringOrNull(),
+        filename = json["filename"].stringOrNull(),
+        videoSize = json["videoSize"].longOrNull(),
+    )
 
 private fun proxyHeadersFromHints(hints: JsonObject): Map<String, String>? {
     val request = hints["proxyHeaders"].objOrNull()?.get("request").objOrNull() ?: return null
     val headers = request["headers"].objOrNull() ?: return null
-    val result = headers.mapNotNull { (key, value) ->
-        value.stringOrNull()?.let { key to it }
-    }.toMap()
+    val result =
+        headers
+            .mapNotNull { (key, value) ->
+                value.stringOrNull()?.let { key to it }
+            }.toMap()
     return result.ifEmpty { null }
 }
 
-internal fun subtitleFromJson(json: JsonObject): Subtitle = Subtitle(
-    id = json["id"].stringOrNull() ?: "",
-    url = json["url"].stringOrNull() ?: "",
-    lang = json["lang"].stringOrNull(),
-    title = json["title"].stringOrNull(),
-    langCode = json["lang_code"].stringOrNull(),
-    aiTranslated = json["ai_translated"].boolOrNull() ?: false,
-    fromTrusted = json["from_trusted"].boolOrNull() ?: false,
-)
+internal fun subtitleFromJson(json: JsonObject): Subtitle =
+    Subtitle(
+        id = json["id"].stringOrNull() ?: "",
+        url = json["url"].stringOrNull() ?: "",
+        lang = json["lang"].stringOrNull(),
+        title = json["title"].stringOrNull(),
+        langCode = json["lang_code"].stringOrNull(),
+        aiTranslated = json["ai_translated"].boolOrNull() ?: false,
+        fromTrusted = json["from_trusted"].boolOrNull() ?: false,
+    )
 
 /**
  * Merges people from several sources, deduped by name and in priority order:
@@ -223,19 +241,22 @@ private fun mergePeople(sources: List<JsonElement?>): List<MetaPerson> {
     return people
 }
 
-private fun mergeNames(sources: List<JsonElement?>): List<String> =
-    mergePeople(sources).map { it.name }
+private fun mergeNames(sources: List<JsonElement?>): List<String> = mergePeople(sources).map { it.name }
 
 /**
  * Names of `links` whose category is one of [categories] (case-insensitive).
  */
-private fun linkNames(links: JsonElement?, categories: Set<String>): JsonElement? {
+private fun linkNames(
+    links: JsonElement?,
+    categories: Set<String>,
+): JsonElement? {
     val array = links.arrOrNull() ?: return null
-    val names = array.mapNotNull { entry ->
-        val link = entry.objOrNull() ?: return@mapNotNull null
-        val category = link["category"].stringOrNull()?.lowercase() ?: return@mapNotNull null
-        if (category !in categories) return@mapNotNull null
-        link["name"].stringOrNull()?.trim()?.takeIf { it.isNotEmpty() }
-    }
+    val names =
+        array.mapNotNull { entry ->
+            val link = entry.objOrNull() ?: return@mapNotNull null
+            val category = link["category"].stringOrNull()?.lowercase() ?: return@mapNotNull null
+            if (category !in categories) return@mapNotNull null
+            link["name"].stringOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+        }
     return kotlinx.serialization.json.JsonArray(names.map { JsonPrimitive(it) })
 }

@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.player
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.ProgressRepository
+import com.misgus.agustream.core.util.runCatchingCancellable
 import kotlin.time.Clock
 import kotlin.time.Duration
 
@@ -25,26 +26,30 @@ class PlaybackProgressReporter(
     suspend fun resumePosition(): Duration? {
         if (!target.canReportProgress || resumeResolved) return null
         resumeResolved = true
-        return runCatching {
+        return runCatchingCancellable {
             val entry = find(repository.all())
             val savedPosition = entry?.position
-            if (savedPosition == null || savedPosition <= Duration.ZERO) return@runCatching null
+            if (savedPosition == null || savedPosition <= Duration.ZERO) return@runCatchingCancellable null
             val savedDuration = entry.duration
             if (savedDuration != null && savedDuration > Duration.ZERO) {
-                val fraction = savedPosition.inWholeMilliseconds.toDouble() /
-                    savedDuration.inWholeMilliseconds
+                val fraction =
+                    savedPosition.inWholeMilliseconds.toDouble() /
+                        savedDuration.inWholeMilliseconds
                 if (fraction < RESUME_MIN_FRACTION || fraction > RESUME_MAX_FRACTION) {
-                    return@runCatching null
+                    return@runCatchingCancellable null
                 }
             } else if (savedPosition < Duration.parse("5s")) {
-                return@runCatching null
+                return@runCatchingCancellable null
             }
             savedPosition
         }.getOrNull()
     }
 
     /** Records the latest playback state. [flush] persists it when it is due. */
-    fun update(position: Duration, duration: Duration) {
+    fun update(
+        position: Duration,
+        duration: Duration,
+    ) {
         this.position = position
         this.duration = duration
     }
@@ -56,7 +61,7 @@ class PlaybackProgressReporter(
         if (!force && (position - lastSaved).absoluteValue < INTERVAL) return
         if (position <= Duration.ZERO && lastSaved <= Duration.ZERO) return
         lastSaved = position
-        runCatching {
+        runCatchingCancellable {
             repository.save(
                 WatchProgress(
                     id = "",

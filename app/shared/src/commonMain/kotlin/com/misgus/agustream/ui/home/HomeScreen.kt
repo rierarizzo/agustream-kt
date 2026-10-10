@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
@@ -50,8 +51,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
-import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.Message
+import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.SyncingIndicator
 import com.misgus.agustream.ui.shell.ContentNavigator
@@ -106,56 +107,66 @@ private fun HomeContent(
     onPlayPreview: (MetaPreview) -> Unit,
 ) {
     when {
-        !state.isSignedIn -> Message(
-            icon = Icons.Outlined.Lock,
-            title = "Not signed in",
-            message = "Sign in from Settings to see your Home.",
-        )
-        state.isLoading && !state.hasLoaded -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        state.rows.isEmpty() && state.continueWatching.isEmpty() -> Message(
-            icon = Icons.Outlined.Explore,
-            title = "Nothing to show",
-            message = "Install a metadata addon with catalogs to fill this Home.",
-        )
-        else -> Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-        ) {
-            if (state.featured.isNotEmpty()) {
-                Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
+        !state.isSignedIn ->
+            Message(
+                icon = Icons.Outlined.Lock,
+                title = "Not signed in",
+                message = "Sign in from Settings to see your Home.",
+            )
+        state.isLoading && !state.hasLoaded ->
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
+                CircularProgressIndicator()
             }
-            if (state.continueWatching.isNotEmpty()) {
-                SectionHeader(title = "Continue watching")
-                LazyRow(
-                    modifier = Modifier.height(248.dp),
-                    contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
-                ) {
-                    items(state.continueWatching) { entry ->
-                        ContinueCard(entry) { onOpenDetail(entry.item) }
+        state.error != null && state.rows.isEmpty() && state.continueWatching.isEmpty() ->
+            Message(
+                icon = Icons.Outlined.ErrorOutline,
+                title = "Could not load Home",
+                message = state.error.toString(),
+            )
+        state.rows.isEmpty() && state.continueWatching.isEmpty() ->
+            Message(
+                icon = Icons.Outlined.Explore,
+                title = "Nothing to show",
+                message = "Install a metadata addon with catalogs to fill this Home.",
+            )
+        else ->
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            ) {
+                if (state.featured.isNotEmpty()) {
+                    Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
+                }
+                if (state.continueWatching.isNotEmpty()) {
+                    SectionHeader(title = "Continue watching")
+                    LazyRow(
+                        modifier = Modifier.height(248.dp),
+                        contentPadding = PaddingValues(horizontal = AppSpacing.xl),
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                    ) {
+                        items(state.continueWatching) { entry ->
+                            ContinueCard(entry) { onOpenDetail(entry.item) }
+                        }
                     }
                 }
-            }
-            state.rows.forEach { row ->
-                SectionHeader(title = row.title, onSeeAll = { onOpenCatalog(row.ref) })
-                LazyRow(
-                    modifier = Modifier.height(332.dp),
-                    contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
-                ) {
-                    items(row.items) { item ->
-                        MetaPosterCard(
-                            preview = item,
-                            width = 180.dp,
-                            watched = item.id in state.watchedIds,
-                            onTap = { onOpenPreview(item) },
-                        )
+                state.rows.forEach { row ->
+                    SectionHeader(title = row.title, onSeeAll = { onOpenCatalog(row.ref) })
+                    LazyRow(
+                        modifier = Modifier.height(332.dp),
+                        contentPadding = PaddingValues(horizontal = AppSpacing.xl),
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                    ) {
+                        items(row.items) { item ->
+                            MetaPosterCard(
+                                preview = item,
+                                width = 180.dp,
+                                watched = item.id in state.watchedIds,
+                                onTap = { onOpenPreview(item) },
+                            )
+                        }
                     }
                 }
+                Spacer(Modifier.height(AppSpacing.xl))
             }
-            Spacer(Modifier.height(AppSpacing.xl))
-        }
     }
 }
 
@@ -177,14 +188,18 @@ private fun Hero(
             ) {
                 items.indices.forEach { index ->
                     Box(
-                        modifier = Modifier
-                            .width(if (index == pagerState.currentPage) 18.dp else 6.dp)
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(
-                                if (index == pagerState.currentPage) AppColors.textPrimary
-                                else AppColors.divider,
-                            ),
+                        modifier =
+                            Modifier
+                                .width(if (index == pagerState.currentPage) 18.dp else 6.dp)
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(
+                                    if (index == pagerState.currentPage) {
+                                        AppColors.textPrimary
+                                    } else {
+                                        AppColors.divider
+                                    },
+                                ),
                     )
                 }
             }
@@ -193,7 +208,11 @@ private fun Hero(
 }
 
 @Composable
-private fun HeroSlide(item: MetaPreview, onOpen: () -> Unit, onPlay: () -> Unit) {
+private fun HeroSlide(
+    item: MetaPreview,
+    onOpen: () -> Unit,
+    onPlay: () -> Unit,
+) {
     val backdrop = item.background ?: item.poster
     Box(Modifier.fillMaxSize()) {
         if (!backdrop.isNullOrEmpty()) {
@@ -235,11 +254,12 @@ private fun HeroSlide(item: MetaPreview, onOpen: () -> Unit, onPlay: () -> Unit)
                     style = MaterialTheme.typography.displaySmall,
                 )
             }
-            val parts = buildList {
-                yearOf(item.releaseInfo)?.let { add(it) }
-                item.imdbRating?.let { add("★ ${round1(it)}") }
-                if (item.genres.isNotEmpty()) add(item.genres.joinToString(", "))
-            }
+            val parts =
+                buildList {
+                    yearOf(item.releaseInfo)?.let { add(it) }
+                    item.imdbRating?.let { add("★ ${round1(it)}") }
+                    if (item.genres.isNotEmpty()) add(item.genres.joinToString(", "))
+                }
             if (parts.isNotEmpty()) {
                 Spacer(Modifier.height(AppSpacing.sm))
                 Text(
@@ -276,21 +296,29 @@ private fun HeroSlide(item: MetaPreview, onOpen: () -> Unit, onPlay: () -> Unit)
 }
 
 @Composable
-private fun ContinueCard(entry: ContinueEntry, onTap: () -> Unit) {
+private fun ContinueCard(
+    entry: ContinueEntry,
+    onTap: () -> Unit,
+) {
     val item = entry.item
     val progress = entry.progress
-    val episode = if (progress.season == null || progress.episode == null) null
-    else "S${progress.season}E${progress.episode}"
+    val episode =
+        if (progress.season == null || progress.episode == null) {
+            null
+        } else {
+            "S${progress.season}E${progress.episode}"
+        }
     val backdrop = item.background ?: item.poster
 
     Column(
         modifier = Modifier.width(336.dp).clickable(onClick = onTap),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 9f)
-                .clip(RoundedCornerShape(AppRadii.md)),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+                    .clip(RoundedCornerShape(AppRadii.md)),
         ) {
             PosterImage(backdrop, Modifier.fillMaxSize())
             progress.fraction?.let { fraction ->
@@ -314,14 +342,18 @@ private fun ContinueCard(entry: ContinueEntry, onTap: () -> Unit) {
 }
 
 @Composable
-internal fun SectionHeader(title: String, onSeeAll: (() -> Unit)? = null) {
+internal fun SectionHeader(
+    title: String,
+    onSeeAll: (() -> Unit)? = null,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(
-            start = AppSpacing.xl,
-            end = AppSpacing.xl,
-            top = AppSpacing.lg,
-            bottom = AppSpacing.md,
-        ),
+        modifier =
+            Modifier.fillMaxWidth().padding(
+                start = AppSpacing.xl,
+                end = AppSpacing.xl,
+                top = AppSpacing.lg,
+                bottom = AppSpacing.md,
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
@@ -334,8 +366,7 @@ internal fun SectionHeader(title: String, onSeeAll: (() -> Unit)? = null) {
     }
 }
 
-private fun yearOf(releaseInfo: String?): String? =
-    Regex("(?:1[89]\\d\\d|20\\d\\d)").find(releaseInfo ?: "")?.value
+private fun yearOf(releaseInfo: String?): String? = Regex("(?:1[89]\\d\\d|20\\d\\d)").find(releaseInfo ?: "")?.value
 
 private fun round1(value: Double): String {
     val scaled = kotlin.math.round(value * 10) / 10.0

@@ -1,5 +1,6 @@
 package com.misgus.agustream
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
@@ -7,6 +8,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.misgus.agustream.core.model.Addon
+import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.data.BackendKind
 import com.misgus.agustream.data.addons.StremioCatalogRepository
 import com.misgus.agustream.data.addons.StremioMetadataRepository
@@ -22,7 +24,6 @@ import com.misgus.agustream.data.store.LocalRatingRepository
 import com.misgus.agustream.player.VlcjPlayerService
 import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
-import kotlinx.coroutines.runBlocking
 
 fun main(args: Array<String>) {
     val environment = System.getenv()
@@ -30,12 +31,13 @@ fun main(args: Array<String>) {
     val httpClient = createHttpClient()
 
     // The composition root: the only place that picks concrete implementations.
-    val backend = createBackend(
-        kind = backendKind,
-        httpClient = httpClient,
-        sessionStore = FileSessionStore(),
-        localAddons = localAddonsFromEnvironment(environment),
-    )
+    val backend =
+        createBackend(
+            kind = backendKind,
+            httpClient = httpClient,
+            sessionStore = FileSessionStore(),
+            localAddons = localAddonsFromEnvironment(environment),
+        )
 
     // One addon list shared by every Stremio repository.
     val addons = backend.addons
@@ -47,30 +49,37 @@ fun main(args: Array<String>) {
     val watchedCache = FileWatchedSeriesCache()
     val player = VlcjPlayerService()
 
-    // Prefer a persisted session; fall back to the development shortcut.
-    val restored = runBlocking { backend.account.restoreSession() }
-    if (!restored) signInFromEnvironment(backend.account, environment)
-
     val initialSource = initialSource(args)
 
     application {
         val windowState = rememberWindowState(width = 1280.dp, height = 720.dp)
         val windowController = remember { ComposeWindowController(windowState) }
-        val services = remember {
-            AppServices(
-                account = backend.account,
-                library = backend.library,
-                progress = backend.progress,
-                metadata = metadata,
-                streams = streams,
-                catalogs = catalogs,
-                subtitles = subtitles,
-                ratings = ratings,
-                watchedCache = watchedCache,
-                player = player,
-                window = windowController,
-                addons = addons,
-            )
+        val services =
+            remember {
+                AppServices(
+                    account = backend.account,
+                    library = backend.library,
+                    progress = backend.progress,
+                    metadata = metadata,
+                    streams = streams,
+                    catalogs = catalogs,
+                    subtitles = subtitles,
+                    ratings = ratings,
+                    watchedCache = watchedCache,
+                    player = player,
+                    window = windowController,
+                    addons = addons,
+                )
+            }
+
+        // Prefer a persisted session; fall back to the development shortcut.
+        // Running it here (not with `runBlocking` before the window exists)
+        // keeps startup responsive and cancellable.
+        LaunchedEffect(Unit) {
+            val restored =
+                runCatchingCancellable { backend.account.restoreSession() }
+                    .getOrDefault(false)
+            if (!restored) signInFromEnvironment(backend.account, environment)
         }
 
         Window(
@@ -94,7 +103,10 @@ fun main(args: Array<String>) {
 }
 
 /** Sets [color] as the background of [component] and its Swing children. */
-private fun applyBackground(component: java.awt.Component, color: java.awt.Color) {
+private fun applyBackground(
+    component: java.awt.Component,
+    color: java.awt.Color,
+) {
     component.background = color
     if (component is java.awt.Container) {
         component.components.forEach { applyBackground(it, color) }
@@ -107,16 +119,14 @@ private fun applyBackground(component: java.awt.Component, color: java.awt.Color
  * Credentials are read from the environment for this run only; they are never
  * written to the repository or to disk.
  */
-private fun signInFromEnvironment(
+private suspend fun signInFromEnvironment(
     account: com.misgus.agustream.core.repository.AccountRepository,
     environment: Map<String, String>,
 ) {
     val email = environment["NUVIO_EMAIL"]
     val password = environment["NUVIO_PASSWORD"]
     if (email.isNullOrEmpty() || password.isNullOrEmpty()) return
-    runBlocking {
-        runCatching { account.signIn(email, password) }
-    }
+    runCatchingCancellable { account.signIn(email, password) }
 }
 
 /** Addons for local mode from `AGUSTREAM_LOCAL_ADDONS`, comma-separated URLs. */
@@ -124,8 +134,11 @@ private fun localAddonsFromEnvironment(environment: Map<String, String>): List<A
     val raw = environment["AGUSTREAM_LOCAL_ADDONS"] ?: return emptyList()
     return raw.split(',').mapNotNull { entry ->
         val url = entry.trim()
-        if (url.isEmpty()) null
-        else Addon(id = url, url = url, name = url.substringAfter("://", url).substringBefore('/'))
+        if (url.isEmpty()) {
+            null
+        } else {
+            Addon(id = url, url = url, name = url.substringAfter("://", url).substringBefore('/'))
+        }
     }
 }
 

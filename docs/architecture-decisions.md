@@ -74,7 +74,16 @@ engine, the filesystem and the player touch platform source sets through
   `data/`, never in the domain.
 - **Local store**: `JsonFileStore`/`JsonMapStore` and the session / ratings /
   watched-series stores. Path resolution is a platform `expect`
-  (`%APPDATA%\Agustream` on Windows, XDG elsewhere).
+  (`%APPDATA%\Agustream` on Windows, XDG elsewhere). Writes go through a
+  sibling temporary file and are renamed into place, so an interrupted write
+  cannot leave a truncated document, and a failed write is reported instead of
+  being swallowed. Read-modify-write cycles in the local repositories are
+  serialized with a `Mutex`. The session file is restricted to the current user
+  where the OS allows it; that is best-effort hardening, not a keychain.
+- **Session renewal**: `NuvioClient` renews the token before a request when it
+  has expired, and once more when the backend answers `401`. Renewals are
+  serialized with a mutex so parallel requests do not refresh twice. Engines are
+  configured with finite connect/request/socket timeouts.
 - **`BackendKind` + `createBackend`** is the single place that knows the
   concrete implementations, replacing the Flutter `backend_factory.dart`.
 
@@ -129,7 +138,10 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
 ## Known differences / limitations
 
 - VLCJ requires VLC to be installed; without it the player reports an error.
-- Android uses a no-op player and a temporary filesystem directory until a
-  native video surface and proper `Context`-based paths are added.
+- Android uses a no-op player until a native video surface is added. The rest
+  of the target is wired: `INTERNET` permission, a `Context`-based app directory
+  and a persisted session. `AppServices.playbackSupported` is `false` for the
+  no-op player, so the UI reports that playback is unavailable instead of
+  opening a player that only errors.
 - The Nuvio addon metadata/edit screens and the Discover/Search/Calendar
   sections are still placeholders, as they were in the Flutter app.

@@ -3,6 +3,7 @@ package com.misgus.agustream.data.store
 import com.misgus.agustream.data.objOrNull
 import com.misgus.agustream.data.platform.configDirectory
 import com.misgus.agustream.data.platform.deleteFile
+import com.misgus.agustream.data.platform.hardenFilePermissions
 import com.misgus.agustream.data.platform.ioDispatcher
 import com.misgus.agustream.data.platform.readTextFile
 import com.misgus.agustream.data.platform.writeTextFile
@@ -26,14 +27,18 @@ object AppPaths {
  */
 interface SessionStore {
     suspend fun read(): JsonObject?
+
     suspend fun write(session: JsonObject)
+
     suspend fun clear()
 }
 
 /** Store that keeps nothing. The session lives only in memory. */
 class NoopSessionStore : SessionStore {
     override suspend fun read(): JsonObject? = null
+
     override suspend fun write(session: JsonObject) = Unit
+
     override suspend fun clear() = Unit
 }
 
@@ -43,19 +48,28 @@ class NoopSessionStore : SessionStore {
  * Failures are swallowed: a corrupted or unreadable file degrades to "no
  * session", which means signing in again, instead of crashing the startup.
  */
-class FileSessionStore(private val path: String = AppPaths.sessionFile) : SessionStore {
-    override suspend fun read(): JsonObject? = withContext(ioDispatcher) {
-        val text = readTextFile(path) ?: return@withContext null
-        runCatching { com.misgus.agustream.data.appJson.parseToJsonElement(text).objOrNull() }
-            .getOrNull()
-    }
+class FileSessionStore(
+    private val path: String = AppPaths.sessionFile,
+) : SessionStore {
+    override suspend fun read(): JsonObject? =
+        withContext(ioDispatcher) {
+            val text = readTextFile(path) ?: return@withContext null
+            runCatching {
+                com.misgus.agustream.data.appJson
+                    .parseToJsonElement(text)
+                    .objOrNull()
+            }.getOrNull()
+        }
 
-    override suspend fun write(session: JsonObject) = withContext(ioDispatcher) {
-        runCatching { writeTextFile(path, session.toString()) }
-        Unit
-    }
+    override suspend fun write(session: JsonObject) =
+        withContext(ioDispatcher) {
+            writeTextFile(path, session.toString())
+            // Restrict the file that holds the refresh token where the OS allows it.
+            hardenFilePermissions(path)
+        }
 
-    override suspend fun clear() = withContext(ioDispatcher) {
-        deleteFile(path)
-    }
+    override suspend fun clear() =
+        withContext(ioDispatcher) {
+            deleteFile(path)
+        }
 }

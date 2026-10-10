@@ -15,10 +15,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Login
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.Login
-import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -32,7 +32,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -45,6 +44,7 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 /**
@@ -57,10 +57,11 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
     val account = LocalAppServices.current.account
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(AppSpacing.xl),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(AppSpacing.xl),
     ) {
         Text("Settings", style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(AppSpacing.lg))
@@ -83,18 +84,19 @@ private fun AccountCard() {
 
     SettingsCard(
         title = "Account",
-        subtitle = if (state.isSignedIn) {
-            "Signed in as ${state.email ?: "your account"}."
-        } else {
-            "Sign in to load your library."
-        },
+        subtitle =
+            if (state.isSignedIn) {
+                "Signed in as ${state.email ?: "your account"}."
+            } else {
+                "Sign in to load your library."
+            },
     ) {
         if (state.isSignedIn) {
             OutlinedButton(
                 onClick = { scope.launch { account.signOut() } },
                 enabled = !busy,
             ) {
-                Icon(Icons.Outlined.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(AppSpacing.sm))
                 Text("Sign out")
             }
@@ -134,6 +136,8 @@ private fun AccountCard() {
                             try {
                                 account.signIn(email.trim(), password)
                                 password = ""
+                            } catch (e: CancellationException) {
+                                throw e
                             } catch (e: BackendException) {
                                 error = e.message
                             } catch (e: Throwable) {
@@ -147,7 +151,7 @@ private fun AccountCard() {
                     if (busy) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.Outlined.Login, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.AutoMirrored.Outlined.Login, contentDescription = null, modifier = Modifier.size(18.dp))
                     }
                     Spacer(Modifier.width(AppSpacing.sm))
                     Text("Sign in")
@@ -207,11 +211,12 @@ private fun SettingsCard(
     content: @Composable () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(AppRadii.lg))
-            .background(AppColors.surface)
-            .padding(AppSpacing.lg),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(AppRadii.lg))
+                .background(AppColors.surface)
+                .padding(AppSpacing.lg),
     ) {
         Text(title, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(AppSpacing.xs))

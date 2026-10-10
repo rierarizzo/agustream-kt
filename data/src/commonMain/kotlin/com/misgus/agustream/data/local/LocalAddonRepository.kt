@@ -8,6 +8,8 @@ import com.misgus.agustream.core.repository.AddonRepository
  *
  * There is no addon management UI yet, so the list comes from the composition.
  */
-class LocalAddonRepository(private val addons: List<Addon>) : AddonRepository {
+class LocalAddonRepository(
+    private val addons: List<Addon>,
+) : AddonRepository {
     override suspend fun all(): List<Addon> = addons
 }

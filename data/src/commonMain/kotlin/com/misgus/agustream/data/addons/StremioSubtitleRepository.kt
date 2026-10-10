@@ -4,6 +4,7 @@ import com.misgus.agustream.core.model.Addon
 import com.misgus.agustream.core.model.Subtitle
 import com.misgus.agustream.core.repository.AddonRepository
 import com.misgus.agustream.core.repository.SubtitleRepository
+import com.misgus.agustream.core.util.runCatchingCancellable
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -21,12 +22,16 @@ class StremioSubtitleRepository(
 ) : SubtitleRepository {
     private val clients = mutableMapOf<String, StremioAddonClient>()
 
-    override suspend fun all(type: String, id: String): List<Subtitle> {
-        val installed: List<Addon> = runCatching { addons.all() }.getOrDefault(emptyList())
+    override suspend fun all(
+        type: String,
+        id: String,
+    ): List<Subtitle> {
+        val installed: List<Addon> = runCatchingCancellable { addons.all() }.getOrDefault(emptyList())
         if (installed.isEmpty()) return emptyList()
-        val lists = coroutineScope {
-            installed.map { addon -> async { subtitlesFor(addon, type, id) } }.awaitAll()
-        }
+        val lists =
+            coroutineScope {
+                installed.map { addon -> async { subtitlesFor(addon, type, id) } }.awaitAll()
+            }
         val seen = mutableSetOf<String>()
         val result = mutableListOf<Subtitle>()
         for (list in lists) {
@@ -38,17 +43,22 @@ class StremioSubtitleRepository(
         return result
     }
 
-    private suspend fun subtitlesFor(addon: Addon, type: String, id: String): List<Subtitle> {
+    private suspend fun subtitlesFor(
+        addon: Addon,
+        type: String,
+        id: String,
+    ): List<Subtitle> {
         val baseUrl = normalizeAddonBaseUrl(addon.url)
         if (baseUrl.isEmpty()) return emptyList()
         return try {
             val name = addon.name ?: hostOf(baseUrl)
             clientFor(baseUrl).fetchSubtitles(type, id).map { it.withAddon(name) }
+        } catch (cancellation: kotlinx.coroutines.CancellationException) {
+            throw cancellation
         } catch (_: Exception) {
             emptyList()
         }
     }
 
-    private fun clientFor(baseUrl: String): StremioAddonClient =
-        clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
+    private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
 }

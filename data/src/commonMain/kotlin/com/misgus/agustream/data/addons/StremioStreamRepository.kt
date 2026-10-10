@@ -4,6 +4,7 @@ import com.misgus.agustream.core.model.Addon
 import com.misgus.agustream.core.repository.AddonRepository
 import com.misgus.agustream.core.repository.StreamGroup
 import com.misgus.agustream.core.repository.StreamRepository
+import com.misgus.agustream.core.util.runCatchingCancellable
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -22,31 +23,42 @@ class StremioStreamRepository(
 ) : StreamRepository {
     private val clients = mutableMapOf<String, StremioAddonClient>()
 
-    override suspend fun all(type: String, id: String): List<StreamGroup> {
-        val installed: List<Addon> = runCatching { addons.all() }.getOrDefault(emptyList())
+    override suspend fun all(
+        type: String,
+        id: String,
+    ): List<StreamGroup> {
+        val installed: List<Addon> = runCatchingCancellable { addons.all() }.getOrDefault(emptyList())
         if (installed.isEmpty()) return emptyList()
-        val groups = coroutineScope {
-            installed.map { addon -> async { streamsFor(addon, type, id) } }.awaitAll()
-        }
+        val groups =
+            coroutineScope {
+                installed.map { addon -> async { streamsFor(addon, type, id) } }.awaitAll()
+            }
         return groups.filterNotNull()
     }
 
-    private suspend fun streamsFor(addon: Addon, type: String, id: String): StreamGroup? {
+    private suspend fun streamsFor(
+        addon: Addon,
+        type: String,
+        id: String,
+    ): StreamGroup? {
         val baseUrl = normalizeAddonBaseUrl(addon.url)
         if (baseUrl.isEmpty()) return null
         return try {
             val streams = clientFor(baseUrl).fetchStreams(type, id)
-            if (streams.isEmpty()) null
-            else StreamGroup(addonName = addon.name ?: hostOf(baseUrl), streams = streams)
+            if (streams.isEmpty()) {
+                null
+            } else {
+                StreamGroup(addonName = addon.name ?: hostOf(baseUrl), streams = streams)
+            }
+        } catch (cancellation: kotlinx.coroutines.CancellationException) {
+            throw cancellation
         } catch (_: Exception) {
             // A streams-less or unreachable addon is skipped.
             null
         }
     }
 
-    private fun clientFor(baseUrl: String): StremioAddonClient =
-        clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
+    private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
 }
 
-internal fun hostOf(url: String): String =
-    url.substringAfter("://", url).substringBefore('/').substringBefore(':')
+internal fun hostOf(url: String): String = url.substringAfter("://", url).substringBefore('/').substringBefore(':')

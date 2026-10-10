@@ -5,13 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class LibraryItemTest {
-    private fun item(releaseInfo: String?) = LibraryItem(
-        id = "1",
-        contentId = "tt1",
-        contentType = "movie",
-        name = "Movie",
-        releaseInfo = releaseInfo,
-    )
+    private fun item(releaseInfo: String?) =
+        LibraryItem(
+            id = "1",
+            contentId = "tt1",
+            contentType = "movie",
+            name = "Movie",
+            releaseInfo = releaseInfo,
+        )
 
     @Test
     fun parsesSingleYear() {
@@ -31,13 +32,14 @@ class LibraryItemTest {
 
     @Test
     fun buildsFromPreview() {
-        val preview = MetaPreview(
-            id = "tt2",
-            type = "series",
-            name = "Show",
-            poster = "p",
-            genres = listOf("Drama"),
-        )
+        val preview =
+            MetaPreview(
+                id = "tt2",
+                type = "series",
+                name = "Show",
+                poster = "p",
+                genres = listOf("Drama"),
+            )
         val built = LibraryItem.fromPreview(preview)
         assertEquals("tt2", built.contentId)
         assertEquals("series", built.contentType)

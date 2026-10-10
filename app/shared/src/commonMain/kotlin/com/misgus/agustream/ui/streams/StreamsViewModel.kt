@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.misgus.agustream.core.model.Stream
 import com.misgus.agustream.core.repository.StreamGroup
 import com.misgus.agustream.core.repository.StreamRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +13,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** One stream flattened with the addon that produced it. */
-data class StreamEntry(val stream: Stream, val addonName: String)
+data class StreamEntry(
+    val stream: Stream,
+    val addonName: String,
+)
 
 /** Immutable state of the stream picker. */
 data class StreamsUiState(
@@ -25,9 +29,10 @@ data class StreamsUiState(
     /** Every stream, filtered by [query] against name, description, title and addon. */
     val entries: List<StreamEntry>
         get() {
-            val all = groups.flatMap { group ->
-                group.streams.map { StreamEntry(it, group.addonName) }
-            }
+            val all =
+                groups.flatMap { group ->
+                    group.streams.map { StreamEntry(it, group.addonName) }
+                }
             if (query.isEmpty()) return all
             val q = query.lowercase()
             return all.filter { entry ->
@@ -61,6 +66,8 @@ class StreamsViewModel(
             try {
                 val groups = streams.all(type, id)
                 _state.update { it.copy(isLoading = false, hasLoaded = true, groups = groups) }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (error: Throwable) {
                 _state.update { it.copy(isLoading = false, error = error) }
             }

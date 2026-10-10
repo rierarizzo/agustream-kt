@@ -21,9 +21,13 @@ data class AddonManifest(
     val catalogs: List<AddonCatalog> = emptyList(),
 ) {
     /** Whether the addon declares [resource] (e.g. `stream`) for [type]. */
-    fun supports(resource: String, type: String): Boolean = resources.any { candidate ->
-        candidate.name == resource && (candidate.types.isEmpty() || type in candidate.types)
-    }
+    fun supports(
+        resource: String,
+        type: String,
+    ): Boolean =
+        resources.any { candidate ->
+            candidate.name == resource && (candidate.types.isEmpty() || type in candidate.types)
+        }
 }
 
 /**

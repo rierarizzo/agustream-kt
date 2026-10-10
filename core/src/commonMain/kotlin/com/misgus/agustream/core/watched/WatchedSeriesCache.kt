@@ -18,18 +18,44 @@ data class CachedSeriesState(
  * synced through the account backend.
  */
 interface WatchedSeriesCache {
-    suspend fun read(profileKey: String, seriesId: String): CachedSeriesState?
-    suspend fun write(profileKey: String, seriesId: String, state: CachedSeriesState)
+    suspend fun read(
+        profileKey: String,
+        seriesId: String,
+    ): CachedSeriesState?
+
+    suspend fun write(
+        profileKey: String,
+        seriesId: String,
+        state: CachedSeriesState,
+    )
+
     /** Stores several series at once, so a resolve can persist in one write. */
-    suspend fun writeAll(profileKey: String, states: Map<String, CachedSeriesState>)
+    suspend fun writeAll(
+        profileKey: String,
+        states: Map<String, CachedSeriesState>,
+    )
+
     /** Forgets every series of [profileKey]. */
     suspend fun clear(profileKey: String)
 }
 
 /** Cache that remembers nothing: every resolve recomputes. */
 class NoopWatchedSeriesCache : WatchedSeriesCache {
-    override suspend fun read(profileKey: String, seriesId: String): CachedSeriesState? = null
-    override suspend fun write(profileKey: String, seriesId: String, state: CachedSeriesState) = Unit
-    override suspend fun writeAll(profileKey: String, states: Map<String, CachedSeriesState>) = Unit
+    override suspend fun read(
+        profileKey: String,
+        seriesId: String,
+    ): CachedSeriesState? = null
+
+    override suspend fun write(
+        profileKey: String,
+        seriesId: String,
+        state: CachedSeriesState,
+    ) = Unit
+
+    override suspend fun writeAll(
+        profileKey: String,
+        states: Map<String, CachedSeriesState>,
+    ) = Unit
+
     override suspend fun clear(profileKey: String) = Unit
 }

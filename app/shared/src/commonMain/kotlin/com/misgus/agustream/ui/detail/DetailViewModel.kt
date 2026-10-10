@@ -8,6 +8,8 @@ import com.misgus.agustream.core.model.MetaPerson
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.model.MetaVideo
 import com.misgus.agustream.core.repository.MetadataRepository
+import com.misgus.agustream.core.util.runCatchingCancellable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,12 +58,15 @@ class DetailViewModel(
         if (_state.value.isLoading || (_state.value.hasLoaded && !force)) return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            val meta = try {
-                metadata.detail(item.contentType, item.contentId)
-            } catch (error: Throwable) {
-                _state.update { it.copy(isLoading = false, hasLoaded = true, error = error) }
-                return@launch
-            }
+            val meta =
+                try {
+                    metadata.detail(item.contentType, item.contentId)
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (error: Throwable) {
+                    _state.update { it.copy(isLoading = false, hasLoaded = true, error = error) }
+                    return@launch
+                }
             _state.value = merge(meta)
             loadSimilar(meta)
         }
@@ -69,21 +74,25 @@ class DetailViewModel(
 
     private suspend fun loadSimilar(meta: MetaDetail?) {
         if (meta == null) return
-        val similar = runCatching {
-            metadata.similar(
-                type = item.contentType,
-                id = item.contentId,
-                genre = meta.genres.firstOrNull(),
-            )
-        }.getOrDefault(emptyList())
+        val similar =
+            runCatchingCancellable {
+                metadata.similar(
+                    type = item.contentType,
+                    id = item.contentId,
+                    genre = meta.genres.firstOrNull(),
+                )
+            }.getOrDefault(emptyList())
         _state.update { it.copy(similar = similar) }
     }
 
     private fun merge(meta: MetaDetail?): DetailUiState {
         val cast = meta?.cast ?: emptyList()
         val crew = buildCrew(meta)
-        val year = YEAR_PATTERN.find((meta?.releaseInfo ?: item.releaseInfo) ?: "")
-            ?.value?.toIntOrNull()
+        val year =
+            YEAR_PATTERN
+                .find((meta?.releaseInfo ?: item.releaseInfo) ?: "")
+                ?.value
+                ?.toIntOrNull()
         return DetailUiState(
             isLoading = false,
             hasLoaded = true,

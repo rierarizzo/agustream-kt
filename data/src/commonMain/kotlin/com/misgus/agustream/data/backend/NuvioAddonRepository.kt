@@ -16,13 +16,16 @@ class NuvioAddonRepository(
     private val account: AccountRepository,
 ) : AddonRepository {
     override suspend fun all(): List<Addon> {
-        val profileId = account.state.value.activeProfile?.profileId
-            ?: throw BackendException("No profile selected")
-        val rows = client.select(
-            "addons",
-            order = "sort_order.asc",
-            filter = "profile_id=eq.$profileId&enabled=is.true",
-        )
+        val profileId =
+            account.state.value.activeProfile
+                ?.profileId
+                ?: throw BackendException("No profile selected")
+        val rows =
+            client.select(
+                "addons",
+                order = "sort_order.asc",
+                filter = "profile_id=eq.$profileId&enabled=is.true",
+            )
         return rows.map(::addonFromRow)
     }
 }

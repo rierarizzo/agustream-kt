@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Nuvio (account, library, progress) and the Stremio addons are remote. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"

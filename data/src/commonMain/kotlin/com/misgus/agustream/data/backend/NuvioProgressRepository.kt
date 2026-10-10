@@ -26,11 +26,12 @@ class NuvioProgressRepository(
     override val changes: StateFlow<Long> = _changes.asStateFlow()
 
     override suspend fun all(): List<WatchProgress> {
-        val rows = client.select(
-            "watch_progress",
-            order = "last_watched.desc",
-            filter = "profile_id=eq.${requireProfileId()}",
-        )
+        val rows =
+            client.select(
+                "watch_progress",
+                order = "last_watched.desc",
+                filter = "profile_id=eq.${requireProfileId()}",
+            )
         return rows.map(::watchProgressFromRow)
     }
 
@@ -62,10 +63,11 @@ class NuvioProgressRepository(
         val profileId = requireProfileId()
         val entries = mutableListOf<WatchedEntry>()
         for (chunk in ids.chunked(CHUNK_SIZE)) {
-            val rows = client.select(
-                "watched_items",
-                filter = "profile_id=eq.$profileId&content_id=in.(${chunk.joinToString(",")})",
-            )
+            val rows =
+                client.select(
+                    "watched_items",
+                    filter = "profile_id=eq.$profileId&content_id=in.(${chunk.joinToString(",") { postgrestLiteral(it) }})",
+                )
             entries += rows.map(::watchedEntryFromRow)
         }
         return entries
@@ -78,13 +80,14 @@ class NuvioProgressRepository(
         episode: Int?,
     ) {
         val profileId = requireProfileId()
-        val item = buildMap<String, kotlinx.serialization.json.JsonElement> {
-            put("content_id", JsonPrimitive(contentId))
-            put("content_type", JsonPrimitive(contentType))
-            put("watched_at", JsonPrimitive(Clock.System.now().toEpochMilliseconds()))
-            season?.let { put("season", JsonPrimitive(it)) }
-            episode?.let { put("episode", JsonPrimitive(it)) }
-        }
+        val item =
+            buildMap<String, kotlinx.serialization.json.JsonElement> {
+                put("content_id", JsonPrimitive(contentId))
+                put("content_type", JsonPrimitive(contentType))
+                put("watched_at", JsonPrimitive(Clock.System.now().toEpochMilliseconds()))
+                season?.let { put("season", JsonPrimitive(it)) }
+                episode?.let { put("episode", JsonPrimitive(it)) }
+            }
         client.callRpc(
             "sync_push_watched_items",
             JsonObject(
@@ -97,13 +100,18 @@ class NuvioProgressRepository(
         _changes.value += 1
     }
 
-    override suspend fun unmarkWatched(contentId: String, season: Int?, episode: Int?) {
+    override suspend fun unmarkWatched(
+        contentId: String,
+        season: Int?,
+        episode: Int?,
+    ) {
         val profileId = requireProfileId()
-        val key = buildMap<String, kotlinx.serialization.json.JsonElement> {
-            put("content_id", JsonPrimitive(contentId))
-            season?.let { put("season", JsonPrimitive(it)) }
-            episode?.let { put("episode", JsonPrimitive(it)) }
-        }
+        val key =
+            buildMap<String, kotlinx.serialization.json.JsonElement> {
+                put("content_id", JsonPrimitive(contentId))
+                season?.let { put("season", JsonPrimitive(it)) }
+                episode?.let { put("episode", JsonPrimitive(it)) }
+            }
         client.callRpc(
             "sync_delete_watched_items",
             JsonObject(
@@ -116,8 +124,10 @@ class NuvioProgressRepository(
         _changes.value += 1
     }
 
-    private fun requireProfileId(): Int = account.state.value.activeProfile?.profileId
-        ?: throw BackendException("No profile selected")
+    private fun requireProfileId(): Int =
+        account.state.value.activeProfile
+            ?.profileId
+            ?: throw BackendException("No profile selected")
 
     private companion object {
         const val CHUNK_SIZE = 40

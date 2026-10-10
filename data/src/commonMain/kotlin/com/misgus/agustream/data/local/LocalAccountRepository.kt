@@ -14,14 +14,22 @@ import kotlinx.coroutines.flow.asStateFlow
  * `requiresProfile` is `false`, so the app never shows the profile picker.
  */
 class LocalAccountRepository : AccountRepository {
-    private val _state = MutableStateFlow(
-        AccountState(isSignedIn = true, requiresProfile = false),
-    )
+    private val _state =
+        MutableStateFlow(
+            AccountState(isSignedIn = true, requiresProfile = false),
+        )
     override val state: StateFlow<AccountState> = _state.asStateFlow()
 
-    override suspend fun signIn(email: String, password: String) = Unit
+    override suspend fun signIn(
+        email: String,
+        password: String,
+    ) = Unit
+
     override suspend fun restoreSession(): Boolean = true
+
     override suspend fun signOut() = Unit
+
     override suspend fun loadProfiles() = Unit
+
     override suspend fun selectProfile(profile: BackendProfile) = Unit
 }

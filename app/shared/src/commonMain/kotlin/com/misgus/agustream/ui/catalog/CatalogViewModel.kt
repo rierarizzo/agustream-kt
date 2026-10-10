@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.repository.CatalogRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,6 +45,8 @@ class CatalogViewModel(
                         isLoading = false,
                     )
                 }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (error: Throwable) {
                 _state.update { it.copy(isLoading = false, error = error) }
             }
@@ -66,9 +69,14 @@ class CatalogViewModel(
                 val seen = current.items.map { it.id }.toMutableSet()
                 val fresh = page.filter { seen.add(it.id) }
                 _state.update {
-                    if (fresh.isEmpty()) it.copy(isLoadingMore = false, hasMore = false)
-                    else it.copy(items = it.items + fresh, isLoadingMore = false)
+                    if (fresh.isEmpty()) {
+                        it.copy(isLoadingMore = false, hasMore = false)
+                    } else {
+                        it.copy(items = it.items + fresh, isLoadingMore = false)
+                    }
                 }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
             } catch (_: Throwable) {
                 _state.update { it.copy(isLoadingMore = false, hasMore = false) }
             }

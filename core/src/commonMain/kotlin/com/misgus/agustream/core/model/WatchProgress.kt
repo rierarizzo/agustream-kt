@@ -1,7 +1,7 @@
 package com.misgus.agustream.core.model
 
-import kotlin.time.Instant
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 /** Playback progress for one title or episode. */
 data class WatchProgress(

@@ -77,7 +77,17 @@ fun AppShell() {
                             ContentArea(
                                 selected = selected,
                                 navigator = navigator,
-                                onOpenStreams = { streamsRequest = it },
+                                onOpenStreams = { request ->
+                                    if (services.playbackSupported) {
+                                        streamsRequest = request
+                                    } else {
+                                        scope.launch {
+                                            snackbarHost.showSnackbar(
+                                                "Playback is not available on this target yet.",
+                                            )
+                                        }
+                                    }
+                                },
                             )
                         }
                     }

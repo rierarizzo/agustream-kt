@@ -1,23 +1,29 @@
 package com.misgus.agustream.data.backend
 
 import com.misgus.agustream.core.BackendException
+import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.data.appJson
 import com.misgus.agustream.data.arrOrNull
 import com.misgus.agustream.data.objOrNull
-import com.misgus.agustream.data.stringOrNull
 import com.misgus.agustream.data.store.NoopSessionStore
 import com.misgus.agustream.data.store.SessionStore
+import com.misgus.agustream.data.stringOrNull
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.readRawBytes
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * HTTP transport for a Nuvio backend.
@@ -33,6 +39,10 @@ import kotlinx.serialization.json.JsonObject
  * It owns the transport state (the discovery document and the session) and is
  * shared by the repositories, which are split by capability. Row-level security
  * on the backend scopes every read to the signed-in user.
+ *
+ * The session is renewed both when it is already expired before a request and
+ * once when a request is answered with `401`, so a long-running app does not
+ * keep sending a stale token.
  */
 class NuvioClient(
     baseUrl: String = DEFAULT_BASE_URL,
@@ -45,6 +55,9 @@ class NuvioClient(
     var session: BackendSession? = null
         private set
 
+    /** Serializes renewals so parallel requests do not refresh the token twice. */
+    private val refreshMutex = Mutex()
+
     /** Fetches `<baseUrl>/.well-known/nuvio` and remembers the result. */
     suspend fun discover(): BackendConnection {
         val json = request("GET", "$baseUrl/.well-known/nuvio")
@@ -53,14 +66,18 @@ class NuvioClient(
     }
 
     /** Signs in with email + password and remembers (and persists) the session. */
-    suspend fun signIn(email: String, password: String): BackendSession {
+    suspend fun signIn(
+        email: String,
+        password: String,
+    ): BackendSession {
         ensureDiscovered()
-        val body = JsonObject(
-            mapOf(
-                "email" to kotlinx.serialization.json.JsonPrimitive(email),
-                "password" to kotlinx.serialization.json.JsonPrimitive(password),
-            ),
-        )
+        val body =
+            JsonObject(
+                mapOf(
+                    "email" to JsonPrimitive(email),
+                    "password" to JsonPrimitive(password),
+                ),
+            )
         val json = request("POST", "$baseUrl/auth/v1/token?grant_type=password", body = body)
         val obj = json.objOrNull() ?: throw BackendException("Unexpected sign-in response")
         val parsed = BackendSession.fromJson(obj)
@@ -73,16 +90,15 @@ class NuvioClient(
      * Restores a persisted session, renewing it when it has expired.
      *
      * A missing, corrupt or unrenewable session is cleared and reported as
-     * `false`.
+     * `false`. Cancellation is never converted into a `false` result.
      */
     suspend fun restoreSession(): Boolean {
         val stored = store.read() ?: return false
-        val parsed = try {
-            BackendSession.fromJson(stored)
-        } catch (_: Exception) {
-            store.clear()
-            return false
-        }
+        val parsed =
+            runCatchingCancellable { BackendSession.fromJson(stored) }.getOrElse {
+                store.clear()
+                return false
+            }
         if (parsed.accessToken.isEmpty() || parsed.refreshToken.isEmpty()) {
             store.clear()
             return false
@@ -90,16 +106,16 @@ class NuvioClient(
 
         var current = parsed
         if (current.isExpired) {
-            try {
-                ensureDiscovered()
-            } catch (_: Exception) {
+            val renewed =
+                runCatchingCancellable {
+                    ensureDiscovered()
+                    refreshSession(current)
+                }.getOrNull()
+            if (renewed == null) {
                 store.clear()
                 return false
             }
-            current = refreshSession(current) ?: run {
-                store.clear()
-                return false
-            }
+            current = renewed
         }
 
         session = current
@@ -113,7 +129,7 @@ class NuvioClient(
         session = null
         store.clear()
         if (current == null) return
-        runCatching {
+        runCatchingCancellable {
             http.post("$baseUrl/auth/v1/logout") {
                 header("apikey", connection?.publishableKey ?: "")
                 header("Authorization", "Bearer ${current.accessToken}")
@@ -125,25 +141,34 @@ class NuvioClient(
      * Runs a PostgREST read on [table].
      *
      * [order] and [filter] are passed through as-is, e.g. `added_at.desc` and
-     * `profile_id=eq.1`.
+     * `profile_id=eq.1`. Callers must escape user-supplied values in [filter]
+     * (see `postgrestLiteral`).
      */
-    suspend fun select(table: String, order: String? = null, filter: String? = null): List<JsonObject> {
+    suspend fun select(
+        table: String,
+        order: String? = null,
+        filter: String? = null,
+    ): List<JsonObject> {
         ensureDiscovered()
-        val token = requireSession().accessToken
-        val query = buildString {
-            append("?select=*")
-            order?.let { append("&order=$it") }
-            filter?.let { append("&$it") }
-        }
+        val token = accessToken()
+        val query =
+            buildString {
+                append("?select=*")
+                order?.let { append("&order=$it") }
+                filter?.let { append("&$it") }
+            }
         val json = request("GET", "$baseUrl/rest/v1/$table$query", token = token)
         val array = json.arrOrNull() ?: throw BackendException("Expected a JSON array from $table")
         return array.mapNotNull { it.objOrNull() }
     }
 
     /** Inserts [row] into [table] (PostgREST `POST`, `return=minimal`). */
-    suspend fun insert(table: String, row: JsonObject) {
+    suspend fun insert(
+        table: String,
+        row: JsonObject,
+    ) {
         ensureDiscovered()
-        val token = requireSession().accessToken
+        val token = accessToken()
         request(
             "POST",
             "$baseUrl/rest/v1/$table",
@@ -154,9 +179,12 @@ class NuvioClient(
     }
 
     /** Calls a PostgREST RPC (`POST /rest/v1/rpc/<name>`) and ignores the result. */
-    suspend fun callRpc(name: String, params: JsonObject) {
+    suspend fun callRpc(
+        name: String,
+        params: JsonObject,
+    ) {
         ensureDiscovered()
-        val token = requireSession().accessToken
+        val token = accessToken()
         request(
             "POST",
             "$baseUrl/rest/v1/rpc/$name",
@@ -167,9 +195,12 @@ class NuvioClient(
     }
 
     /** Deletes the rows of [table] matching the PostgREST [filter]. */
-    suspend fun delete(table: String, filter: String) {
+    suspend fun delete(
+        table: String,
+        filter: String,
+    ) {
         ensureDiscovered()
-        val token = requireSession().accessToken
+        val token = accessToken()
         request(
             "DELETE",
             "$baseUrl/rest/v1/$table?$filter",
@@ -182,32 +213,72 @@ class NuvioClient(
         http.close()
     }
 
-    private fun requireSession(): BackendSession =
-        session ?: throw BackendException("Not signed in")
+    /** Current access token, renewing the session first when it has expired. */
+    private suspend fun accessToken(): String {
+        ensureFreshSession()
+        return requireSession().accessToken
+    }
+
+    private fun requireSession(): BackendSession = session ?: throw BackendException("Not signed in")
 
     private suspend fun ensureDiscovered() {
         if (connection == null) discover()
     }
 
-    /** Exchanges [current]'s refresh token for a new session. */
-    private suspend fun refreshSession(current: BackendSession): BackendSession? = try {
-        val body = JsonObject(
-            mapOf("refresh_token" to kotlinx.serialization.json.JsonPrimitive(current.refreshToken)),
-        )
-        val json = request("POST", "$baseUrl/auth/v1/token?grant_type=refresh_token", body = body)
-        val refreshed = json.objOrNull()?.let(BackendSession::fromJson)
-        when {
-            refreshed == null || refreshed.accessToken.isEmpty() -> null
-            refreshed.userId.isNotEmpty() -> refreshed
-            else -> refreshed.copy(
-                refreshToken = refreshed.refreshToken.ifEmpty { current.refreshToken },
-                userId = current.userId,
-                email = refreshed.email ?: current.email,
-            )
-        }
-    } catch (_: Exception) {
-        null
+    /** Renews [session] in the background when its access token has expired. */
+    private suspend fun ensureFreshSession() {
+        val current = session ?: return
+        if (!current.isExpired) return
+        refreshCurrentSession(force = false)
     }
+
+    /**
+     * Exchanges the current refresh token for a new session.
+     *
+     * [force] renews even when the access token is not known to be expired,
+     * which is what a `401` response triggers. A failed renewal drops the
+     * session so the next call reports "Not signed in" instead of looping.
+     */
+    private suspend fun refreshCurrentSession(force: Boolean) {
+        refreshMutex.withLock {
+            val current = session ?: return
+            if (!force && !current.isExpired) return
+            ensureDiscovered()
+            val refreshed =
+                refreshSession(current) ?: run {
+                    session = null
+                    store.clear()
+                    return
+                }
+            session = refreshed
+            store.write(refreshed.toJson())
+        }
+    }
+
+    /** Exchanges [current]'s refresh token for a new session. */
+    private suspend fun refreshSession(current: BackendSession): BackendSession? =
+        try {
+            val body =
+                JsonObject(
+                    mapOf("refresh_token" to JsonPrimitive(current.refreshToken)),
+                )
+            val json = request("POST", "$baseUrl/auth/v1/token?grant_type=refresh_token", body = body)
+            val refreshed = json.objOrNull()?.let(BackendSession::fromJson)
+            when {
+                refreshed == null || refreshed.accessToken.isEmpty() -> null
+                refreshed.userId.isNotEmpty() -> refreshed
+                else ->
+                    refreshed.copy(
+                        refreshToken = refreshed.refreshToken.ifEmpty { current.refreshToken },
+                        userId = current.userId,
+                        email = refreshed.email ?: current.email,
+                    )
+            }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
+            null
+        }
 
     private suspend fun request(
         method: String,
@@ -215,36 +286,21 @@ class NuvioClient(
         body: JsonElement? = null,
         token: String? = null,
         extraHeaders: Map<String, String> = emptyMap(),
+        allowRetry: Boolean = true,
     ): JsonElement? {
-        val apiKey = connection?.publishableKey
-        val response = try {
-            when (method) {
-                "GET" -> http.get(url) {
-                    header("Accept", "application/json")
-                    if (!apiKey.isNullOrEmpty()) header("apikey", apiKey)
-                    token?.let { header("Authorization", "Bearer $it") }
-                    extraHeaders.forEach { (k, v) -> header(k, v) }
-                }
-                "POST" -> http.post(url) {
-                    header("Accept", "application/json")
-                    if (!apiKey.isNullOrEmpty()) header("apikey", apiKey)
-                    token?.let { header("Authorization", "Bearer $it") }
-                    extraHeaders.forEach { (k, v) -> header(k, v) }
-                    if (body != null) {
-                        contentType(ContentType.Application.Json)
-                        setBody(body.toString())
-                    }
-                }
-                "DELETE" -> http.delete(url) {
-                    header("Accept", "application/json")
-                    if (!apiKey.isNullOrEmpty()) header("apikey", apiKey)
-                    token?.let { header("Authorization", "Bearer $it") }
-                    extraHeaders.forEach { (k, v) -> header(k, v) }
-                }
-                else -> throw IllegalArgumentException("Unsupported method: $method")
+        val response = performRequest(method, url, body, token, extraHeaders)
+
+        // A token can be rejected while still looking valid (clock skew, revoked
+        // session). Renew once and retry with the new token.
+        if (response.status.value == 401 && token != null && allowRetry) {
+            val renewed =
+                runCatchingCancellable {
+                    refreshCurrentSession(force = true)
+                    session?.accessToken
+                }.getOrNull()
+            if (!renewed.isNullOrEmpty() && renewed != token) {
+                return request(method, url, body, renewed, extraHeaders, allowRetry = false)
             }
-        } catch (error: Exception) {
-            throw BackendException("Request to $url failed", cause = error)
         }
 
         if (response.status.value !in 200..299) {
@@ -265,14 +321,60 @@ class NuvioClient(
         }
     }
 
-    /** Extracts a human-readable message from a Supabase error body. */
-    private fun errorMessage(text: String): String? = runCatching {
-        val decoded = appJson.parseToJsonElement(text).objOrNull()
-        decoded?.let { obj ->
-            listOf("msg", "error_description", "message", "error")
-                .firstNotNullOfOrNull { obj[it].stringOrNull()?.takeIf { value -> value.isNotEmpty() } }
+    /** Runs one HTTP call, translating transport failures but not cancellation. */
+    private suspend fun performRequest(
+        method: String,
+        url: String,
+        body: JsonElement?,
+        token: String?,
+        extraHeaders: Map<String, String>,
+    ): HttpResponse {
+        val apiKey = connection?.publishableKey
+        return try {
+            when (method) {
+                "GET" ->
+                    http.get(url) {
+                        header("Accept", "application/json")
+                        if (!apiKey.isNullOrEmpty()) header("apikey", apiKey)
+                        token?.let { header("Authorization", "Bearer $it") }
+                        extraHeaders.forEach { (k, v) -> header(k, v) }
+                    }
+                "POST" ->
+                    http.post(url) {
+                        header("Accept", "application/json")
+                        if (!apiKey.isNullOrEmpty()) header("apikey", apiKey)
+                        token?.let { header("Authorization", "Bearer $it") }
+                        extraHeaders.forEach { (k, v) -> header(k, v) }
+                        if (body != null) {
+                            contentType(ContentType.Application.Json)
+                            setBody(body.toString())
+                        }
+                    }
+                "DELETE" ->
+                    http.delete(url) {
+                        header("Accept", "application/json")
+                        if (!apiKey.isNullOrEmpty()) header("apikey", apiKey)
+                        token?.let { header("Authorization", "Bearer $it") }
+                        extraHeaders.forEach { (k, v) -> header(k, v) }
+                    }
+                else -> throw IllegalArgumentException("Unsupported method: $method")
+            }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Exception) {
+            throw BackendException("Request to $url failed", cause = error)
         }
-    }.getOrNull()
+    }
+
+    /** Extracts a human-readable message from a Supabase error body. */
+    private fun errorMessage(text: String): String? =
+        runCatching {
+            val decoded = appJson.parseToJsonElement(text).objOrNull()
+            decoded?.let { obj ->
+                listOf("msg", "error_description", "message", "error")
+                    .firstNotNullOfOrNull { obj[it].stringOrNull()?.takeIf { value -> value.isNotEmpty() } }
+            }
+        }.getOrNull()
 
     companion object {
         /** Official Nuvio-hosted backend. */
