@@ -1,0 +1,62 @@
+# Agustream
+
+A desktop client for Windows 11 (and Linux later) that connects to the **Nuvio**
+backend, is compatible with the **Stremio addon protocol**, and plays with
+**libmpv**. Complementary to Nuvio, not a replacement.
+
+This repository is the **Compose Multiplatform** implementation, migrated from
+the original Flutter app. Desktop is the only target wired up end to end for
+now; the shared code is multiplatform and the Android app compiles against it.
+
+## Stack
+
+| Layer | Technology |
+| --- | --- |
+| UI | Compose Multiplatform + Material 3, IBM Plex Sans |
+| State | `androidx.lifecycle` ViewModel + `StateFlow` |
+| HTTP | Ktor client (CIO on desktop, OkHttp on Android) |
+| JSON | kotlinx.serialization (defensive `JsonElement` parsing) |
+| Images | Coil 3 |
+| Playback | libvlc through VLCJ (desktop), isolated behind `PlayerService` |
+| Accounts/sync | Nuvio API (Supabase) |
+| Sources | Stremio addons (HTTP/JSON) |
+
+## Modules
+
+```
+app/desktopApp   composition root: window, VLCJ player, main()
+app/androidApp   Android composition root
+app/shared       Compose UI and ViewModels
+core             pure domain: models, repository contracts, watched rules
+data             Stremio, Nuvio and local implementations
+```
+
+The dependency direction is `ui -> domain` and `data -> domain`; only the
+composition roots reference `data`. See
+[`docs/architecture-decisions.md`](docs/architecture-decisions.md) for the full
+decision record.
+
+## Running
+
+- Desktop: `./gradlew :app:desktopApp:run`
+- Android: `./gradlew :app:androidApp:assembleDebug`
+
+Development shortcuts (environment variables, read for the run only):
+
+- `AGUSTREAM_BACKEND=local` runs everything on this machine with no account.
+- `AGUSTREAM_LOCAL_ADDONS=<manifest-url>[,<manifest-url>...]` gives local mode
+  catalogs.
+- `NUVIO_EMAIL` / `NUVIO_PASSWORD` signs in without going through Settings.
+- `--play=<url-or-path>` opens straight into the player.
+
+## Tests
+
+- Domain: `./gradlew :core:jvmTest`
+- Data: `./gradlew :data:jvmTest`
+- UI/ViewModels: `./gradlew :app:shared:jvmTest`
+
+## References
+
+- Stremio addon protocol: `https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/protocol.md`
+- Nuvio backend (self-host): `https://github.com/NuvioMedia/self-host`
+- Compose Multiplatform: `https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-multiplatform.html`
