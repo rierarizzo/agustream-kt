@@ -21,7 +21,7 @@ import com.misgus.agustream.data.store.FileSessionStore
 import com.misgus.agustream.data.store.FileWatchedSeriesCache
 import com.misgus.agustream.data.store.JsonMapStore
 import com.misgus.agustream.data.store.LocalRatingRepository
-import com.misgus.agustream.player.VlcjPlayerService
+import com.misgus.agustream.player.MpvPlayerService
 import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
 
@@ -47,7 +47,7 @@ fun main(args: Array<String>) {
     val subtitles = StremioSubtitleRepository(addons, httpClient)
     val ratings = LocalRatingRepository(JsonMapStore(AppPaths.ratingsFile))
     val watchedCache = FileWatchedSeriesCache()
-    val player = VlcjPlayerService()
+    val player = MpvPlayerService()
 
     val initialSource = initialSource(args)
 

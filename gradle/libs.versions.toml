@@ -18,9 +18,9 @@ ktor = "3.6.0"
 ktlint = "13.0.0"
 kotlinx-serialization = "1.11.0"
 kotlinx-datetime = "0.8.0"
+jna = "5.17.0"
 logback = "1.6.5"
 material3 = "1.12.0-alpha03"
-vlcj = "4.8.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -51,8 +51,8 @@ ktor-clientOkhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor
 ktor-clientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
-vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
-vlcj-natives = { module = "uk.co.caprica:vlcj-natives", version.ref = "vlcj" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
 ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }

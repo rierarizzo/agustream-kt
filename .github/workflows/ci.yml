@@ -28,8 +28,8 @@ jobs:
       - name: Lint and formatting
         run: ./gradlew ktlintCheck --console=plain
 
-      - name: Domain and data tests
-        run: ./gradlew :core:jvmTest :data:jvmTest :app:shared:jvmTest --console=plain
+      - name: Domain, data and UI tests
+        run: ./gradlew :core:jvmTest :data:jvmTest :app:shared:jvmTest :app:desktopApp:test --console=plain
 
       - name: Compile desktop
         run: ./gradlew :app:desktopApp:classes --console=plain

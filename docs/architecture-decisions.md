@@ -18,7 +18,7 @@ or the playback engine directly.
 :core      pure domain (models, repository contracts, watched rules, player contract)
 :data      implementations (Stremio addons, Nuvio/Supabase, local JSON store)
 :app:shared  Compose UI + ViewModels (depends only on :core)
-:app:desktopApp  composition root: VLCJ player, window control, main()
+:app:desktopApp  composition root: libmpv player, window control, main()
 :app:androidApp  Android composition root (no-op player for now)
 ```
 
@@ -118,14 +118,18 @@ engine, the filesystem and the player touch platform source sets through
 
 ## Player
 
-`PlayerService` is implemented on desktop by `VlcjPlayerService`
-(libvlc via VLCJ), in the composition root so the engine stays out of the shared
-UI. It is created lazily and only when VLC is discoverable, so a machine without
-VLC degrades to a clear playback error. The video surface is an `expect`
-composable: on desktop it embeds the engine's AWT `Component` through
-`SwingPanel`, which keeps `:app:shared` independent from VLCJ. Watch progress
-reporting, resume, subtitles/audio selection and next-episode autoplay are
-ported from the original.
+`PlayerService` is implemented on desktop by `MpvPlayerService`, which loads
+**libmpv** in process through JNA, in the composition root so the engine stays
+out of the shared UI. Video is produced with libmpv's **render API** (software
+backend) and handed to the UI as Compose bitmaps through `FrameSource`, so the
+video is ordinary Compose content and the Compose controls stay on top of it; a
+native `wid` surface would cover them. The rest (commands, position, tracks)
+goes through the libmpv client API. On Windows the `libmpv-2.dll` is bundled
+with the app; on Linux the system `libmpv.so` is used. The library is loaded
+lazily, so a machine without it degrades to a clear playback error. Watch
+progress reporting, resume, subtitles/audio selection and next-episode autoplay
+are ported from the original. The software renderer is CPU-bound; moving to the
+OpenGL render backend is the planned performance step.
 
 ## Testing
 
@@ -137,7 +141,9 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
 
 ## Known differences / limitations
 
-- VLCJ requires VLC to be installed; without it the player reports an error.
+- The desktop player needs libmpv: on Windows it is bundled (`libmpv-2.dll`,
+  extracted from the app resources), on Linux the `libmpv.so` runtime must be
+  installed. `AGUSTREAM_LIBMPV` can point at a specific library.
 - Android uses a no-op player until a native video surface is added. The rest
   of the target is wired: `INTERNET` permission, a `Context`-based app directory
   and a persisted session. `AppServices.playbackSupported` is `false` for the

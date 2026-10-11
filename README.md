@@ -17,14 +17,14 @@ now; the shared code is multiplatform and the Android app compiles against it.
 | HTTP | Ktor client (CIO on desktop, OkHttp on Android) |
 | JSON | kotlinx.serialization (defensive `JsonElement` parsing) |
 | Images | Coil 3 |
-| Playback | libvlc through VLCJ (desktop), isolated behind `PlayerService` |
+| Playback | libmpv through JNA (desktop), isolated behind `PlayerService` |
 | Accounts/sync | Nuvio API (Supabase) |
 | Sources | Stremio addons (HTTP/JSON) |
 
 ## Modules
 
 ```
-app/desktopApp   composition root: window, VLCJ player, main()
+app/desktopApp   composition root: window, libmpv player, main()
 app/androidApp   Android composition root
 app/shared       Compose UI and ViewModels
 core             pure domain: models, repository contracts, watched rules
@@ -54,6 +54,7 @@ Development shortcuts (environment variables, read for the run only):
 - Domain: `./gradlew :core:jvmTest`
 - Data: `./gradlew :data:jvmTest`
 - UI/ViewModels: `./gradlew :app:shared:jvmTest`
+- Desktop player helpers: `./gradlew :app:desktopApp:test`
 
 ## Quality gates
 

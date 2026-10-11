@@ -34,6 +34,8 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.MetaVideo
 import com.misgus.agustream.core.model.Subtitle
@@ -141,7 +143,17 @@ fun PlayerScreen(
                 .background(Color.Black)
                 .focusRequester(focusRequester)
                 .focusable()
-                .onPreviewKeyEvent { event ->
+                .pointerInput(Unit) {
+                    // Any pointer activity reveals the controls, which then
+                    // auto-hide again after the inactivity delay.
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitPointerEvent(PointerEventPass.Initial)
+                            lastInteraction = lastInteraction + 1
+                            controlsVisible = true
+                        }
+                    }
+                }.onPreviewKeyEvent { event ->
                     if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
                     when (event.key) {
                         Key.Spacebar, Key.K -> {
