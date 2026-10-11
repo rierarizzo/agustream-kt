@@ -36,7 +36,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.misgus.agustream.core.model.MetaPerson
 import com.misgus.agustream.core.model.MetaPreview
@@ -130,7 +129,8 @@ internal fun DetailsSection(entries: List<Pair<String, String>>) {
                 Column {
                     Text(
                         label.uppercase(),
-                        style = MaterialTheme.typography.bodyMedium.copy(letterSpacing = 0.8.sp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = AppColors.textSecondary,
                     )
                     Spacer(Modifier.height(AppSpacing.xs))
                     Text(value, style = MaterialTheme.typography.bodyLarge)
@@ -170,14 +170,14 @@ internal fun SimilarRow(
                         item.name,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = PosterCaption.title(MaterialTheme.typography.bodyLarge),
+                        style = PosterCaption.title(),
                     )
                     item.releaseInfo?.takeIf { it.isNotEmpty() }?.let {
                         Text(
                             it,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            style = PosterCaption.year(MaterialTheme.typography.bodyMedium),
+                            style = PosterCaption.meta(),
                         )
                     }
                 }

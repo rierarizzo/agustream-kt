@@ -1,9 +1,9 @@
 package com.misgus.agustream.ui.shell
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -17,21 +17,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.ui.profiles.ProfilePicker
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.streams.StreamsDialog
 import com.misgus.agustream.ui.streams.StreamsRequest
+import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.AppSizes
 import kotlinx.coroutines.launch
 
 /**
- * Persistent app chrome: navigation rail, title bar and the content area.
+ * Persistent app chrome: the top navigation and the content area.
  *
- * The content area hosts the section and any pushed route; the rail and title
- * bar stay visible, and dialogs cover the whole window because they are hosted
- * at the root.
+ * The content area hosts the section and any pushed route; the top navigation
+ * stays visible, and dialogs cover the whole window because they are hosted at
+ * the root.
  */
 @Composable
 fun AppShell() {
@@ -46,34 +52,77 @@ fun AppShell() {
     val scope = rememberCoroutineScope()
     var streamsRequest by remember { mutableStateOf<StreamsRequest?>(null) }
 
-    val hideRail = isFullScreen || immersive
+    val hideNav = isFullScreen || immersive
+    val gate = account.isSignedIn && account.requiresProfile && account.activeProfile == null
+    val showNav = !gate && !hideNav
 
-    CompositionLocalProvider(LocalSnackbarHost provides snackbarHost) {
-        if (account.isSignedIn && account.requiresProfile && account.activeProfile == null) {
-            // Profile gate: the library and every write belong to a profile, so
-            // there is no safe default. Backends without profiles never enter here.
-            Column(Modifier.fillMaxSize().background(AppColors.background)) {
-                Box(Modifier.weight(1f)) { ProfilePicker() }
-            }
-        } else {
-            Row(Modifier.fillMaxSize().background(AppColors.background)) {
-                if (!hideRail) {
-                    SideRail(
-                        selected = selected,
-                        onSelected = {
-                            selected = it
-                            navigator.clear()
-                        },
-                        activeProfile = account.activeProfile,
-                    )
+    // Soft app-wide tint: the colour of the artwork on screen, fading from the
+    // top of the window into the base background.
+    val ambient by animateColorAsState(
+        services.ambient.color ?: AppColors.background,
+        tween(AMBIENT_MILLIS),
+        label = "appAmbient",
+    )
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .drawBehind {
+                drawRect(AppColors.background)
+                drawRect(
+                    brush =
+                        Brush.verticalGradient(
+                            0f to ambient.copy(alpha = AppAlpha.AMBIENT_TOP),
+                            0.55f to ambient.copy(alpha = AppAlpha.AMBIENT_MID),
+                            1f to Color.Transparent,
+                        ),
+                )
+            },
+    ) {
+        CompositionLocalProvider(LocalSnackbarHost provides snackbarHost) {
+            if (gate) {
+                // Profile gate: the library and every write belong to a profile, so
+                // there is no safe default. Backends without profiles never enter here.
+                Column(Modifier.fillMaxSize()) {
+                    Box(Modifier.weight(1f)) { ProfilePicker() }
                 }
-                Column(Modifier.weight(1f)) {
+            } else {
+                Column(Modifier.fillMaxSize()) {
+                    if (showNav) {
+                        TopNav(
+                            selected = selected,
+                            onSelected = {
+                                selected = it
+                                navigator.clear()
+                            },
+                            activeProfile = account.activeProfile,
+                        )
+                    }
                     Scaffold(
                         modifier = Modifier.weight(1f),
-                        containerColor = AppColors.background,
+                        containerColor = Color.Transparent,
                         snackbarHost = { SnackbarHost(snackbarHost) },
                     ) { padding ->
-                        Box(Modifier.fillMaxSize().padding(padding)) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .padding(padding)
+                                .drawWithContent {
+                                    drawContent()
+                                    if (showNav) {
+                                        // Shadow cast by the top bar, drawn over the
+                                        // content so it scrolls underneath the header.
+                                        drawRect(
+                                            brush =
+                                                Brush.verticalGradient(
+                                                    listOf(Color.Black.copy(alpha = AppAlpha.TOP_BAR_SHADOW), Color.Transparent),
+                                                    startY = 0f,
+                                                    endY = AppSizes.topBarShadow.toPx(),
+                                                ),
+                                        )
+                                    }
+                                },
+                        ) {
                             ContentArea(
                                 selected = selected,
                                 navigator = navigator,
@@ -126,3 +175,6 @@ fun AppShell() {
         )
     }
 }
+
+/** Duration of the app background tint crossfade when the artwork changes. */
+private const val AMBIENT_MILLIS = 700

@@ -16,10 +16,9 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * The sections reachable from the navigation rail.
+ * The sections reachable from the top navigation.
  *
- * The order here is the order shown in the rail (settings is pinned to the
- * bottom by `SideRail`).
+ * The order here is the order shown in the bar.
  */
 enum class AppSection(
     val label: String,

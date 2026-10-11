@@ -17,6 +17,7 @@ import com.misgus.agustream.core.repository.SubtitleRepository
 import com.misgus.agustream.core.watched.NoopWatchedSeriesCache
 import com.misgus.agustream.core.watched.WatchedBadgeResolver
 import com.misgus.agustream.core.watched.WatchedSeriesCache
+import com.misgus.agustream.ui.shell.AppAmbient
 import com.misgus.agustream.ui.shell.AppChrome
 import com.misgus.agustream.ui.window.WindowController
 
@@ -54,6 +55,8 @@ class AppServices(
     val watchedCache: WatchedSeriesCache = NoopWatchedSeriesCache(),
     /** Immersive-mode state, shared with the player. */
     val chrome: AppChrome = AppChrome(),
+    /** Artwork-derived colour painted behind the whole app. */
+    val ambient: AppAmbient = AppAmbient(),
     /** Addons installed in the account; used by the addon repository layer. */
     val addons: AddonRepository? = null,
 ) {

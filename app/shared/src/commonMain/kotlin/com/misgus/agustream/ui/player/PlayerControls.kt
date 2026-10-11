@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Audiotrack
 import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -31,11 +32,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.misgus.agustream.ui.theme.AppAlpha
+import com.misgus.agustream.ui.theme.AppScrim
 import kotlin.time.Duration
 
 /**
@@ -72,7 +73,7 @@ fun PlayerControls(
                     Modifier
                         .align(Alignment.Center)
                         .size(64.dp)
-                        .background(Color.Black.copy(alpha = 0.45f), androidx.compose.foundation.shape.CircleShape),
+                        .background(Color.Black.copy(alpha = AppAlpha.PLAYER_BUTTON), androidx.compose.foundation.shape.CircleShape),
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = "Play", modifier = Modifier.size(40.dp))
             }
@@ -105,7 +106,7 @@ private fun TopBar(
             modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.8f), Color.Transparent)),
+                    AppScrim.playerTop,
                 ).padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -117,8 +118,8 @@ private fun TopBar(
             title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.titleMedium,
             color = Color.White,
-            fontSize = 16.sp,
         )
     }
 }
@@ -147,7 +148,7 @@ private fun BottomBar(
             modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))),
+                    AppScrim.playerBottom,
                 ).padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         Slider(
@@ -174,8 +175,8 @@ private fun BottomBar(
             Spacer(Modifier.width(8.dp))
             Text(
                 "${format(position)} / ${format(duration)}",
+                style = MaterialTheme.typography.labelMedium,
                 color = Color.White,
-                fontSize = 13.sp,
             )
             Spacer(Modifier.weight(1f))
             Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,7 +78,7 @@ fun PosterTile(
                 LinearProgressIndicator(
                     progress = { fraction.toFloat() },
                     color = AppColors.accent,
-                    trackColor = Color.Black.copy(alpha = 0.54f),
+                    trackColor = AppColors.mediaScrim,
                     modifier =
                         Modifier
                             .align(Alignment.BottomCenter)
@@ -94,12 +92,12 @@ fun PosterTile(
             text = item.name,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = PosterCaption.title(MaterialTheme.typography.bodyLarge),
+            style = PosterCaption.title(),
         )
         item.year?.let { year ->
             Text(
                 text = year.toString(),
-                style = PosterCaption.year(MaterialTheme.typography.bodyMedium),
+                style = PosterCaption.meta(),
             )
         }
     }

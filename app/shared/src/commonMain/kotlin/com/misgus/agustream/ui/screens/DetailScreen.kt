@@ -43,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,12 +56,17 @@ import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.detail.DetailUiState
 import com.misgus.agustream.ui.detail.DetailViewModel
 import com.misgus.agustream.ui.services.LocalAppServices
+import com.misgus.agustream.ui.shell.AmbientBackground
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
+import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.ambientColor
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Title detail: hero, cast, crew, details and "More like this". */
 @Composable
@@ -90,6 +94,9 @@ fun DetailScreen(
     var rating by remember { mutableStateOf<Int?>(null) }
     var showRatingDialog by remember { mutableStateOf(false) }
 
+    var backdropColor by remember(item.contentId) { mutableStateOf<Color?>(null) }
+    AmbientBackground(backdropColor)
+
     LaunchedEffect(item.contentId) {
         saved = runCatchingCancellable { services.library.contains(item.contentId) }.getOrDefault(false)
         savedKnown = true
@@ -116,6 +123,7 @@ fun DetailScreen(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Hero(
             state = state,
+            onBackdropColor = { backdropColor = it },
             onBack = onBack,
             onPlay = {
                 val first = state.episodes.firstOrNull()
@@ -223,6 +231,7 @@ fun DetailScreen(
 @Composable
 private fun Hero(
     state: DetailUiState,
+    onBackdropColor: (Color) -> Unit,
     onBack: () -> Unit,
     onPlay: () -> Unit,
     saved: Boolean,
@@ -235,6 +244,7 @@ private fun Hero(
     onRate: () -> Unit,
 ) {
     val backdrop = state.background ?: state.poster
+    val scope = rememberCoroutineScope()
     Box(Modifier.fillMaxWidth().height(480.dp)) {
         if (!backdrop.isNullOrEmpty()) {
             AsyncImage(
@@ -242,28 +252,18 @@ private fun Hero(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
+                onSuccess = { imageState ->
+                    scope.launch {
+                        val color = withContext(Dispatchers.Default) { ambientColor(imageState.result.image) }
+                        if (color != null) onBackdropColor(color)
+                    }
+                },
             )
         } else {
             Box(Modifier.fillMaxSize().background(AppColors.surface))
         }
-        Box(
-            Modifier.fillMaxSize().background(
-                Brush.horizontalGradient(
-                    0f to Color.Black.copy(alpha = 0.9f),
-                    0.55f to Color.Black.copy(alpha = 0.35f),
-                    1f to Color.Transparent,
-                ),
-            ),
-        )
-        Box(
-            Modifier.fillMaxSize().background(
-                Brush.verticalGradient(
-                    0f to Color.Black.copy(alpha = 0.25f),
-                    0.5f to Color.Transparent,
-                    1f to AppColors.background,
-                ),
-            ),
-        )
+        Box(Modifier.fillMaxSize().background(AppScrim.mediaHorizontal))
+        Box(Modifier.fillMaxSize().background(AppScrim.mediaToBackground))
         Row(
             modifier = Modifier.align(Alignment.BottomStart).padding(AppSpacing.xl),
             verticalAlignment = Alignment.Bottom,

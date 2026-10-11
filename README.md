@@ -12,7 +12,7 @@ now; the shared code is multiplatform and the Android app compiles against it.
 
 | Layer | Technology |
 | --- | --- |
-| UI | Compose Multiplatform + Material 3, IBM Plex Sans |
+| UI | Compose Multiplatform + Material 3, Inter |
 | State | `androidx.lifecycle` ViewModel + `StateFlow` |
 | HTTP | Ktor client (CIO on desktop, OkHttp on Android) |
 | JSON | kotlinx.serialization (defensive `JsonElement` parsing) |

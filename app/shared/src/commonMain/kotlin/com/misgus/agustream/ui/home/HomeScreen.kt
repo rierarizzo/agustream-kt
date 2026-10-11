@@ -1,6 +1,5 @@
 package com.misgus.agustream.ui.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,23 +16,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,13 +36,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.components.Message
@@ -61,6 +51,7 @@ import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.PosterCaption
 
 /** Home section: a featured carousel, "Continue watching" and catalog rows. */
 @Composable
@@ -171,131 +162,6 @@ private fun HomeContent(
 }
 
 @Composable
-private fun Hero(
-    items: List<MetaPreview>,
-    onOpen: (MetaPreview) -> Unit,
-    onPlay: (MetaPreview) -> Unit,
-) {
-    val pagerState = rememberPagerState(pageCount = { items.size })
-    Box(Modifier.fillMaxWidth().height(576.dp)) {
-        HorizontalPager(state = pagerState) { page ->
-            HeroSlide(items[page], onOpen = { onOpen(items[page]) }, onPlay = { onPlay(items[page]) })
-        }
-        if (items.size > 1) {
-            Row(
-                modifier = Modifier.align(Alignment.BottomEnd).padding(AppSpacing.md),
-                horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
-            ) {
-                items.indices.forEach { index ->
-                    Box(
-                        modifier =
-                            Modifier
-                                .width(if (index == pagerState.currentPage) 18.dp else 6.dp)
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(
-                                    if (index == pagerState.currentPage) {
-                                        AppColors.textPrimary
-                                    } else {
-                                        AppColors.divider
-                                    },
-                                ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HeroSlide(
-    item: MetaPreview,
-    onOpen: () -> Unit,
-    onPlay: () -> Unit,
-) {
-    val backdrop = item.background ?: item.poster
-    Box(Modifier.fillMaxSize()) {
-        if (!backdrop.isNullOrEmpty()) {
-            AsyncImage(
-                model = backdrop,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            Box(Modifier.fillMaxSize().background(AppColors.surface))
-        }
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Black.copy(alpha = 0.4f),
-                        0.45f to Color.Black.copy(alpha = 0.2f),
-                        1f to AppColors.background,
-                    ),
-                ),
-        )
-        Column(
-            modifier = Modifier.align(Alignment.BottomStart).padding(AppSpacing.xl),
-        ) {
-            val logo = item.logo
-            if (!logo.isNullOrEmpty()) {
-                AsyncImage(
-                    model = logo,
-                    contentDescription = null,
-                    modifier = Modifier.height(56.dp),
-                )
-            } else {
-                Text(
-                    item.name,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.displaySmall,
-                )
-            }
-            val parts =
-                buildList {
-                    yearOf(item.releaseInfo)?.let { add(it) }
-                    item.imdbRating?.let { add("★ ${round1(it)}") }
-                    if (item.genres.isNotEmpty()) add(item.genres.joinToString(", "))
-                }
-            if (parts.isNotEmpty()) {
-                Spacer(Modifier.height(AppSpacing.sm))
-                Text(
-                    parts.joinToString("   •   "),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = AppColors.textSecondary,
-                )
-            }
-            item.description?.takeIf { it.isNotEmpty() }?.let {
-                Spacer(Modifier.height(AppSpacing.sm))
-                Text(
-                    it,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.width(640.dp),
-                )
-            }
-            Spacer(Modifier.height(AppSpacing.md))
-            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                TextButton(onClick = onPlay) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
-                    Spacer(Modifier.width(AppSpacing.xs))
-                    Text("Play")
-                }
-                OutlinedButton(onClick = onOpen) {
-                    Icon(Icons.Outlined.Info, contentDescription = null)
-                    Spacer(Modifier.width(AppSpacing.xs))
-                    Text("More info")
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun ContinueCard(
     entry: ContinueEntry,
     onTap: () -> Unit,
@@ -325,7 +191,7 @@ private fun ContinueCard(
                 LinearProgressIndicator(
                     progress = { fraction.toFloat() },
                     color = AppColors.accent,
-                    trackColor = Color.Black.copy(alpha = 0.54f),
+                    trackColor = AppColors.mediaScrim,
                     modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(3.dp),
                 )
             }
@@ -335,9 +201,9 @@ private fun ContinueCard(
             item.name,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyLarge,
+            style = PosterCaption.title(),
         )
-        episode?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+        episode?.let { Text(it, style = PosterCaption.meta()) }
     }
 }
 
@@ -366,9 +232,5 @@ internal fun SectionHeader(
     }
 }
 
-private fun yearOf(releaseInfo: String?): String? = Regex("(?:1[89]\\d\\d|20\\d\\d)").find(releaseInfo ?: "")?.value
-
-private fun round1(value: Double): String {
-    val scaled = kotlin.math.round(value * 10) / 10.0
-    return scaled.toString()
-}
+/** Extracts the four-digit year from a Stremio `releaseInfo` string. */
+internal fun yearOf(releaseInfo: String?): String? = Regex("(?:1[89]\\d\\d|20\\d\\d)").find(releaseInfo ?: "")?.value

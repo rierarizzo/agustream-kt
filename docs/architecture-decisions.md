@@ -102,11 +102,11 @@ engine, the filesystem and the player touch platform source sets through
   own `ViewModelStoreOwner` (`ContentArea`) that is cleared on pop, so transient
   ViewModels do not leak.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
-  rendered inside the shell content area, so the rail and title bar stay
+  rendered inside the shell content area, so the top navigation bar stays
   visible — the same behaviour as the Flutter nested `Navigator`, without adding
   a navigation library.
 - **Theme** centralises the design tokens (`AppColors`, `AppSpacing`,
-  `AppRadii`, `AppSizes`, `PosterCaption`) and the IBM Plex Sans typeface loaded
+  `AppRadii`, `AppSizes`, `PosterCaption`) and the Inter typeface loaded
   from Compose Resources. Material3 `visualDensity` stays at the platform default.
 - **Images with Coil 3** (`AsyncImage`), the multiplatform image loader.
 - **Window**: the app keeps the **native window decoration** (title bar,

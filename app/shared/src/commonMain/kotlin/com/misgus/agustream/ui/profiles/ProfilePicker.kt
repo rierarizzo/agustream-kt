@@ -1,6 +1,5 @@
 package com.misgus.agustream.ui.profiles
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,12 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.BackendProfile
-import com.misgus.agustream.ui.components.PosterImage
+import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -109,36 +107,16 @@ private fun ProfileTile(
                     .border(2.dp, Color.Transparent, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            ProfileAvatar(profile)
+            ProfileAvatar(
+                profile = profile,
+                size = 96.dp,
+                initialStyle = MaterialTheme.typography.headlineLarge,
+            )
         }
         Spacer(Modifier.height(AppSpacing.sm))
         Text(profile.name, style = MaterialTheme.typography.bodyLarge)
         if (profile.pinEnabled) {
             Text("PIN", style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
-
-@Composable
-private fun ProfileAvatar(profile: BackendProfile) {
-    val color = profile.avatarColorHex?.let(::parseHex) ?: AppColors.surfaceHigh
-    Box(
-        modifier = Modifier.size(96.dp).clip(CircleShape).background(color),
-        contentAlignment = Alignment.Center,
-    ) {
-        val avatarUrl = profile.avatarUrl
-        if (!avatarUrl.isNullOrEmpty() && avatarUrl.startsWith("http")) {
-            PosterImage(avatarUrl, Modifier.size(96.dp))
-        } else {
-            Text(
-                text =
-                    profile.name
-                        .trim()
-                        .firstOrNull()
-                        ?.uppercase() ?: "?",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-            )
         }
     }
 }
@@ -164,11 +142,4 @@ private fun Problem(
             Text("Try again")
         }
     }
-}
-
-private fun parseHex(value: String): Color? {
-    val hex = value.removePrefix("#").trim()
-    if (hex.length != 6) return null
-    val parsed = hex.toLongOrNull(16) ?: return null
-    return Color(0xFF000000L or parsed)
 }

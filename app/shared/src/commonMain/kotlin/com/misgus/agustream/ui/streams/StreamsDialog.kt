@@ -39,11 +39,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -57,6 +54,7 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
+import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 
 /**
@@ -129,17 +127,7 @@ private fun Header(
 ) {
     Box(Modifier.fillMaxWidth().height(200.dp)) {
         PosterImage(request.background, Modifier.fillMaxSize())
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Black.copy(alpha = 0.6f),
-                        0.45f to Color.Transparent,
-                        1f to AppColors.background,
-                    ),
-                ),
-        )
+        Box(Modifier.fillMaxSize().background(AppScrim.dialogHeader))
         Row(
             modifier = Modifier.align(Alignment.TopEnd).padding(AppSpacing.xs),
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
@@ -162,7 +150,6 @@ private fun Header(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
             )
             request.year?.takeIf { it.isNotEmpty() }?.let {
                 Text(it, style = MaterialTheme.typography.bodyLarge)
@@ -243,8 +230,7 @@ private fun StreamCard(
         Column(Modifier.weight(1f)) {
             Text(
                 primary,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
             )
             secondary?.let {
                 Spacer(Modifier.height(2.dp))
