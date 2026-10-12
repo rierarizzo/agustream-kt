@@ -28,14 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
 import com.misgus.agustream.ui.components.PillButton
+import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.ratingText
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppColors
@@ -118,10 +117,9 @@ private fun HeroSlide(
     val backdrop = item.background ?: item.poster
     Box(Modifier.fillMaxSize().background(AppColors.surface)) {
         if (!backdrop.isNullOrEmpty()) {
-            AsyncImage(
-                model = backdrop,
+            RemoteImage(
+                url = backdrop,
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
         }

@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -139,20 +140,53 @@ fun SectionHeader(
     }
 }
 
+/** Sampling for photographic artwork: mipmapped bilinear avoids downscale aliasing. */
+val ArtworkFilterQuality = FilterQuality.Medium
+
+/** Sampling for text-like artwork (title logos): bicubic keeps the edges crisp. */
+val LogoFilterQuality = FilterQuality.High
+
+/**
+ * Remote artwork with the sampling the app expects.
+ *
+ * Coil draws with [androidx.compose.ui.graphics.drawscope.DrawScope.DefaultFilterQuality]
+ * (bilinear), which aliases a poster or backdrop when it is downscaled. Mipmapped
+ * bilinear ([FilterQuality.Medium]) removes that, and bicubic ([FilterQuality.High])
+ * is reserved for text-like artwork such as title logos.
+ */
+@Composable
+fun RemoteImage(
+    url: String?,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop,
+    filterQuality: FilterQuality = ArtworkFilterQuality,
+) {
+    if (url.isNullOrEmpty()) return
+    AsyncImage(
+        model = url,
+        contentDescription = contentDescription,
+        contentScale = contentScale,
+        filterQuality = filterQuality,
+        modifier = modifier,
+    )
+}
+
 /** Artwork with a graceful placeholder while it loads or fails. */
 @Composable
 fun PosterImage(
     url: String?,
     modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Crop,
 ) {
     Box(modifier.background(AppColors.surface)) {
         if (url.isNullOrEmpty()) {
             PosterFallback()
         } else {
-            AsyncImage(
-                model = url,
+            RemoteImage(
+                url = url,
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                contentScale = contentScale,
                 modifier = Modifier.fillMaxSize(),
             )
         }

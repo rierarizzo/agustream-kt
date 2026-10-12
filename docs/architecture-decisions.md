@@ -117,7 +117,19 @@ engine, the filesystem and the player touch platform source sets through
 - **Theme** centralises the design tokens (`AppColors`, `AppSpacing`,
   `AppRadii`, `AppSizes`, `PosterCaption`) and the Inter typeface loaded
   from Compose Resources. Material3 `visualDensity` stays at the platform default.
-- **Images with Coil 3** (`AsyncImage`), the multiplatform image loader.
+- **Images with Coil 3**, the multiplatform image loader. Remote artwork goes
+  through two shared composables in `ui/components`: `PosterImage` for posters
+  and thumbnails, and `RemoteImage` for the rest (backdrops, hero art, cast
+  photos, title logos). Both pin `ContentScale` and `FilterQuality`, because
+  Coil draws with `DefaultFilterQuality` (bilinear) and aliases a downscaled
+  poster. Artwork uses `FilterQuality.Medium` (mipmapped bilinear), which is the
+  right sampling for minification, and logos use `FilterQuality.High` (bicubic)
+  so their edges stay crisp. On desktop the decode side is fixed too: Coil
+  3.6.3's `SkiaImageDecoder` resizes with `SamplingMode.DEFAULT`, which Skiko
+  defines as nearest-neighbour, so `app/desktopApp` installs
+  `MitchellImageDecoder`, a cubic decoder that keeps Coil's size math and
+  reduces once at decode time. Together they both sharpen the artwork and cut
+  the bitmap memory the renderer has to scale every frame.
 - **Window**: the app keeps the **native window decoration** (title bar,
   minimize, maximize, close and resizing are OS-managed), which avoids the
   glitches a custom title bar can cause on Windows. Compose Desktop draws its
@@ -221,15 +233,6 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   software renderer hands frames to Compose as bitmaps and is CPU-bound. Moving
   to libmpv's OpenGL render backend is the planned performance step and needs a
   GL context wired into the composition root.
-
-### Images
-
-- **Artwork rescaling and filtering.** Some posters and title logos render with
-  jagged (aliased) edges while others are clean, which points at inconsistent
-  filtering when Coil downsamples an asset to its on-screen size. The fix is to
-  normalise how images are requested and drawn — an explicit target size,
-  matching `ContentScale`, and the right filter quality — across every
-  `AsyncImage`/`PosterImage` in the app, including the title logos.
 
 ### Motion
 

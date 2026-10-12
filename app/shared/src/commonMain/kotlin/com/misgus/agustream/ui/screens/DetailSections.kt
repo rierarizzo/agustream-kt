@@ -33,16 +33,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.misgus.agustream.core.model.MetaPerson
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.model.MetaVideo
 import com.misgus.agustream.ui.components.MarqueeText
 import com.misgus.agustream.ui.components.PosterImage
+import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.theme.AppColors
@@ -86,10 +85,9 @@ private fun PersonCard(person: MetaPerson) {
         ) {
             val photo = person.photo
             if (!photo.isNullOrEmpty()) {
-                AsyncImage(
-                    model = photo,
+                RemoteImage(
+                    url = photo,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {

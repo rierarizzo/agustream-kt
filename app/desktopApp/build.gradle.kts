@@ -16,6 +16,10 @@ dependencies {
     implementation(libs.kotlinx.coroutinesSwing)
     implementation(libs.ktor.clientCio)
 
+    // Image loading: the shared UI renders through Coil, and this is where the
+    // desktop ImageLoader is configured (the default decoder aliases).
+    implementation(libs.coil.compose)
+
     // Desktop playback engine: libmpv, loaded in process through JNA and driven
     // through its client and render APIs. Isolated behind PlayerService.
     implementation(libs.jna)

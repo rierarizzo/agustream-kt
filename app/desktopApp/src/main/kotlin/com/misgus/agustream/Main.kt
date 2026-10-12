@@ -23,6 +23,7 @@ import com.misgus.agustream.data.store.FileSessionStore
 import com.misgus.agustream.data.store.FileWatchedSeriesCache
 import com.misgus.agustream.data.store.JsonMapStore
 import com.misgus.agustream.data.store.LocalRatingRepository
+import com.misgus.agustream.imaging.configureImageLoader
 import com.misgus.agustream.player.MpvPlayerService
 import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
@@ -30,6 +31,10 @@ import com.misgus.agustream.ui.theme.AppColors
 import kotlinx.coroutines.delay
 
 fun main(args: Array<String>) {
+    // The desktop Coil decoder aliases when it downsamples; install the cubic
+    // one before any image is rendered.
+    configureImageLoader()
+
     val environment = System.getenv()
     val backendKind = BackendKind.fromEnvironment(environment)
     val httpClient = createHttpClient()

@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
 
@@ -25,10 +24,11 @@ fun MediaTitle(
     if (!logo.isNullOrEmpty()) {
         // A fixed height keeps every logo the same visual weight; the width
         // follows the asset's aspect ratio and the hero column bounds it.
-        AsyncImage(
-            model = logo,
+        RemoteImage(
+            url = logo,
             contentDescription = name,
             contentScale = ContentScale.Fit,
+            filterQuality = LogoFilterQuality,
             modifier = Modifier.height(LOGO_HEIGHT),
         )
     } else {
