@@ -66,12 +66,12 @@ object AppSpacing {
     val xl: Dp = 32.dp
 }
 
-/** Corner radii. */
+/** Corner radii. Deliberately small: the UI reads square, not rounded. */
 object AppRadii {
-    val sm: Dp = 4.dp
-    val md: Dp = 6.dp
-    val lg: Dp = 16.dp
-    val xl: Dp = 24.dp
+    val sm: Dp = 2.dp
+    val md: Dp = 4.dp
+    val lg: Dp = 6.dp
+    val xl: Dp = 8.dp
 
     val smShape = RoundedCornerShape(sm)
     val mdShape = RoundedCornerShape(md)
