@@ -94,6 +94,7 @@ fun SectionHost(
                         account = services.account,
                         library = services.library,
                         metadata = services.metadata,
+                        catalogs = services.catalogs,
                     )
                 }
             CalendarScreen(

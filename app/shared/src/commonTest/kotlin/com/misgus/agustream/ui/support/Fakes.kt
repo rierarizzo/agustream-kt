@@ -120,6 +120,7 @@ class FakeMetadataRepository(
 class FakeCatalogRepository(
     private val refs: List<CatalogRef> = emptyList(),
     private val items: Map<String, List<MetaPreview>> = emptyMap(),
+    private val detailed: Map<String, List<MetaDetail>> = emptyMap(),
 ) : CatalogRepository {
     override suspend fun catalogs(): List<CatalogRef> = refs
 
@@ -127,6 +128,11 @@ class FakeCatalogRepository(
         ref: CatalogRef,
         extra: Map<String, String>?,
     ): List<MetaPreview> = items[ref.key].orEmpty()
+
+    override suspend fun detailedItems(
+        ref: CatalogRef,
+        extra: Map<String, String>?,
+    ): List<MetaDetail> = detailed[ref.key].orEmpty()
 }
 
 /** In-memory [StreamRepository] for tests. */

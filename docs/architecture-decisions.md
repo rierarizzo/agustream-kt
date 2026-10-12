@@ -191,12 +191,14 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
   opening a player that only errors.
 - The Nuvio addon metadata/edit screens are still placeholders, as they were
   in the Flutter app.
-- **Calendar has no protocol source.** Stremio exposes no calendar resource, so
-  the section is derived from the Library: each saved series is resolved through
-  the metadata addons and its episodes inside a rolling 180-day window are
-  painted on a month grid. Episodes without a release date are skipped. The
-  lookups run behind a semaphore and the grid paints as each series resolves, so
-  the first episodes appear without waiting for the slowest addon, and the grid
+- **Calendar** uses a Cinemeta convention when an addon exposes it: a
+  `calendar-videos` catalog (Cinemeta and AIOMetadata declare it) returns
+  `metasDetailed` — the full meta per series — for the library's series in one
+  request, which is why `CatalogRepository.detailedItems` exists. When no addon
+  exposes it, the section falls back to resolving each series through the
+  metadata addons behind a semaphore, so the first episodes appear without
+  waiting for the slowest one. Either way only episodes inside a rolling 180-day
+  window are kept, episodes without a release date are skipped, and the grid
   fills the window instead of scrolling.
 
 ## Improvement backlog

@@ -1,6 +1,7 @@
 package com.misgus.agustream.core.repository
 
 import com.misgus.agustream.core.model.AddonCatalogExtra
+import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPreview
 
 /**
@@ -57,4 +58,16 @@ interface CatalogRepository {
         ref: CatalogRef,
         extra: Map<String, String>? = null,
     ): List<MetaPreview>
+
+    /**
+     * Detailed metas for a catalog that answers with `metasDetailed` instead of
+     * `metas` — the Cinemeta convention for `calendar-videos` and `last-videos`,
+     * which return the full meta (with `videos`) for the ids passed in `extra`.
+     *
+     * The default is empty, so a repository without such a catalog needs nothing.
+     */
+    suspend fun detailedItems(
+        ref: CatalogRef,
+        extra: Map<String, String>? = null,
+    ): List<MetaDetail> = emptyList()
 }

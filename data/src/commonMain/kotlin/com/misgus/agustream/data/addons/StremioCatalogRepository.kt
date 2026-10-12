@@ -1,6 +1,7 @@
 package com.misgus.agustream.data.addons
 
 import com.misgus.agustream.core.model.Addon
+import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.AddonRepository
 import com.misgus.agustream.core.repository.CatalogRef
@@ -62,6 +63,11 @@ class StremioCatalogRepository(
         ref: CatalogRef,
         extra: Map<String, String>?,
     ): List<MetaPreview> = clientFor(ref.addonBaseUrl).fetchCatalog(ref.type, ref.id, extra)
+
+    override suspend fun detailedItems(
+        ref: CatalogRef,
+        extra: Map<String, String>?,
+    ): List<MetaDetail> = clientFor(ref.addonBaseUrl).fetchCatalogDetailed(ref.type, ref.id, extra)
 
     private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
 }

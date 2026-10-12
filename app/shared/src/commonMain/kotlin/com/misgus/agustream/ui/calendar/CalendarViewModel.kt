@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaVideo
 import com.misgus.agustream.core.repository.AccountRepository
+import com.misgus.agustream.core.repository.CatalogRepository
 import com.misgus.agustream.core.repository.LibraryRepository
 import com.misgus.agustream.core.repository.MetadataRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
@@ -47,16 +48,17 @@ data class CalendarUiState(
 /**
  * Upcoming episodes of the series in the Library.
  *
- * The Stremio protocol has no calendar resource, so the section is derived from
- * what the app already knows: every saved series is resolved through the
- * metadata addons and its not-yet-aired episodes are collected inside a rolling
- * window. Episodes without a release date are skipped, because a wrong date is
- * worse than no date.
+ * Cinemeta (and AIOMetadata) expose a `calendar-videos` catalog that returns
+ * the calendar videos of many series in a single request, so that is used when
+ * an addon offers it. Otherwise the section falls back to resolving every saved
+ * series through the metadata addons. Either way only episodes inside a rolling
+ * window are kept, and ones without a release date are skipped.
  */
 class CalendarViewModel(
     private val account: AccountRepository,
     private val library: LibraryRepository,
     private val metadata: MetadataRepository,
+    private val catalogs: CatalogRepository,
     /** Injectable clock so the window is deterministic in tests. */
     private val today: () -> LocalDate = { Clock.System.todayIn(TimeZone.currentSystemDefault()) },
 ) : ViewModel() {
@@ -99,27 +101,8 @@ class CalendarViewModel(
                     .filter { it.contentType == "series" }
                     .distinctBy { it.contentId }
                     .take(MAX_SERIES)
-            // A semaphore instead of fixed batches: the next series starts as
-            // soon as one finishes, with no waiting for the slowest of a batch.
-            val semaphore = Semaphore(CONCURRENCY)
-            coroutineScope {
-                series
-                    .map { item ->
-                        async {
-                            semaphore.withPermit {
-                                val found =
-                                    runCatchingCancellable { upcoming(item, start, end) }
-                                        .getOrDefault(emptyList())
-                                if (found.isNotEmpty()) {
-                                    // Publish as each series resolves, so the grid
-                                    // fills in instead of waiting for all of them.
-                                    _state.update {
-                                        it.copy(entries = (it.entries + found).sortedWith(ENTRY_ORDER))
-                                    }
-                                }
-                            }
-                        }
-                    }.awaitAll()
+            if (!loadFromCalendarCatalog(series, start, end)) {
+                loadFromMetadata(series, start, end)
             }
             _state.update { it.copy(isLoading = false, hasLoaded = true) }
         } catch (cancellation: CancellationException) {
@@ -129,20 +112,91 @@ class CalendarViewModel(
         }
     }
 
-    /** The episodes of [item] that air inside `[start, end]`. */
-    private suspend fun upcoming(
-        item: LibraryItem,
+    /**
+     * Asks a `calendar-videos` catalog for the whole library at once.
+     *
+     * The catalog answers with `metasDetailed`: the full meta of every series,
+     * with only its calendar videos. Returns `true` when an addon produced
+     * entries; a catalog that fails or returns nothing falls through to the next
+     * one, and to the metadata path afterwards.
+     */
+    private suspend fun loadFromCalendarCatalog(
+        series: List<LibraryItem>,
         start: LocalDate,
         end: LocalDate,
-    ): List<CalendarEntry> {
-        val videos = metadata.detail(item.contentType, item.contentId)?.videos.orEmpty()
-        return videos.mapNotNull { video ->
+    ): Boolean {
+        if (series.isEmpty()) return false
+        val refs =
+            runCatchingCancellable { catalogs.catalogs() }
+                .getOrDefault(emptyList())
+                .filter { it.type == "series" && it.extras.any { extra -> extra.name == CALENDAR_IDS_EXTRA } }
+        if (refs.isEmpty()) return false
+        val byId = series.associateBy { it.contentId }
+        val ids = series.map { it.contentId }.filter { it.isNotEmpty() }.distinct()
+        if (ids.isEmpty()) return false
+        val extra = mapOf(CALENDAR_IDS_EXTRA to ids.joinToString(","))
+        for (ref in refs) {
+            val details =
+                runCatchingCancellable { catalogs.detailedItems(ref, extra) }
+                    .getOrDefault(emptyList())
+            val entries =
+                details.flatMap { detail ->
+                    val item = byId[detail.id] ?: return@flatMap emptyList()
+                    entriesFor(item, detail.videos, start, end)
+                }
+            if (entries.isNotEmpty()) {
+                _state.update { it.copy(entries = entries.sortedWith(ENTRY_ORDER)) }
+                return true
+            }
+        }
+        return false
+    }
+
+    /** Fallback: resolve each series through the metadata addons. */
+    private suspend fun loadFromMetadata(
+        series: List<LibraryItem>,
+        start: LocalDate,
+        end: LocalDate,
+    ) {
+        // A semaphore instead of fixed batches: the next series starts as soon
+        // as one finishes, with no waiting for the slowest of a batch.
+        val semaphore = Semaphore(CONCURRENCY)
+        coroutineScope {
+            series
+                .map { item ->
+                    async {
+                        semaphore.withPermit {
+                            val found =
+                                runCatchingCancellable {
+                                    val videos = metadata.detail(item.contentType, item.contentId)?.videos.orEmpty()
+                                    entriesFor(item, videos, start, end)
+                                }.getOrDefault(emptyList())
+                            if (found.isNotEmpty()) {
+                                // Publish as each series resolves, so the grid
+                                // fills in instead of waiting for all of them.
+                                _state.update {
+                                    it.copy(entries = (it.entries + found).sortedWith(ENTRY_ORDER))
+                                }
+                            }
+                        }
+                    }
+                }.awaitAll()
+        }
+    }
+
+    /** The episodes of [item] that air inside `[start, end]`. */
+    private fun entriesFor(
+        item: LibraryItem,
+        videos: List<MetaVideo>,
+        start: LocalDate,
+        end: LocalDate,
+    ): List<CalendarEntry> =
+        videos.mapNotNull { video ->
             val date = releaseDateOrNull(video.released) ?: return@mapNotNull null
             if ((video.season ?: 0) <= 0) return@mapNotNull null
             if (date < start || date > end) return@mapNotNull null
             CalendarEntry(item, video, date)
         }
-    }
 
     /** Parses a Stremio `released` value, which may be an ISO instant or a date. */
     private fun releaseDateOrNull(released: String?): LocalDate? {
@@ -160,6 +214,7 @@ class CalendarViewModel(
         const val WINDOW_DAYS = 180
         const val MAX_SERIES = 60
         const val CONCURRENCY = 8
+        const val CALENDAR_IDS_EXTRA = "calendarVideosIds"
 
         val ENTRY_ORDER =
             compareBy<CalendarEntry>(

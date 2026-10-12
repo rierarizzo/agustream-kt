@@ -1,9 +1,12 @@
 package com.misgus.agustream.ui.calendar
 
+import com.misgus.agustream.core.model.AddonCatalogExtra
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaVideo
+import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.ui.support.FakeAccountRepository
+import com.misgus.agustream.ui.support.FakeCatalogRepository
 import com.misgus.agustream.ui.support.FakeLibraryRepository
 import com.misgus.agustream.ui.support.FakeMetadataRepository
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +54,7 @@ class CalendarViewModelTest {
                     account = FakeAccountRepository(),
                     library = FakeLibraryRepository(listOf(series)),
                     metadata = FakeMetadataRepository(details = mapOf("tt1" to detail)),
+                    catalogs = FakeCatalogRepository(),
                     today = { LocalDate(2025, 5, 12) },
                 )
             advanceUntilIdle()
@@ -65,6 +69,46 @@ class CalendarViewModelTest {
                 viewModel.state.value.entries
                     .first()
                     .date,
+            )
+        }
+
+    @Test
+    fun usesTheCalendarCatalogWhenAnAddonExposesIt() =
+        runTest(dispatcher) {
+            val series =
+                LibraryItem(id = "s1", contentId = "tt1", contentType = "series", name = "Show")
+            val ref =
+                CatalogRef(
+                    addonName = "Cinemeta",
+                    addonBaseUrl = "https://cinemeta",
+                    type = "series",
+                    id = "calendar-videos",
+                    name = "Calendar videos",
+                    extras = listOf(AddonCatalogExtra("calendarVideosIds", isRequired = true)),
+                )
+            val detail =
+                MetaDetail(
+                    id = "tt1",
+                    type = "series",
+                    name = "Show",
+                    videos = listOf(MetaVideo(id = "e1", title = "Soon", season = 1, episode = 1, released = "2025-06-01")),
+                )
+            val viewModel =
+                CalendarViewModel(
+                    account = FakeAccountRepository(),
+                    library = FakeLibraryRepository(listOf(series)),
+                    // The metadata repository returns nothing, so the entry can
+                    // only come from the calendar catalog.
+                    metadata = FakeMetadataRepository(),
+                    catalogs = FakeCatalogRepository(refs = listOf(ref), detailed = mapOf(ref.key to listOf(detail))),
+                    today = { LocalDate(2025, 5, 12) },
+                )
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf("e1"),
+                viewModel.state.value.entries
+                    .map { it.video.id },
             )
         }
 }
