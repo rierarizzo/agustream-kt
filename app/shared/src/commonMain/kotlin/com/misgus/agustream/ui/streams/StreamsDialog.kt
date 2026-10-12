@@ -1,5 +1,6 @@
 package com.misgus.agustream.ui.streams
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,7 +36,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,9 +56,12 @@ import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
 import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.motionLayer
+import com.misgus.agustream.ui.theme.motionTween
 
 /**
  * Modal that lists the available streams.
@@ -85,11 +91,24 @@ fun StreamsDialog(
             LaunchedEffect(request) { viewModel.load() }
             val state by viewModel.state.collectAsStateWithLifecycle()
 
+            var shown by remember { mutableStateOf(false) }
+            LaunchedEffect(Unit) { shown = true }
+            val enterAlpha by animateFloatAsState(
+                targetValue = if (shown) 1f else 0f,
+                animationSpec = motionTween(),
+                label = "dialogAlpha",
+            )
+            val enterScale by animateFloatAsState(
+                targetValue = if (shown) 1f else 0.96f,
+                animationSpec = motionTween(durationMillis = AppMotion.MEDIUM),
+                label = "dialogScale",
+            )
             Box(
                 modifier =
                     Modifier
                         .width(900.dp)
                         .fillMaxHeight(0.82f)
+                        .motionLayer(scale = enterScale, alpha = enterAlpha)
                         .clip(RoundedCornerShape(AppRadii.lg))
                         .background(AppColors.background),
             ) {

@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
+import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
@@ -75,10 +76,7 @@ private fun DiscoverContent(
                 actionLabel = "Sign in",
                 onAction = onOpenSettings,
             )
-        state.isLoading && !state.hasLoaded ->
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator()
-            }
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid()
         state.error != null && state.items.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,

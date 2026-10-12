@@ -146,6 +146,21 @@ engine, the filesystem and the player touch platform source sets through
   `MitchellImageDecoder`, a cubic decoder that keeps Coil's size math and
   reduces once at decode time. Together they both sharpen the artwork and cut
   the bitmap memory the renderer has to scale every frame.
+- **Motion** is centralised in `ui/theme/Motion.kt`: `AppMotion` holds the
+  durations and easings, and `LocalMotionEnabled` gates every animation. Specs
+  built through `AppMotion.spec`/`motionTween` collapse to zero duration when it
+  is off, and `Modifier.motionLayer` applies scale and alpha in the draw phase,
+  so motion never relayouts or recomposes per frame. Tabs crossfade; the section
+  stays composed while a route is open (so its scroll is never saved and
+  restored, which lost the within-item offset and scrolled it back up) and the
+  route fades in over it, leaving at once when popped. The top bar floats over
+  the content instead of taking layout height, because hiding it used to grow
+  the content viewport and clamp the section scroll; sections reserve its height
+  with a constant padding, so the viewport never changes. The size animation is
+  disabled (`.using(null)`) because it relayouts every frame. Posters scale on
+  hover, loading grids share a single shimmer, and dialogs fade/scale in. The
+  player is deliberately outside the route transition because it drives a single
+  shared engine.
 - **Window**: the app keeps the **native window decoration** (title bar,
   minimize, maximize, close and resizing are OS-managed), which avoids the
   glitches a custom title bar can cause on Windows. Compose Desktop draws its
@@ -257,11 +272,7 @@ not a one-file change. They are grouped by the axis they change, not by effort.
 
 ### Motion
 
-- **Animations are deliberately absent for now.** The UI switches state
-  instantly. Planned, roughly in priority order: route transitions
-  (detail/catalog/player), a hover scale on posters, loading skeletons with a
-  shimmer, fade/scale on dialogs and a fade-in of the detail content. All of it
-  must use the cheap path — `graphicsLayer` transforms, no layout animation and
-  no per-frame recomposition — and infinite animations must be scoped to what is
-  on screen. The detail backdrop blur is already the most expensive effect in
-  the UI, so motion should not add to that cost.
+- **A "disable animations" setting.** The plumbing already exists:
+  `AgustreamApp` takes `animationsEnabled` and provides `LocalMotionEnabled`,
+  which every animation reads. It only needs a persisted preference (a settings
+  repository) that the composition root collects and passes down.

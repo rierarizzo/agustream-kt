@@ -41,6 +41,7 @@ import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.ui.catalog.CatalogViewModel
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
+import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 
@@ -113,10 +114,7 @@ private fun CatalogContent(
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     when {
-        state.isLoading && !state.hasLoaded ->
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator()
-            }
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid()
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,

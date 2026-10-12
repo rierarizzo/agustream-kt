@@ -17,6 +17,7 @@ import com.misgus.agustream.ui.shell.AppShell
 import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
 import com.misgus.agustream.ui.theme.AgustreamTheme
 import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.LocalMotionEnabled
 
 /**
  * Root composable.
@@ -28,6 +29,8 @@ import com.misgus.agustream.ui.theme.AppColors
 fun AgustreamApp(
     services: AppServices,
     initialSource: String? = null,
+    /** Future settings screen toggles this; the composition root collects it. */
+    animationsEnabled: Boolean = true,
 ) {
     val owner = remember { RouteViewModelStoreOwner() }
     DisposableEffect(Unit) {
@@ -37,6 +40,7 @@ fun AgustreamApp(
     CompositionLocalProvider(
         LocalAppServices provides services,
         LocalViewModelStoreOwner provides owner,
+        LocalMotionEnabled provides animationsEnabled,
     ) {
         AgustreamTheme {
             Surface(
