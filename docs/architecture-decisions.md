@@ -218,3 +218,14 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   normalise how images are requested and drawn — an explicit target size,
   matching `ContentScale`, and the right filter quality — across every
   `AsyncImage`/`PosterImage` in the app, including the title logos.
+
+### Motion
+
+- **Animations are deliberately absent for now.** The UI switches state
+  instantly. Planned, roughly in priority order: route transitions
+  (detail/catalog/player), a hover scale on posters, loading skeletons with a
+  shimmer, fade/scale on dialogs and a fade-in of the detail content. All of it
+  must use the cheap path — `graphicsLayer` transforms, no layout animation and
+  no per-frame recomposition — and infinite animations must be scoped to what is
+  on screen. The detail backdrop blur is already the most expensive effect in
+  the UI, so motion should not add to that cost.
