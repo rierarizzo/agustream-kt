@@ -54,6 +54,12 @@ engine, the filesystem and the player touch platform source sets through
 - **Watched logic is pure** (`watched/WatchedRule.kt`) and the resolver
   (`watched/WatchedBadges.kt`) keeps the bounded-concurrency, cached,
   background behaviour of the original.
+- **Sign-in is a request, not a signature.** `AccountRepository.signIn` takes a
+  `SignInRequest` (sealed; today only `EmailPassword`) and the backend declares
+  what it offers through `signInMethods`, so the sign-in UI renders the matching
+  form instead of assuming email + password. Adding OAuth or a magic link means
+  a new subtype, not a contract change; a multi-step flow (device pairing) would
+  still need a session object on top of this.
 - **`PlayerService` is a contract**, with a neutral `PlayerState` and a
   `videoOutput: Any?` handle so the UI can embed the native surface without
   depending on the engine.
@@ -242,16 +248,6 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
 
 Items that need a design decision, touch several modules, or both, so they are
 not a one-file change. They are grouped by the axis they change, not by effort.
-
-### Domain contracts
-
-- **The sign-in method is baked into the account contract.**
-  `AccountRepository.signIn(email, password)` assumes email + password. An
-  OAuth, magic-link or device-pairing flow does not fit the signature, so
-  supporting one means replacing it with a request object or a flow-based
-  operation and updating every implementation plus the sign-in card. Doing it
-  while only one backend exists is cheap; doing it after a second one lands is
-  not.
 
 ### Backends
 

@@ -14,6 +14,8 @@ import com.misgus.agustream.core.repository.CatalogRepository
 import com.misgus.agustream.core.repository.LibraryRepository
 import com.misgus.agustream.core.repository.MetadataRepository
 import com.misgus.agustream.core.repository.ProgressRepository
+import com.misgus.agustream.core.repository.SignInMethod
+import com.misgus.agustream.core.repository.SignInRequest
 import com.misgus.agustream.core.repository.StreamGroup
 import com.misgus.agustream.core.repository.StreamRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,10 +28,13 @@ class FakeAccountRepository(
     private val _state = MutableStateFlow(initial)
     override val state: StateFlow<AccountState> = _state
 
-    override suspend fun signIn(
-        email: String,
-        password: String,
-    ) {
+    override val signInMethods: List<SignInMethod> = listOf(SignInMethod.EmailPassword)
+
+    override suspend fun signIn(request: SignInRequest) {
+        val email =
+            when (request) {
+                is SignInRequest.EmailPassword -> request.email
+            }
         _state.value = AccountState(isSignedIn = true, email = email)
     }
 

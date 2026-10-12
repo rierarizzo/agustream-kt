@@ -12,6 +12,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.misgus.agustream.core.model.Addon
+import com.misgus.agustream.core.repository.SignInRequest
 import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.data.BackendKind
 import com.misgus.agustream.data.addons.StremioCatalogRepository
@@ -32,8 +33,8 @@ import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
 import com.misgus.agustream.ui.theme.AppColors
 import kotlinx.coroutines.delay
-
 import java.awt.Dimension
+
 fun main(args: Array<String>) {
     // The desktop Coil decoder aliases when it downsamples; install the cubic
     // one before any image is rendered.
@@ -106,7 +107,6 @@ fun main(args: Array<String>) {
             state = windowState,
             title = "Agustream",
         ) {
-            // AWT does not follow the OS dark mode for the native title bar, so
             // The OS enforces the minimum: the window can grow or maximise but
             // never shrink below the size it opens with. Reapplied when the
             // density changes (e.g. moving to a monitor with another scale).
@@ -118,6 +118,7 @@ fun main(args: Array<String>) {
                         with(density) { WINDOW_HEIGHT.roundToPx() },
                     )
             }
+            // AWT does not follow the OS dark mode for the native title bar, so
             // ask DWM. The native peer may not exist on the first frame; retry.
             LaunchedEffect(window) {
                 val caption = AppColors.background.toAwtColor()
@@ -164,7 +165,7 @@ private suspend fun signInFromEnvironment(
     val email = environment["NUVIO_EMAIL"]
     val password = environment["NUVIO_PASSWORD"]
     if (email.isNullOrEmpty() || password.isNullOrEmpty()) return
-    runCatchingCancellable { account.signIn(email, password) }
+    runCatchingCancellable { account.signIn(SignInRequest.EmailPassword(email, password)) }
 }
 
 /** Addons for local mode from `AGUSTREAM_LOCAL_ADDONS`, comma-separated URLs. */
@@ -189,9 +190,9 @@ private fun initialSource(args: Array<String>): String? {
 /** Frames to wait for the native window peer before giving up on the dark title bar. */
 private const val DARK_TITLE_BAR_ATTEMPTS = 20
 
-/** Delay between dark-title-bar retries, in milliseconds. */
 /** Size the desktop window opens with, and the smallest it can be resized to. */
 private val WINDOW_WIDTH: Dp = 1280.dp
 private val WINDOW_HEIGHT: Dp = 720.dp
 
+/** Delay between dark-title-bar retries, in milliseconds. */
 private const val TITLE_BAR_RETRY_DELAY_MS = 50L

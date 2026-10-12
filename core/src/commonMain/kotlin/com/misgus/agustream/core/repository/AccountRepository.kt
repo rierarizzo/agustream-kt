@@ -38,6 +38,33 @@ data class AccountState(
 )
 
 /**
+ * A way to sign in that a backend offers.
+ *
+ * Backends declare theirs in [AccountRepository.signInMethods] and the sign-in UI
+ * renders the matching form, instead of assuming email + password. Add one
+ * subtype per interaction (OAuth, magic link, device pairing).
+ */
+sealed interface SignInMethod {
+    /** An email and a password, entered in the app. */
+    data object EmailPassword : SignInMethod
+}
+
+/**
+ * What the user submits for a [SignInMethod].
+ *
+ * A request object instead of fixed `email` / `password` parameters, so a backend
+ * can add a method without changing the contract. Implementations handle the
+ * requests they support.
+ */
+sealed interface SignInRequest {
+    /** The credentials for [SignInMethod.EmailPassword]. */
+    data class EmailPassword(
+        val email: String,
+        val password: String,
+    ) : SignInRequest
+}
+
+/**
  * Account-level access: the session and the profiles behind it.
  *
  * Session tokens are deliberately **not** part of this contract: they are
@@ -48,15 +75,20 @@ interface AccountRepository {
     val state: StateFlow<AccountState>
 
     /**
-     * Signs in with email + password and loads the profiles.
+     * Methods this backend supports, in the order the UI should offer them.
+     *
+     * Static: it does not depend on the session, so the sign-in UI can be built
+     * before any request is made.
+     */
+    val signInMethods: List<SignInMethod>
+
+    /**
+     * Signs in with [request] and loads the profiles.
      *
      * A profile load failure does not undo the session: it is reported through
      * [AccountState.profilesError] so the UI can offer a retry.
      */
-    suspend fun signIn(
-        email: String,
-        password: String,
-    )
+    suspend fun signIn(request: SignInRequest)
 
     /**
      * Restores a previously persisted session, if there is one.

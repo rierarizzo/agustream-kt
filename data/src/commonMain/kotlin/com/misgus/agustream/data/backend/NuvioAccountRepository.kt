@@ -3,6 +3,8 @@ package com.misgus.agustream.data.backend
 import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.AccountState
+import com.misgus.agustream.core.repository.SignInMethod
+import com.misgus.agustream.core.repository.SignInRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,14 +32,19 @@ class NuvioAccountRepository(
     private val _state = MutableStateFlow(AccountState())
     override val state: StateFlow<AccountState> = _state.asStateFlow()
 
+    override val signInMethods: List<SignInMethod> = listOf(SignInMethod.EmailPassword)
+
     /** In-flight profile load, so sign-out can drop it and a retry can replace it. */
     private var profileLoad: Job? = null
 
-    override suspend fun signIn(
-        email: String,
-        password: String,
-    ) {
-        client.signIn(email, password)
+    override suspend fun signIn(request: SignInRequest) {
+        // Exhaustive over the sealed request: a new method forces this impl to
+        // decide whether it supports it.
+        val credentials =
+            when (request) {
+                is SignInRequest.EmailPassword -> request
+            }
+        client.signIn(credentials.email, credentials.password)
         _state.value =
             AccountState(
                 isSignedIn = true,

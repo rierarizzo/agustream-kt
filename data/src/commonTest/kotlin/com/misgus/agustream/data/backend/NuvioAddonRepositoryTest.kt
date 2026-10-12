@@ -3,6 +3,8 @@ package com.misgus.agustream.data.backend
 import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.AccountState
+import com.misgus.agustream.core.repository.SignInMethod
+import com.misgus.agustream.core.repository.SignInRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -87,10 +89,9 @@ class NuvioAddonRepositoryTest {
             )
         override val state: StateFlow<AccountState> = _state.asStateFlow()
 
-        override suspend fun signIn(
-            email: String,
-            password: String,
-        ) = Unit
+        override val signInMethods: List<SignInMethod> = emptyList()
+
+        override suspend fun signIn(request: SignInRequest) = Unit
 
         override suspend fun restoreSession(): Boolean = true
 

@@ -1,5 +1,7 @@
 package com.misgus.agustream.data.backend
 
+import com.misgus.agustream.core.repository.SignInMethod
+import com.misgus.agustream.core.repository.SignInRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -53,7 +55,7 @@ class NuvioAccountRepositoryTest {
             // Mirrors the Settings card: the sign-in runs on a scope that the
             // gate disposes as soon as `isSignedIn` flips.
             launch {
-                repository.signIn("me@example.com", "secret")
+                repository.signIn(SignInRequest.EmailPassword("me@example.com", "secret"))
                 throw CancellationException("screen disposed")
             }.join()
 
@@ -65,5 +67,6 @@ class NuvioAccountRepositoryTest {
             assertTrue(state.isSignedIn)
             assertFalse(state.isLoadingProfiles)
             assertEquals(listOf("Main"), state.profiles.map { it.name })
+            assertEquals(listOf<SignInMethod>(SignInMethod.EmailPassword), repository.signInMethods)
         }
 }

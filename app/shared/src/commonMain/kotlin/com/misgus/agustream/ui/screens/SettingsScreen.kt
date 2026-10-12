@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.PosterSize
+import com.misgus.agustream.core.repository.SignInMethod
+import com.misgus.agustream.core.repository.SignInRequest
 import com.misgus.agustream.ui.components.PillButton
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.platform.openInDefaultApp
@@ -144,7 +146,7 @@ private fun AccountCard() {
                 primary = false,
                 enabled = !busy,
             )
-        } else {
+        } else if (SignInMethod.EmailPassword in account.signInMethods) {
             Column {
                 OutlinedTextField(
                     value = email,
@@ -178,7 +180,7 @@ private fun AccountCard() {
                         error = null
                         scope.launch {
                             try {
-                                account.signIn(email.trim(), password)
+                                account.signIn(SignInRequest.EmailPassword(email.trim(), password))
                                 password = ""
                             } catch (e: CancellationException) {
                                 throw e
@@ -194,6 +196,11 @@ private fun AccountCard() {
                     loading = busy,
                 )
             }
+        } else {
+            Text(
+                "This account signs in through another method.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     }
 }
