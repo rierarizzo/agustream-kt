@@ -38,7 +38,11 @@ object AppColors {
     val accent = Color(0xFFF0A020)
     val onAccent = Color(0xFF1A1200)
 
-    val textPrimary = Color(0xFFF5F5F7)
+    /**
+     * Default text colour. It matches the poster captions ([posterTitle]) on
+     * purpose: body copy stays muted instead of glaring white.
+     */
+    val textPrimary = Color(0xFFAFB0B0)
     val textSecondary = Color(0xFF9A9AA4)
 
     /** Movie title under a poster. */
@@ -64,8 +68,8 @@ object AppSpacing {
 
 /** Corner radii. */
 object AppRadii {
-    val sm: Dp = 6.dp
-    val md: Dp = 10.dp
+    val sm: Dp = 4.dp
+    val md: Dp = 6.dp
     val lg: Dp = 16.dp
     val xl: Dp = 24.dp
 
