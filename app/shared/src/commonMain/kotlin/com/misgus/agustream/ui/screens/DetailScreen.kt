@@ -72,6 +72,7 @@ import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.motionTween
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /** Title detail: an immersive hero, episodes and the extra sections. */
@@ -98,17 +99,29 @@ fun DetailScreen(
     var watched by remember { mutableStateOf(false) }
     var watchedKnown by remember { mutableStateOf(false) }
     var rating by remember { mutableStateOf<Int?>(null) }
+    var ratingKnown by remember { mutableStateOf(false) }
     var showRatingDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(item.contentId) {
-        saved = runCatchingCancellable { services.library.contains(item.contentId) }.getOrDefault(false)
-        savedKnown = true
-        watched =
-            runCatchingCancellable {
-                services.progress.watchedEntries(listOf(item.contentId)).any { it.isMarker }
-            }.getOrDefault(false)
-        watchedKnown = true
-        rating = runCatchingCancellable { services.ratings.ratingOf(item.contentId) }.getOrNull()
+        // The three reads are independent: run them together so the wait is the
+        // slowest one, not their sum. Each publishes as soon as it is ready.
+        coroutineScope {
+            launch {
+                saved = runCatchingCancellable { services.library.contains(item.contentId) }.getOrDefault(false)
+                savedKnown = true
+            }
+            launch {
+                watched =
+                    runCatchingCancellable {
+                        services.progress.watchedEntries(listOf(item.contentId)).any { it.isMarker }
+                    }.getOrDefault(false)
+                watchedKnown = true
+            }
+            launch {
+                rating = runCatchingCancellable { services.ratings.ratingOf(item.contentId) }.getOrNull()
+                ratingKnown = true
+            }
+        }
     }
 
     val openStreams: (String, String, String) -> Unit = { type, id, title ->
@@ -159,6 +172,7 @@ fun DetailScreen(
                     },
                     saved = saved,
                     savedBusy = !savedKnown || saving,
+                    savedLoading = !savedKnown,
                     onToggleSaved = {
                         if (saving) return@HeroContent
                         saving = true
@@ -176,6 +190,7 @@ fun DetailScreen(
                     },
                     watched = watched,
                     watchedBusy = !watchedKnown,
+                    watchedLoading = !watchedKnown,
                     onToggleWatched = {
                         if (!watchedKnown) return@HeroContent
                         watchedKnown = false
@@ -192,6 +207,7 @@ fun DetailScreen(
                         }
                     },
                     rating = rating,
+                    ratingLoading = !ratingKnown,
                     onRate = { showRatingDialog = true },
                 )
 
@@ -317,11 +333,14 @@ private fun HeroContent(
     onPlay: () -> Unit,
     saved: Boolean,
     savedBusy: Boolean,
+    savedLoading: Boolean,
     onToggleSaved: () -> Unit,
     watched: Boolean,
     watchedBusy: Boolean,
+    watchedLoading: Boolean,
     onToggleWatched: () -> Unit,
     rating: Int?,
+    ratingLoading: Boolean,
     onRate: () -> Unit,
 ) {
     Box(Modifier.fillMaxWidth().height(height)) {
@@ -343,11 +362,14 @@ private fun HeroContent(
                 ActionRow(
                     saved = saved,
                     savedBusy = savedBusy,
+                    savedLoading = savedLoading,
                     onToggleSaved = onToggleSaved,
                     watched = watched,
                     watchedBusy = watchedBusy,
+                    watchedLoading = watchedLoading,
                     onToggleWatched = onToggleWatched,
                     rating = rating,
+                    ratingLoading = ratingLoading,
                     onRate = onRate,
                 )
             }
@@ -386,11 +408,14 @@ private fun detailMetadataParts(state: DetailUiState): List<String> =
 private fun ActionRow(
     saved: Boolean,
     savedBusy: Boolean,
+    savedLoading: Boolean,
     onToggleSaved: () -> Unit,
     watched: Boolean,
     watchedBusy: Boolean,
+    watchedLoading: Boolean,
     onToggleWatched: () -> Unit,
     rating: Int?,
+    ratingLoading: Boolean,
     onRate: () -> Unit,
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xl)) {
@@ -399,6 +424,7 @@ private fun ActionRow(
             label = "My List",
             active = saved,
             enabled = !savedBusy,
+            loading = savedLoading,
             onClick = onToggleSaved,
         )
         ActionItem(
@@ -406,6 +432,7 @@ private fun ActionRow(
             label = "Rate",
             active = rating != null,
             enabled = true,
+            loading = ratingLoading,
             onClick = onRate,
         )
         ActionItem(
@@ -413,6 +440,7 @@ private fun ActionRow(
             label = "Watched",
             active = watched,
             enabled = !watchedBusy,
+            loading = watchedLoading,
             onClick = onToggleWatched,
         )
     }
@@ -424,16 +452,25 @@ private fun ActionItem(
     label: String,
     active: Boolean,
     enabled: Boolean,
+    loading: Boolean,
     onClick: () -> Unit,
 ) {
     val interaction = rememberInteraction()
+    // While the real state is unknown, dim the action instead of showing it as
+    // "off": it is not that it is not saved, it is that we do not know yet.
+    val contentAlpha by animateFloatAsState(
+        targetValue = if (loading) 0.35f else 1f,
+        animationSpec = motionTween(),
+        label = "actionAlpha",
+    )
     Column(
         modifier =
             Modifier
                 .clip(RoundedCornerShape(AppRadii.sm))
                 .background(interactionHighlight(interaction))
-                .clickableSurface(interaction, onClick, enabled = enabled)
-                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
+                .clickableSurface(interaction, onClick, enabled = enabled && !loading)
+                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+                .graphicsLayer { alpha = contentAlpha },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
