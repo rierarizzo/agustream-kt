@@ -54,7 +54,10 @@ fun AppShell() {
     val scope = rememberCoroutineScope()
     var streamsRequest by remember { mutableStateOf<StreamsRequest?>(null) }
 
-    val hideNav = isFullScreen || immersive
+    // A pushed route (detail, catalog) is an immersive screen with its own back
+    // affordance, so the top navigation steps aside and the content gets the
+    // whole window.
+    val hideNav = isFullScreen || immersive || navigator.current != null
     val gate = account.isSignedIn && account.requiresProfile && account.activeProfile == null
     val showNav = !gate && !hideNav
 

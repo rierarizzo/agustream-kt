@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,12 +39,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -117,87 +120,101 @@ fun DetailScreen(
         )
     }
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        Hero(
-            state = state,
-            onBack = onBack,
-            onPlay = {
-                val first = state.episodes.firstOrNull()
-                if (state.isSeries && first != null) {
-                    openStreams("series", first.id, "${state.name} · ${first.title ?: "Episode"}")
-                } else {
-                    openStreams(item.contentType, item.contentId, state.name)
-                }
-            },
-            saved = saved,
-            savedBusy = !savedKnown || saving,
-            onToggleSaved = {
-                if (saving) return@Hero
-                saving = true
-                scope.launch {
-                    runCatchingCancellable {
-                        if (saved) {
-                            services.library.remove(item.contentId)
-                        } else {
-                            services.library.add(item)
-                        }
-                    }.onSuccess { saved = !saved }
-                        .onFailure { snackbar?.showSnackbar("Could not update your library.") }
-                    saving = false
-                }
-            },
-            watched = watched,
-            watchedBusy = !watchedKnown,
-            onToggleWatched = {
-                if (!watchedKnown) return@Hero
-                watchedKnown = false
-                scope.launch {
-                    runCatchingCancellable {
-                        if (watched) {
-                            services.progress.unmarkWatched(item.contentId)
-                        } else {
-                            services.progress.markWatched(item.contentId, item.contentType)
-                        }
-                    }.onSuccess { watched = !watched }
-                        .onFailure { snackbar?.showSnackbar("Could not update the watched state.") }
-                    watchedKnown = true
-                }
-            },
-            rating = rating,
-            onRate = { showRatingDialog = true },
-        )
-
-        if (state.isSeries && state.episodes.isNotEmpty()) {
-            Spacer(Modifier.height(AppSpacing.lg))
-            EpisodesSection(state.episodes) { video ->
-                openStreams("series", video.id, "${state.name} · ${video.title ?: "Episode"}")
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val viewportHeight = maxHeight
+        val scrollState = rememberScrollState()
+        // The artwork is a fixed layer, so its darkening spans the whole page:
+        // bright at the top, near-black at the end, never fully black.
+        val fade by remember {
+            derivedStateOf {
+                val max = scrollState.maxValue
+                if (max <= 0) 0f else (scrollState.value.toFloat() / max).coerceIn(0f, 1f)
             }
         }
 
-        val detailEntries =
-            buildList {
-                state.released?.takeIf { it.isNotEmpty() }?.let { add("Released" to it) }
-                state.country?.takeIf { it.isNotEmpty() }?.let { add("Country" to it) }
+        Box(Modifier.fillMaxSize()) {
+            // Fixed below the scrolling content: the artwork follows the page
+            // instead of leaving with the hero.
+            DetailBackdrop(state = state, fade = fade)
+
+            Column(Modifier.fillMaxSize().verticalScroll(scrollState)) {
+                HeroContent(
+                    state = state,
+                    height = viewportHeight,
+                    onPlay = {
+                        val first = state.episodes.firstOrNull()
+                        if (state.isSeries && first != null) {
+                            openStreams("series", first.id, "${state.name} · ${first.title ?: "Episode"}")
+                        } else {
+                            openStreams(item.contentType, item.contentId, state.name)
+                        }
+                    },
+                    saved = saved,
+                    savedBusy = !savedKnown || saving,
+                    onToggleSaved = {
+                        if (saving) return@HeroContent
+                        saving = true
+                        scope.launch {
+                            runCatchingCancellable {
+                                if (saved) {
+                                    services.library.remove(item.contentId)
+                                } else {
+                                    services.library.add(item)
+                                }
+                            }.onSuccess { saved = !saved }
+                                .onFailure { snackbar?.showSnackbar("Could not update your library.") }
+                            saving = false
+                        }
+                    },
+                    watched = watched,
+                    watchedBusy = !watchedKnown,
+                    onToggleWatched = {
+                        if (!watchedKnown) return@HeroContent
+                        watchedKnown = false
+                        scope.launch {
+                            runCatchingCancellable {
+                                if (watched) {
+                                    services.progress.unmarkWatched(item.contentId)
+                                } else {
+                                    services.progress.markWatched(item.contentId, item.contentType)
+                                }
+                            }.onSuccess { watched = !watched }
+                                .onFailure { snackbar?.showSnackbar("Could not update the watched state.") }
+                            watchedKnown = true
+                        }
+                    },
+                    rating = rating,
+                    onRate = { showRatingDialog = true },
+                )
+
+                DetailScrollContent(
+                    state = state,
+                    item = item,
+                    openStreams = openStreams,
+                    onOpenDetail = onOpenDetail,
+                )
             }
-        if (state.cast.isNotEmpty()) {
-            Spacer(Modifier.height(AppSpacing.lg))
-            PeopleRow("Cast", state.cast)
-        }
-        if (state.crew.isNotEmpty()) {
-            Spacer(Modifier.height(AppSpacing.lg))
-            PeopleRow("Crew", state.crew)
-        }
-        if (detailEntries.isNotEmpty()) {
-            Spacer(Modifier.height(AppSpacing.lg))
-            DetailsSection(detailEntries)
-        }
-        if (state.similar.isNotEmpty()) {
-            Spacer(Modifier.height(AppSpacing.lg))
-            SimilarRow(state.similar) { preview ->
-                onOpenDetail(preview.toLibraryItem(item))
+
+            // Fixed top scrim: guarantees a dark strip behind the back button,
+            // even when section titles scroll underneath it.
+            Box(
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .height(TOP_SCRIM_HEIGHT)
+                    .background(AppScrim.detailTop),
+            )
+
+            // Fixed, so it stays reachable while the page scrolls. It uses the
+            // same plain icon button as the player and the catalog; the fixed
+            // top scrim is what keeps it legible.
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.TopStart).padding(AppSpacing.md),
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
             }
         }
-        Spacer(Modifier.height(AppSpacing.xl))
     }
 
     if (showRatingDialog) {
@@ -212,9 +229,76 @@ fun DetailScreen(
 }
 
 @Composable
-private fun Hero(
+private fun DetailScrollContent(
     state: DetailUiState,
-    onBack: () -> Unit,
+    item: LibraryItem,
+    openStreams: (String, String, String) -> Unit,
+    onOpenDetail: (LibraryItem) -> Unit,
+) {
+    if (state.isSeries && state.episodes.isNotEmpty()) {
+        Spacer(Modifier.height(AppSpacing.lg))
+        EpisodesSection(state.episodes) { video ->
+            openStreams("series", video.id, "${state.name} · ${video.title ?: "Episode"}")
+        }
+    }
+
+    val detailEntries =
+        buildList {
+            state.released?.takeIf { it.isNotEmpty() }?.let { add("Released" to it) }
+            state.country?.takeIf { it.isNotEmpty() }?.let { add("Country" to it) }
+        }
+    if (state.cast.isNotEmpty()) {
+        Spacer(Modifier.height(AppSpacing.lg))
+        PeopleRow("Cast", state.cast)
+    }
+    if (state.crew.isNotEmpty()) {
+        Spacer(Modifier.height(AppSpacing.lg))
+        PeopleRow("Crew", state.crew)
+    }
+    if (detailEntries.isNotEmpty()) {
+        Spacer(Modifier.height(AppSpacing.lg))
+        DetailsSection(detailEntries)
+    }
+    if (state.similar.isNotEmpty()) {
+        Spacer(Modifier.height(AppSpacing.lg))
+        SimilarRow(state.similar) { preview ->
+            onOpenDetail(preview.toLibraryItem(item))
+        }
+    }
+    Spacer(Modifier.height(AppSpacing.xl))
+}
+
+@Composable
+private fun DetailBackdrop(
+    state: DetailUiState,
+    fade: Float,
+) {
+    val backdrop = state.background ?: state.poster
+    Box(Modifier.fillMaxSize().blur(MAX_BLUR * fade)) {
+        // Dark base so a slow or failed image never shows a bright gap; the
+        // artwork fills the box on top when it can.
+        Box(Modifier.fillMaxSize().background(AppScrim.detailBackdrop))
+        if (!backdrop.isNullOrEmpty()) {
+            AsyncImage(
+                model = backdrop,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+        Box(Modifier.fillMaxSize().background(AppScrim.mediaHorizontal))
+        Box(Modifier.fillMaxSize().background(AppScrim.mediaBottom))
+        // Scroll-linked darkening and a light blur. It covers the whole
+        // viewport, so the artwork stays behind the content all the way down,
+        // never fully black.
+        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = HERO_FADE_MAX * fade)))
+    }
+}
+
+@Composable
+private fun HeroContent(
+    state: DetailUiState,
+    height: Dp,
     onPlay: () -> Unit,
     saved: Boolean,
     savedBusy: Boolean,
@@ -225,38 +309,7 @@ private fun Hero(
     rating: Int?,
     onRate: () -> Unit,
 ) {
-    val backdrop = state.background ?: state.poster
-    val density = LocalDensity.current
-    val windowHeight =
-        with(density) {
-            LocalWindowInfo.current
-                .containerSize
-                .height
-                .toDp()
-        }
-    val heroHeight = (windowHeight * HERO_HEIGHT_FRACTION).coerceIn(heroMinHeight, heroMaxHeight)
-
-    Box(Modifier.fillMaxWidth().height(heroHeight)) {
-        if (!backdrop.isNullOrEmpty()) {
-            AsyncImage(
-                model = backdrop,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            Box(Modifier.fillMaxSize().background(AppColors.surface))
-        }
-        Box(Modifier.fillMaxSize().background(AppScrim.mediaHorizontal))
-        Box(Modifier.fillMaxSize().background(AppScrim.mediaBottom))
-
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier.align(Alignment.TopStart).padding(AppSpacing.sm),
-        ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-        }
-
+    Box(Modifier.fillMaxWidth().height(height)) {
         Column(
             modifier =
                 Modifier
@@ -399,6 +452,11 @@ private fun com.misgus.agustream.core.model.MetaPreview.toLibraryItem(from: Libr
         addonBaseUrl = from.addonBaseUrl,
     )
 
-private const val HERO_HEIGHT_FRACTION = 0.82f
-private val heroMinHeight = 480.dp
-private val heroMaxHeight = 860.dp
+/** Height of the fixed top scrim, in dp. */
+private val TOP_SCRIM_HEIGHT = 96.dp
+
+/** Blur applied to the artwork at the end of the page, in dp. */
+private val MAX_BLUR = 14.dp
+
+/** How dark the artwork gets at the end of the page. */
+private const val HERO_FADE_MAX = 0.9f

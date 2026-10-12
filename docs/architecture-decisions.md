@@ -102,9 +102,10 @@ engine, the filesystem and the player touch platform source sets through
   own `ViewModelStoreOwner` (`ContentArea`) that is cleared on pop, so transient
   ViewModels do not leak.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
-  rendered inside the shell content area, so the top navigation bar stays
-  visible — the same behaviour as the Flutter nested `Navigator`, without adding
-  a navigation library.
+  rendered inside the shell content area. Sections keep the top navigation
+  visible; a pushed route (detail, catalog) hides it, so an immersive hero such
+  as the detail one fills the whole window — the same behaviour as the Flutter
+  nested `Navigator`, without adding a navigation library.
 - **Theme** centralises the design tokens (`AppColors`, `AppSpacing`,
   `AppRadii`, `AppSizes`, `PosterCaption`) and the Inter typeface loaded
   from Compose Resources. Material3 `visualDensity` stays at the platform default.

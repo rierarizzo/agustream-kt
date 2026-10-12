@@ -23,8 +23,9 @@ sealed interface ContentRoute {
 /**
  * Stack of routes shown inside the shell's content area.
  *
- * The rail and title bar stay visible while these are pushed, and dialogs still
- * cover the whole window because they are hosted at the root.
+ * Pushed routes are immersive: the shell hides the top navigation so the screen
+ * gets the whole window. Dialogs still cover everything because they are hosted
+ * at the root.
  */
 class ContentNavigator {
     val stack = mutableStateListOf<ContentRoute>()

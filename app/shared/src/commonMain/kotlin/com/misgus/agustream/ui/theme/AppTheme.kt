@@ -105,6 +105,9 @@ object AppAlpha {
     /** Subtle rim light around the hero card. */
     const val HERO_RIM = 0.08f
 
+    /** Top scrim that keeps the detail back button legible over any content. */
+    const val DETAIL_TOP_SCRIM = 0.55f
+
     /** Secondary hero action background. */
     const val HERO_ACTION = 0.18f
 
@@ -162,6 +165,29 @@ object AppScrim {
             0f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_HEADER),
             0.45f to Color.Transparent,
             1f to AppColors.background,
+        )
+
+    /**
+     * Dark base behind a full-screen hero.
+     *
+     * A slow or missing image never leaves a bright gap: whatever the artwork
+     * does not cover falls back to this near-black gradient.
+     */
+    val detailBackdrop: Brush =
+        Brush.verticalGradient(
+            0f to AppColors.surfaceHigh,
+            0.55f to AppColors.surface,
+            1f to AppColors.background,
+        )
+
+    /**
+     * Fade along the top of a screen, so a fixed control such as a back button
+     * always sits on a dark strip instead of on bright artwork or content.
+     */
+    val detailTop: Brush =
+        Brush.verticalGradient(
+            0f to Color.Black.copy(alpha = AppAlpha.DETAIL_TOP_SCRIM),
+            1f to Color.Transparent,
         )
 
     /** Top control scrim over the player. */
