@@ -82,9 +82,11 @@ engine, the filesystem and the player touch platform source sets through
   where the OS allows it; that is best-effort hardening, not a keychain.
 - **Settings** live in `settings.json` as a flat JSON object with dotted keys,
   like VS Code's `settings.json` (`animations.enabled`, `player.resumePlayback`,
-  `player.autoPlayNext`). `JsonSettingsRepository` reads it defensively, keeps
-  unknown keys on write and can `reload()` after a manual edit; the settings
-  screen edits the same file, shows its path and can open it in the OS editor.
+  `player.autoPlayNext`, `poster.size`, `library.poster.size`).
+  `JsonSettingsRepository` reads it defensively, keeps unknown keys on write and
+  can `reload()` after a manual edit; the settings screen groups the toggles by
+  category, edits the same file, shows its path and can open it in the OS
+  editor.
 - **Session renewal**: `NuvioClient` renews the token before a request when it
   has expired, and once more when the backend answers `401`. Renewals are
   serialized with a mutex so parallel requests do not refresh twice. Engines are
@@ -169,6 +171,12 @@ engine, the filesystem and the player touch platform source sets through
   logo and backdrop fade in when the image itself is ready (`RemoteImage(fadeIn)`),
   so a slow load never pops. The player is deliberately outside the route
   transition because it drives a single shared engine.
+- **Poster sizes** are a setting (`PosterSize`: small / default / large, 210 /
+  230 / 250 dp). `poster.size` is shared by Home, Discover, the catalog grids and
+  "More like this", while `library.poster.size` applies only to the Library
+  grid. A grid uses the size as its minimum cell width and a rail derives its
+  height from it (`width / 0.58`), so the card aspect is the same everywhere and
+  every surface can be resized from a single key.
 - **Window**: the app keeps the **native window decoration** (title bar,
   minimize, maximize, close and resizing are OS-managed), which avoids the
   glitches a custom title bar can cause on Windows. Compose Desktop draws its
