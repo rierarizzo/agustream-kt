@@ -2,29 +2,18 @@ package com.misgus.agustream.ui.library
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,7 +30,7 @@ import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
 
-/** Library section: every title saved in the account. */
+/** Library section: the grid of saved titles. */
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel,
@@ -51,41 +40,17 @@ fun LibraryScreen(
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    Column(Modifier.fillMaxSize().padding(AppSpacing.xl)) {
-        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.weight(1f)) {
-                Text("Library", style = MaterialTheme.typography.headlineLarge)
-                Text(subtitle(state), style = MaterialTheme.typography.bodyMedium)
-            }
-            if (state.isSyncingWatched) {
-                SyncingIndicator()
-                Spacer(Modifier.size(AppSpacing.sm))
-            }
-            if (state.isSignedIn) {
-                IconButton(
-                    enabled = !state.isLoading,
-                    onClick = { viewModel.load(force = true) },
-                ) {
-                    Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-                }
-            }
-        }
-        Spacer(Modifier.height(AppSpacing.md))
-        Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-            LibraryFilter.entries.forEach { filter ->
-                FilterChip(
-                    selected = state.filter == filter,
-                    onClick = { viewModel.setFilter(filter) },
-                    label = { Text(filter.label) },
-                )
-            }
-        }
-        Spacer(Modifier.height(AppSpacing.lg))
+    Box(Modifier.fillMaxSize()) {
         LibraryContent(
             state = state,
             onOpenSettings = onOpenSettings,
             onOpen = { navigator.push(ContentRoute.Detail(it)) },
         )
+        if (state.isSyncingWatched) {
+            Box(Modifier.align(Alignment.TopEnd).padding(AppSpacing.xl)) {
+                SyncingIndicator()
+            }
+        }
     }
 }
 
@@ -114,24 +79,23 @@ private fun LibraryContent(
                 title = "Could not load the library",
                 message = state.error.toUserMessage(),
             )
-        state.visibleItems.isEmpty() ->
+        state.items.isEmpty() ->
             Message(
                 icon = Icons.Outlined.Inbox,
                 title = "Nothing to show",
-                message =
-                    if (state.items.isEmpty()) {
-                        "Your library is empty."
-                    } else {
-                        "No titles match this filter."
-                    },
+                message = "Your library is empty.",
             )
         else ->
+            // The grid owns the padding through contentPadding: the scroll area
+            // reaches the window edges, so the last row is never clipped.
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(230.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(AppSpacing.xl),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
             ) {
-                items(state.visibleItems, key = { it.contentId }) { item ->
+                items(state.items, key = { it.contentId }) { item ->
                     Box(Modifier.aspectRatio(0.58f)) {
                         PosterTile(
                             item = item,
@@ -144,11 +108,3 @@ private fun LibraryContent(
             }
     }
 }
-
-private fun subtitle(state: LibraryUiState): String =
-    when {
-        !state.isSignedIn -> "Sign in to see your library"
-        state.isLoading && !state.hasLoaded -> "Loading…"
-        state.items.size == 1 -> "1 title"
-        else -> "${state.items.size} titles"
-    }

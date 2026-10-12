@@ -4,7 +4,6 @@ import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.watched.WatchedBadgeResolver
 import com.misgus.agustream.ui.home.HomeViewModel
-import com.misgus.agustream.ui.library.LibraryFilter
 import com.misgus.agustream.ui.library.LibraryViewModel
 import com.misgus.agustream.ui.support.FakeAccountRepository
 import com.misgus.agustream.ui.support.FakeCatalogRepository
@@ -45,7 +44,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun loadsAndFiltersByType() =
+    fun loadsItems() =
         runTest(dispatcher) {
             val viewModel =
                 viewModel(
@@ -56,16 +55,7 @@ class LibraryViewModelTest {
 
             assertTrue(viewModel.state.value.hasLoaded)
             assertTrue(viewModel.state.value.isSignedIn)
-            assertEquals(2, viewModel.state.value.visibleItems.size)
-
-            viewModel.setFilter(LibraryFilter.MOVIES)
-            assertEquals(1, viewModel.state.value.visibleItems.size)
-            assertEquals(
-                "m1",
-                viewModel.state.value.visibleItems
-                    .single()
-                    .contentId,
-            )
+            assertEquals(2, viewModel.state.value.items.size)
         }
 
     @Test

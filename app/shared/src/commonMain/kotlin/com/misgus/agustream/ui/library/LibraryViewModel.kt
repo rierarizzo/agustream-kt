@@ -18,15 +18,6 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Kind of titles the library grid shows. */
-enum class LibraryFilter(
-    val label: String,
-) {
-    ALL("All"),
-    MOVIES("Movies"),
-    SHOWS("Shows"),
-}
-
 /** Immutable state of the Library section. */
 data class LibraryUiState(
     val isSignedIn: Boolean = false,
@@ -35,19 +26,9 @@ data class LibraryUiState(
     val error: Throwable? = null,
     val items: List<LibraryItem> = emptyList(),
     val progressByContentId: Map<String, WatchProgress> = emptyMap(),
-    val filter: LibraryFilter = LibraryFilter.ALL,
     val watchedIds: Set<String> = emptySet(),
     val isSyncingWatched: Boolean = false,
-) {
-    /** Titles matching the active [filter]. */
-    val visibleItems: List<LibraryItem>
-        get() =
-            when (filter) {
-                LibraryFilter.ALL -> items
-                LibraryFilter.MOVIES -> items.filter { it.contentType == "movie" }
-                LibraryFilter.SHOWS -> items.filter { it.contentType == "series" }
-            }
-}
+)
 
 /**
  * Loads the library and the watch progress that decorates it.
@@ -76,11 +57,6 @@ class LibraryViewModel(
         // must refresh the grid, so the repositories are observable too.
         viewModelScope.launch { library.changes.drop(1).collect { load(force = true) } }
         viewModelScope.launch { progress.changes.drop(1).collect { load(force = true) } }
-    }
-
-    fun setFilter(filter: LibraryFilter) {
-        if (filter == _state.value.filter) return
-        _state.update { it.copy(filter = filter) }
     }
 
     /** Loads library and progress. Does nothing when already loaded, unless [force]. */
