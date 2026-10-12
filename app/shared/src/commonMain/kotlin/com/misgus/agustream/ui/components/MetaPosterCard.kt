@@ -2,7 +2,6 @@ package com.misgus.agustream.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,10 +46,12 @@ fun MetaPosterCard(
 ) {
     val shape = RoundedCornerShape(AppRadii.md)
     val interaction = rememberInteraction()
-    val borderColor by animateColorAsState(
-        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
-        animationSpec = motionTween(),
-    )
+    val borderColor =
+        animateColorAsState(
+            targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+            animationSpec = motionTween(),
+            label = "borderColor",
+        )
     val scale =
         animateFloatAsState(
             targetValue = if (interaction.active) HOVER_SCALE else 1f,
@@ -71,7 +71,7 @@ fun MetaPosterCard(
                     .fillMaxWidth()
                     .weight(1f)
                     .motionLayer(scale = { scale.value })
-                    .border(1.dp, borderColor, shape)
+                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
                     .clip(shape),
         ) {
             PosterImage(preview.poster, Modifier.fillMaxWidth().fillMaxHeight())

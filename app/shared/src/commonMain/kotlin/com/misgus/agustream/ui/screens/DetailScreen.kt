@@ -82,6 +82,7 @@ fun DetailScreen(
     onBack: () -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
     onOpenStreams: (StreamsRequest) -> Unit,
+    knownSaved: Boolean = false,
 ) {
     val services = LocalAppServices.current
     val viewModel: DetailViewModel =
@@ -93,8 +94,8 @@ fun DetailScreen(
     val scope = rememberCoroutineScope()
     val snackbar = LocalSnackbarHost.current
 
-    var saved by remember { mutableStateOf(false) }
-    var savedKnown by remember { mutableStateOf(false) }
+    var saved by remember { mutableStateOf(knownSaved) }
+    var savedKnown by remember { mutableStateOf(knownSaved) }
     var saving by remember { mutableStateOf(false) }
     var watched by remember { mutableStateOf(false) }
     var watchedKnown by remember { mutableStateOf(false) }
@@ -107,7 +108,10 @@ fun DetailScreen(
         // slowest one, not their sum. Each publishes as soon as it is ready.
         coroutineScope {
             launch {
-                saved = runCatchingCancellable { services.library.contains(item.contentId) }.getOrDefault(false)
+                // Opened from the library: it is saved, no need to ask.
+                if (!knownSaved) {
+                    saved = runCatchingCancellable { services.library.contains(item.contentId) }.getOrDefault(false)
+                }
                 savedKnown = true
             }
             launch {
@@ -373,16 +377,18 @@ private fun HeroContent(
                     onRate = onRate,
                 )
             }
-            state.description?.takeIf { it.isNotEmpty() }?.let {
-                Spacer(Modifier.height(AppSpacing.lg))
-                Text(
-                    it,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = AppColors.textPrimary.copy(alpha = 0.92f),
-                )
-            }
+            Spacer(Modifier.height(AppSpacing.lg))
+            Text(
+                // Show only the loaded description: the library preview can be a
+                // different synopsis, and swapping it mid-view reads worse than
+                // a short reserve. `minLines` keeps the layout stable.
+                text = if (state.hasLoaded) state.description.orEmpty() else "",
+                minLines = 3,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodyLarge,
+                color = AppColors.textPrimary.copy(alpha = 0.92f),
+            )
             if (state.genres.isNotEmpty()) {
                 Spacer(Modifier.height(AppSpacing.sm))
                 Text(

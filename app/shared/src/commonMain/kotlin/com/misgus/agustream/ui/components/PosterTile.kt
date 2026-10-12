@@ -2,7 +2,6 @@ package com.misgus.agustream.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,10 +47,12 @@ fun PosterTile(
     onTap: () -> Unit,
 ) {
     val interaction = rememberInteraction()
-    val borderColor by animateColorAsState(
-        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
-        animationSpec = motionTween(),
-    )
+    val borderColor =
+        animateColorAsState(
+            targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+            animationSpec = motionTween(),
+            label = "borderColor",
+        )
     val shape = RoundedCornerShape(AppRadii.md)
     val fraction = progress?.fraction
     val inProgress = !watched && fraction != null && fraction > 0.02 && fraction < 0.95
@@ -76,7 +76,7 @@ fun PosterTile(
                     .fillMaxWidth()
                     .weight(1f)
                     .motionLayer(scale = { scale.value })
-                    .border(1.dp, borderColor, shape)
+                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
                     .clip(shape),
         ) {
             PosterImage(item.poster, Modifier.fillMaxSize())

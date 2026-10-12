@@ -44,7 +44,7 @@ fun LibraryScreen(
         LibraryContent(
             state = state,
             onOpenSettings = onOpenSettings,
-            onOpen = { navigator.push(ContentRoute.Detail(it)) },
+            onOpen = { navigator.push(ContentRoute.Detail(it, knownSaved = true)) },
         )
         if (state.isSyncingWatched) {
             Box(Modifier.align(Alignment.TopEnd).padding(AppSpacing.xl)) {

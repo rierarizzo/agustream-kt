@@ -99,6 +99,7 @@ fun ContentArea(
                         is ContentRoute.Detail ->
                             DetailScreen(
                                 item = target.item,
+                                knownSaved = target.knownSaved,
                                 onBack = navigator::pop,
                                 onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
                                 onOpenStreams = onOpenStreams,

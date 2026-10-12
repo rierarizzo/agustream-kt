@@ -72,7 +72,7 @@ fun CalendarScreen(
     CalendarContent(
         state = state,
         onOpenSettings = onOpenSettings,
-        onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
+        onOpenDetail = { navigator.push(ContentRoute.Detail(it, knownSaved = true)) },
     )
 }
 

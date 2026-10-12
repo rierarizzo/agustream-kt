@@ -2,7 +2,6 @@ package com.misgus.agustream.ui.screens
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +42,7 @@ import com.misgus.agustream.ui.components.MarqueeText
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.motionBorder
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
@@ -159,10 +159,12 @@ internal fun SimilarRow(
         ) {
             items(items) { item ->
                 val interaction = rememberInteraction()
-                val borderColor by animateColorAsState(
-                    targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
-                    animationSpec = motionTween(),
-                )
+                val borderColor =
+                    animateColorAsState(
+                        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+                        animationSpec = motionTween(),
+                        label = "borderColor",
+                    )
                 Column(
                     modifier = Modifier.width(140.dp).clickableSurface(interaction, onClick = { onOpen(item) }),
                 ) {
@@ -170,7 +172,7 @@ internal fun SimilarRow(
                         Modifier
                             .fillMaxWidth()
                             .aspectRatio(2f / 3f)
-                            .border(1.dp, borderColor, RoundedCornerShape(AppRadii.md))
+                            .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
                             .clip(RoundedCornerShape(AppRadii.md)),
                     ) {
                         PosterImage(item.poster, Modifier.fillMaxSize())
@@ -293,16 +295,18 @@ private fun EpisodeCard(
     val number = video.episode ?: video.number
     val title = video.title ?: "Episode ${number ?: ""}".trim()
     val interaction = rememberInteraction()
-    val borderColor by animateColorAsState(
-        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
-        animationSpec = motionTween(),
-    )
+    val borderColor =
+        animateColorAsState(
+            targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+            animationSpec = motionTween(),
+            label = "borderColor",
+        )
     Column(modifier = Modifier.width(220.dp).clickableSurface(interaction, onTap)) {
         Box(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .border(1.dp, borderColor, RoundedCornerShape(AppRadii.md))
+                .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
                 .clip(RoundedCornerShape(AppRadii.md)),
         ) {
             PosterImage(video.thumbnail, Modifier.fillMaxSize())

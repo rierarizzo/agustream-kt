@@ -9,6 +9,11 @@ import com.misgus.agustream.core.repository.CatalogRef
 sealed interface ContentRoute {
     data class Detail(
         val item: LibraryItem,
+        /**
+         * Set when the caller already knows the title is saved (it opened it
+         * from the library), so the detail skips the `contains` check.
+         */
+        val knownSaved: Boolean = false,
     ) : ContentRoute
 
     data class Catalog(

@@ -9,7 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.ui.theme.AppAlpha
 
 /**
@@ -62,4 +66,25 @@ fun interactionHighlight(
         state.focused -> Color.White.copy(alpha = AppAlpha.INTERACT_FOCUS)
         state.hovered -> Color.White.copy(alpha = AppAlpha.INTERACT_HOVER)
         else -> base
+    }
+
+/**
+ * Rounded border drawn in the draw phase.
+ *
+ * Pass `{ state.value }` so an animated colour is read while drawing instead of
+ * in composition: `Modifier.border` would recompose the card every frame while
+ * the colour animates.
+ */
+fun Modifier.motionBorder(
+    color: () -> Color,
+    width: Dp,
+    cornerRadius: Dp,
+): Modifier =
+    drawWithContent {
+        drawContent()
+        drawRoundRect(
+            color = color(),
+            cornerRadius = CornerRadius(cornerRadius.toPx()),
+            style = Stroke(width = width.toPx()),
+        )
     }
