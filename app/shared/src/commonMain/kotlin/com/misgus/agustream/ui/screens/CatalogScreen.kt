@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -75,8 +76,11 @@ fun CatalogScreen(
         if (shouldLoadMore) viewModel.loadMore()
     }
 
-    Column(Modifier.fillMaxSize().padding(AppSpacing.xl)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.padding(start = AppSpacing.xl, top = AppSpacing.xl, end = AppSpacing.xl),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
@@ -92,7 +96,9 @@ fun CatalogScreen(
             }
         }
         Spacer(Modifier.height(AppSpacing.md))
-        CatalogContent(state, gridState, onOpenDetail)
+        Box(Modifier.weight(1f)) {
+            CatalogContent(state, gridState, onOpenDetail)
+        }
     }
 }
 
@@ -123,6 +129,8 @@ private fun CatalogContent(
             LazyVerticalGrid(
                 state = gridState,
                 columns = GridCells.Adaptive(230.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = AppSpacing.xl, end = AppSpacing.xl, bottom = AppSpacing.xl),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
             ) {
