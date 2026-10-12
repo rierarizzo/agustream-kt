@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 fun SectionHost(
     selected: AppSection,
     navigator: ContentNavigator,
-    onSelectSection: (AppSection) -> Unit,
     onOpenStreams: (StreamsRequest) -> Unit,
 ) {
     val services = LocalAppServices.current
@@ -45,7 +44,7 @@ fun SectionHost(
                         badges = services.watchedBadges,
                     )
                 }
-            HomeScreen(viewModel, navigator, onOpenStreams, onOpenSettings = { onSelectSection(AppSection.SETTINGS) })
+            HomeScreen(viewModel, navigator, onOpenStreams)
         }
         AppSection.LIBRARY -> {
             val viewModel: LibraryViewModel =
@@ -57,7 +56,7 @@ fun SectionHost(
                         badges = services.watchedBadges,
                     )
                 }
-            LibraryScreen(viewModel, navigator, onOpenSettings = { onSelectSection(AppSection.SETTINGS) })
+            LibraryScreen(viewModel, navigator)
         }
         AppSection.DISCOVER -> {
             val viewModel: DiscoverViewModel =
@@ -70,7 +69,6 @@ fun SectionHost(
             DiscoverScreen(
                 viewModel = viewModel,
                 navigator = navigator,
-                onOpenSettings = { onSelectSection(AppSection.SETTINGS) },
             )
         }
         AppSection.SEARCH -> {
@@ -84,7 +82,6 @@ fun SectionHost(
             SearchScreen(
                 viewModel = viewModel,
                 navigator = navigator,
-                onOpenSettings = { onSelectSection(AppSection.SETTINGS) },
             )
         }
         AppSection.CALENDAR -> {
@@ -100,7 +97,6 @@ fun SectionHost(
             CalendarScreen(
                 viewModel = viewModel,
                 navigator = navigator,
-                onOpenSettings = { onSelectSection(AppSection.SETTINGS) },
             )
         }
         AppSection.SETTINGS -> {

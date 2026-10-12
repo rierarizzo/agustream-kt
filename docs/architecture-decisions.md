@@ -126,6 +126,15 @@ engine, the filesystem and the player touch platform source sets through
   (replacing Flutter's `IndexedStack` state retention). Pushed routes get their
   own `ViewModelStoreOwner` (`ContentArea`) that is cleared on pop, so transient
   ViewModels do not leak.
+- **Onboarding and session bootstrap.** `AgustreamApp` resolves the persisted
+  session once, before anything else: it shows a splash until that finishes, then
+  the onboarding (no session) or the shell, so a returning user never sees the
+  sign-in for a frame. It is a hard gate, so the sections no longer carry a
+  "not signed in" state: signing out returns to the onboarding. The form is
+  shared with the Settings account card and driven by `signInMethods`, so a
+  backend that signs in another way renders another form. The desktop
+  `NUVIO_EMAIL` / `NUVIO_PASSWORD` shortcut is passed in as an `autoSignIn`
+  request, applied only when there is no stored session.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
   rendered inside the shell content area. Sections keep the top navigation
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such
@@ -258,13 +267,9 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   change, but a usable account also needs `LibraryRepository`,
   `ProgressRepository` and `AddonRepository` against the Stremio datastore.
   The auth adapter is the small part; the data repositories are the bulk.
+
 ### Product / UX
 
-- **First-run onboarding.** The login is still the temporary card inside
-  Settings, and Home only tells the user to "sign in from Settings". A new user
-  has to guess where to go. The architecture is ready (a not-signed-in state and
-  a profile gate already exist); what is missing is a dedicated welcome/sign-in
-  route selected before the shell, or at minimum a CTA in the empty state.
 - **Internationalisation.** Every user-facing string is a Kotlin literal inside
   a composable; there are no Compose Resources string resources. The migration
   is mechanical but touches every screen in `ui/`, so it should happen before

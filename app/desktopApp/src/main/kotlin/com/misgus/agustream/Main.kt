@@ -13,7 +13,6 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.misgus.agustream.core.model.Addon
 import com.misgus.agustream.core.repository.SignInRequest
-import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.data.BackendKind
 import com.misgus.agustream.data.addons.StremioCatalogRepository
 import com.misgus.agustream.data.addons.StremioMetadataRepository
@@ -88,16 +87,6 @@ fun main(args: Array<String>) {
                 )
             }
 
-        // Prefer a persisted session; fall back to the development shortcut.
-        // Running it here (not with `runBlocking` before the window exists)
-        // keeps startup responsive and cancellable.
-        LaunchedEffect(Unit) {
-            val restored =
-                runCatchingCancellable { backend.account.restoreSession() }
-                    .getOrDefault(false)
-            if (!restored) signInFromEnvironment(backend.account, environment)
-        }
-
         Window(
             onCloseRequest = {
                 backend.close()
@@ -133,7 +122,11 @@ fun main(args: Array<String>) {
             SideEffect {
                 applyBackground(window, AppColors.background.toAwtColor())
             }
-            AgustreamApp(services = services, initialSource = initialSource)
+            AgustreamApp(
+                services = services,
+                initialSource = initialSource,
+                autoSignIn = credentialsFromEnvironment(environment),
+            )
         }
     }
 }
@@ -153,19 +146,17 @@ private fun applyBackground(
 private fun Color.toAwtColor(): java.awt.Color = java.awt.Color(toArgb(), true)
 
 /**
- * Development shortcut: signs in with `NUVIO_EMAIL` / `NUVIO_PASSWORD`.
+ * Development shortcut: signs in with `NUVIO_EMAIL` / `NUVIO_PASSWORD` when there
+ * is no stored session.
  *
  * Credentials are read from the environment for this run only; they are never
  * written to the repository or to disk.
  */
-private suspend fun signInFromEnvironment(
-    account: com.misgus.agustream.core.repository.AccountRepository,
-    environment: Map<String, String>,
-) {
+private fun credentialsFromEnvironment(environment: Map<String, String>): SignInRequest? {
     val email = environment["NUVIO_EMAIL"]
     val password = environment["NUVIO_PASSWORD"]
-    if (email.isNullOrEmpty() || password.isNullOrEmpty()) return
-    runCatchingCancellable { account.signIn(SignInRequest.EmailPassword(email, password)) }
+    if (email.isNullOrEmpty() || password.isNullOrEmpty()) return null
+    return SignInRequest.EmailPassword(email, password)
 }
 
 /** Addons for local mode from `AGUSTREAM_LOCAL_ADDONS`, comma-separated URLs. */

@@ -38,7 +38,6 @@ data class CalendarEntry(
 
 /** Immutable state of the Calendar section. */
 data class CalendarUiState(
-    val isSignedIn: Boolean = false,
     val isLoading: Boolean = false,
     val hasLoaded: Boolean = false,
     val error: Throwable? = null,
@@ -90,7 +89,7 @@ class CalendarViewModel(
 
     private suspend fun doLoad() {
         _state.update {
-            it.copy(isSignedIn = true, isLoading = true, hasLoaded = false, error = null, entries = emptyList())
+            it.copy(isLoading = true, hasLoaded = false, error = null, entries = emptyList())
         }
         try {
             val start = today()

@@ -88,7 +88,6 @@ fun AppShell() {
                         ContentArea(
                             selected = selected,
                             navigator = navigator,
-                            onSelectSection = selectSection,
                             onOpenStreams = { request ->
                                 if (services.playbackSupported) {
                                     streamsRequest = request

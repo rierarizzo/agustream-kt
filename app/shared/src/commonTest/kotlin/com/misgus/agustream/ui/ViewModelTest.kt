@@ -54,7 +54,6 @@ class LibraryViewModelTest {
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.hasLoaded)
-            assertTrue(viewModel.state.value.isSignedIn)
             assertEquals(2, viewModel.state.value.items.size)
         }
 
@@ -76,7 +75,6 @@ class LibraryViewModelTest {
             account.signOut()
             advanceUntilIdle()
             assertEquals(0, viewModel.state.value.items.size)
-            assertEquals(false, viewModel.state.value.isSignedIn)
         }
 }
 
@@ -118,7 +116,6 @@ class HomeViewModelTest {
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value.hasLoaded)
-            assertTrue(viewModel.state.value.isSignedIn)
             assertEquals(1, viewModel.state.value.rows.size)
             assertEquals(
                 "tt1",

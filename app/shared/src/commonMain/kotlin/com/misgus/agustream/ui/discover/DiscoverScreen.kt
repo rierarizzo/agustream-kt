@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +48,6 @@ import com.misgus.agustream.ui.theme.cellWidth
 fun DiscoverScreen(
     viewModel: DiscoverViewModel,
     navigator: ContentNavigator,
-    onOpenSettings: () -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -59,7 +57,6 @@ fun DiscoverScreen(
     DiscoverContent(
         state = state,
         posterSize = settings.posterSize,
-        onOpenSettings = onOpenSettings,
         onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
         onLoadMore = viewModel::loadMore,
     )
@@ -69,19 +66,10 @@ fun DiscoverScreen(
 private fun DiscoverContent(
     state: DiscoverUiState,
     posterSize: PosterSize,
-    onOpenSettings: () -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
 ) {
     when {
-        !state.isSignedIn ->
-            Message(
-                icon = Icons.Outlined.Lock,
-                title = "Not signed in",
-                message = "Sign in to discover your addon catalogs.",
-                actionLabel = "Sign in",
-                onAction = onOpenSettings,
-            )
         state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && state.items.isEmpty() ->
             Message(

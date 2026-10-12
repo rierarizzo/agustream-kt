@@ -15,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.FolderOpen
@@ -33,29 +32,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.core.repository.SignInMethod
-import com.misgus.agustream.core.repository.SignInRequest
 import com.misgus.agustream.ui.components.PillButton
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.onboarding.SignInForm
 import com.misgus.agustream.ui.platform.openInDefaultApp
 import com.misgus.agustream.ui.platform.pickVideoFile
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 /**
  * Settings section.
  *
- * Holds two temporary cards: one to sign in (the real login screen is not built
- * yet) and the phase 1 playback test.
+ * Groups the local preferences (appearance, playback) and the account card. The
+ * sign-in form is shared with the onboarding screen.
  */
 @Composable
 fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
@@ -123,11 +120,7 @@ private fun AccountCard() {
     val account = LocalAppServices.current.account
     val state by account.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
+    var signingOut by remember { mutableStateOf(false) }
 
     SettingsCard(
         title = "Account",
@@ -141,61 +134,23 @@ private fun AccountCard() {
         if (state.isSignedIn) {
             PillButton(
                 text = "Sign out",
-                onClick = { scope.launch { account.signOut() } },
+                onClick = {
+                    signingOut = true
+                    scope.launch {
+                        try {
+                            account.signOut()
+                        } finally {
+                            signingOut = false
+                        }
+                    }
+                },
                 icon = Icons.AutoMirrored.Outlined.Logout,
                 primary = false,
-                enabled = !busy,
+                enabled = !signingOut,
+                loading = signingOut,
             )
         } else if (SignInMethod.EmailPassword in account.signInMethods) {
-            Column {
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.height(AppSpacing.sm))
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                error?.let {
-                    Spacer(Modifier.height(AppSpacing.sm))
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-                Spacer(Modifier.height(AppSpacing.md))
-                PillButton(
-                    text = "Sign in",
-                    onClick = {
-                        busy = true
-                        error = null
-                        scope.launch {
-                            try {
-                                account.signIn(SignInRequest.EmailPassword(email.trim(), password))
-                                password = ""
-                            } catch (e: CancellationException) {
-                                throw e
-                            } catch (e: Throwable) {
-                                error = e.toUserMessage()
-                            } finally {
-                                busy = false
-                            }
-                        }
-                    },
-                    icon = Icons.AutoMirrored.Outlined.Login,
-                    enabled = email.isNotBlank() && password.isNotEmpty(),
-                    loading = busy,
-                )
-            }
+            SignInForm()
         } else {
             Text(
                 "This account signs in through another method.",

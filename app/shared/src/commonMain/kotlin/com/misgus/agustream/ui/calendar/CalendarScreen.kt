@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,14 +63,12 @@ import kotlin.time.Clock
 fun CalendarScreen(
     viewModel: CalendarViewModel,
     navigator: ContentNavigator,
-    onOpenSettings: () -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     CalendarContent(
         state = state,
-        onOpenSettings = onOpenSettings,
         onOpenDetail = { navigator.push(ContentRoute.Detail(it, knownSaved = true)) },
     )
 }
@@ -79,18 +76,9 @@ fun CalendarScreen(
 @Composable
 private fun CalendarContent(
     state: CalendarUiState,
-    onOpenSettings: () -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     when {
-        !state.isSignedIn ->
-            Message(
-                icon = Icons.Outlined.Lock,
-                title = "Not signed in",
-                message = "Sign in to see your upcoming episodes.",
-                actionLabel = "Sign in",
-                onAction = onOpenSettings,
-            )
         state.error != null && state.entries.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,

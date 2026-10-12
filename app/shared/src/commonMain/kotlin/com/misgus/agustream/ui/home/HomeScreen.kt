@@ -20,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -62,7 +61,6 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     navigator: ContentNavigator,
     onOpenStreams: (StreamsRequest) -> Unit,
-    onOpenSettings: () -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -73,7 +71,6 @@ fun HomeScreen(
         HomeContent(
             state = state,
             posterSize = settings.posterSize,
-            onOpenSettings = onOpenSettings,
             onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
             onOpenPreview = { navigator.push(ContentRoute.Detail(LibraryItem.fromPreview(it))) },
             onOpenCatalog = { navigator.push(ContentRoute.Catalog(it)) },
@@ -101,21 +98,12 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeUiState,
     posterSize: PosterSize,
-    onOpenSettings: () -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
     onOpenPreview: (MetaPreview) -> Unit,
     onOpenCatalog: (com.misgus.agustream.core.repository.CatalogRef) -> Unit,
     onPlayPreview: (MetaPreview) -> Unit,
 ) {
     when {
-        !state.isSignedIn ->
-            Message(
-                icon = Icons.Outlined.Lock,
-                title = "Not signed in",
-                message = "Sign in to see your Home.",
-                actionLabel = "Sign in",
-                onAction = onOpenSettings,
-            )
         state.isLoading && !state.hasLoaded ->
             HomeSkeleton(posterSize = posterSize)
         state.error != null && state.rows.isEmpty() && state.continueWatching.isEmpty() ->

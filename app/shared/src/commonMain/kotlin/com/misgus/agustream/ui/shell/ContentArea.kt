@@ -50,7 +50,6 @@ class RouteViewModelStoreOwner : ViewModelStoreOwner {
 fun ContentArea(
     selected: AppSection,
     navigator: ContentNavigator,
-    onSelectSection: (AppSection) -> Unit,
     onOpenStreams: (StreamsRequest) -> Unit,
 ) {
     val enabled = LocalMotionEnabled.current
@@ -68,7 +67,7 @@ fun ContentArea(
             // Sections reserve the floating top bar's height; the padding is
             // constant, so fading the bar never resizes the section's scroll.
             Box(Modifier.fillMaxSize().padding(top = AppSizes.topBarHeight)) {
-                SectionHost(section, navigator, onSelectSection, onOpenStreams)
+                SectionHost(section, navigator, onOpenStreams)
             }
         }
 

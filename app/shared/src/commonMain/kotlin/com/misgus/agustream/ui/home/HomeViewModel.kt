@@ -39,7 +39,6 @@ data class HomeRow(
 
 /** Immutable state of the Home section. */
 data class HomeUiState(
-    val isSignedIn: Boolean = false,
     val isLoading: Boolean = false,
     val hasLoaded: Boolean = false,
     val error: Throwable? = null,
@@ -94,7 +93,7 @@ class HomeViewModel(
     }
 
     private suspend fun doLoad() {
-        _state.update { it.copy(isSignedIn = true, isLoading = true, error = null) }
+        _state.update { it.copy(isLoading = true, error = null) }
         var progressEntries: List<WatchProgress> = emptyList()
         var loaded = false
         try {

@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inbox
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,7 +44,6 @@ import com.misgus.agustream.ui.theme.AppSpacing
 fun SearchScreen(
     viewModel: SearchViewModel,
     navigator: ContentNavigator,
-    onOpenSettings: () -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -54,7 +52,6 @@ fun SearchScreen(
         Box(Modifier.weight(1f)) {
             SearchContent(
                 state = state,
-                onOpenSettings = onOpenSettings,
                 onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
             )
         }
@@ -89,18 +86,9 @@ private fun SearchField(
 @Composable
 private fun SearchContent(
     state: SearchUiState,
-    onOpenSettings: () -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     when {
-        !state.isSignedIn ->
-            Message(
-                icon = Icons.Outlined.Lock,
-                title = "Not signed in",
-                message = "Sign in to search your addons.",
-                actionLabel = "Sign in",
-                onAction = onOpenSettings,
-            )
         state.query.isBlank() ->
             Message(
                 icon = Icons.Default.Search,

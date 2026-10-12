@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 /** Immutable state of the Search section. */
 data class SearchUiState(
     val query: String = "",
-    val isSignedIn: Boolean = false,
     val isSearching: Boolean = false,
     val results: List<MetaPreview> = emptyList(),
     /** `true` once a query has completed, so "no results" is not shown before. */
@@ -54,11 +53,7 @@ class SearchViewModel(
     init {
         viewModelScope.launch {
             account.state.collect { accountState ->
-                if (accountState.isSignedIn) {
-                    _state.update { it.copy(isSignedIn = true) }
-                } else {
-                    clear()
-                }
+                if (!accountState.isSignedIn) clear()
             }
         }
     }

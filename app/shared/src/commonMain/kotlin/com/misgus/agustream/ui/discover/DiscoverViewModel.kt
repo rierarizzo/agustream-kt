@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 
 /** Immutable state of the Discover section. */
 data class DiscoverUiState(
-    val isSignedIn: Boolean = false,
     /** `true` during the very first load. */
     val isLoading: Boolean = false,
     /** `true` while an additional page is being appended. */
@@ -98,7 +97,7 @@ class DiscoverViewModel(
     }
 
     private suspend fun initialLoad() {
-        _state.update { it.copy(isSignedIn = true, isLoading = true, error = null, hasMore = true) }
+        _state.update { it.copy(isLoading = true, error = null, hasMore = true) }
         try {
             // `catalogs()` returns the catalogs grouped per addon; reorder them so
             // an addon that declares many does not crowd out the rest when the
