@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,12 +13,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.MetaPreview
+import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
@@ -36,19 +40,23 @@ fun MetaPosterCard(
     onTap: () -> Unit,
 ) {
     val shape = RoundedCornerShape(AppRadii.md)
+    val interaction = rememberInteraction()
+    val borderColor by animateColorAsState(
+        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+    )
     Column(
         modifier =
             Modifier
                 .then(if (width != null) Modifier.width(width) else Modifier)
                 .fillMaxHeight()
-                .clip(shape)
-                .clickable(onClick = onTap),
+                .clickableSurface(interaction, onTap),
     ) {
         Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .border(1.dp, borderColor, shape)
                     .clip(shape),
         ) {
             PosterImage(preview.poster, Modifier.fillMaxWidth().fillMaxHeight())

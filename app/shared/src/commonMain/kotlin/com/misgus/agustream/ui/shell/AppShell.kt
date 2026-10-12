@@ -1,7 +1,6 @@
 package com.misgus.agustream.ui.shell
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -56,29 +54,7 @@ fun AppShell() {
     val gate = account.isSignedIn && account.requiresProfile && account.activeProfile == null
     val showNav = !gate && !hideNav
 
-    // Soft app-wide tint: the colour of the artwork on screen, fading from the
-    // top of the window into the base background.
-    val ambient by animateColorAsState(
-        services.ambient.color ?: AppColors.background,
-        tween(AMBIENT_MILLIS),
-        label = "appAmbient",
-    )
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .drawBehind {
-                drawRect(AppColors.background)
-                drawRect(
-                    brush =
-                        Brush.verticalGradient(
-                            0f to ambient.copy(alpha = AppAlpha.AMBIENT_TOP),
-                            0.55f to ambient.copy(alpha = AppAlpha.AMBIENT_MID),
-                            1f to Color.Transparent,
-                        ),
-                )
-            },
-    ) {
+    Box(Modifier.fillMaxSize().background(AppColors.background)) {
         CompositionLocalProvider(LocalSnackbarHost provides snackbarHost) {
             if (gate) {
                 // Profile gate: the library and every write belong to a profile, so
@@ -175,6 +151,3 @@ fun AppShell() {
         )
     }
 }
-
-/** Duration of the app background tint crossfade when the artwork changes. */
-private const val AMBIENT_MILLIS = 700

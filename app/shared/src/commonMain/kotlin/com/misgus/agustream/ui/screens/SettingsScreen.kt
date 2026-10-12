@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -19,11 +17,7 @@ import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,10 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.BackendException
 import com.misgus.agustream.core.player.PlaybackTarget
+import com.misgus.agustream.ui.components.PillButton
 import com.misgus.agustream.ui.platform.pickVideoFile
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
@@ -92,14 +86,13 @@ private fun AccountCard() {
             },
     ) {
         if (state.isSignedIn) {
-            OutlinedButton(
+            PillButton(
+                text = "Sign out",
                 onClick = { scope.launch { account.signOut() } },
+                icon = Icons.AutoMirrored.Outlined.Logout,
+                primary = false,
                 enabled = !busy,
-            ) {
-                Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(AppSpacing.sm))
-                Text("Sign out")
-            }
+            )
         } else {
             Column {
                 OutlinedTextField(
@@ -127,8 +120,8 @@ private fun AccountCard() {
                     )
                 }
                 Spacer(Modifier.height(AppSpacing.md))
-                FilledTonalButton(
-                    enabled = !busy && email.isNotBlank() && password.isNotEmpty(),
+                PillButton(
+                    text = "Sign in",
                     onClick = {
                         busy = true
                         error = null
@@ -147,15 +140,10 @@ private fun AccountCard() {
                             }
                         }
                     },
-                ) {
-                    if (busy) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                    } else {
-                        Icon(Icons.AutoMirrored.Outlined.Login, contentDescription = null, modifier = Modifier.size(18.dp))
-                    }
-                    Spacer(Modifier.width(AppSpacing.sm))
-                    Text("Sign in")
-                }
+                    icon = Icons.AutoMirrored.Outlined.Login,
+                    enabled = email.isNotBlank() && password.isNotEmpty(),
+                    loading = busy,
+                )
             }
         }
     }
@@ -180,25 +168,22 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
             )
             Spacer(Modifier.height(AppSpacing.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                FilledTonalButton(
-                    enabled = url.isNotBlank(),
+                PillButton(
+                    text = "Play URL",
                     onClick = { onOpenPlayer(PlaybackTarget.raw(url.trim())) },
-                ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(AppSpacing.sm))
-                    Text("Play URL")
-                }
-                OutlinedButton(
+                    icon = Icons.Default.PlayArrow,
+                    enabled = url.isNotBlank(),
+                )
+                PillButton(
+                    text = "Open local file",
                     onClick = {
                         scope.launch {
                             pickVideoFile()?.let { onOpenPlayer(PlaybackTarget.raw(it)) }
                         }
                     },
-                ) {
-                    Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(AppSpacing.sm))
-                    Text("Open local file")
-                }
+                    icon = Icons.Outlined.FolderOpen,
+                    primary = false,
+                )
             }
         }
     }

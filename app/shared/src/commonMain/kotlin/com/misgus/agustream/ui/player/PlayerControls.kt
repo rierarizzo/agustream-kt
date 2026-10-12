@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.ui.theme.AppAlpha
+import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppScrim
 import kotlin.time.Duration
 
@@ -179,7 +180,12 @@ private fun BottomBar(
                 color = Color.White,
             )
             Spacer(Modifier.weight(1f))
-            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(
+                Icons.AutoMirrored.Filled.VolumeUp,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(AppIconSize.md),
+            )
             Box(Modifier.width(110.dp)) {
                 Slider(
                     value = volume.coerceIn(0.0, 100.0).toFloat(),

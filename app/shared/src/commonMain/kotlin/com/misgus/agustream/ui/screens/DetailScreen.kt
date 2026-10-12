@@ -4,16 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,14 +23,11 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,8 +38,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,23 +49,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.util.runCatchingCancellable
-import com.misgus.agustream.ui.components.PosterImage
+import com.misgus.agustream.ui.components.MediaTitle
+import com.misgus.agustream.ui.components.MetadataRow
+import com.misgus.agustream.ui.components.PillButton
+import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.interactionHighlight
+import com.misgus.agustream.ui.components.ratingText
+import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.detail.DetailUiState
 import com.misgus.agustream.ui.detail.DetailViewModel
 import com.misgus.agustream.ui.services.LocalAppServices
-import com.misgus.agustream.ui.shell.AmbientBackground
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
-import com.misgus.agustream.ui.theme.ambientColor
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-/** Title detail: hero, cast, crew, details and "More like this". */
+/** Title detail: an immersive hero, episodes and the extra sections. */
 @Composable
 fun DetailScreen(
     item: LibraryItem,
@@ -93,9 +93,6 @@ fun DetailScreen(
     var watchedKnown by remember { mutableStateOf(false) }
     var rating by remember { mutableStateOf<Int?>(null) }
     var showRatingDialog by remember { mutableStateOf(false) }
-
-    var backdropColor by remember(item.contentId) { mutableStateOf<Color?>(null) }
-    AmbientBackground(backdropColor)
 
     LaunchedEffect(item.contentId) {
         saved = runCatchingCancellable { services.library.contains(item.contentId) }.getOrDefault(false)
@@ -123,7 +120,6 @@ fun DetailScreen(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Hero(
             state = state,
-            onBackdropColor = { backdropColor = it },
             onBack = onBack,
             onPlay = {
                 val first = state.episodes.firstOrNull()
@@ -170,12 +166,19 @@ fun DetailScreen(
             rating = rating,
             onRate = { showRatingDialog = true },
         )
-        Spacer(Modifier.height(AppSpacing.lg))
+
         if (state.isSeries && state.episodes.isNotEmpty()) {
+            Spacer(Modifier.height(AppSpacing.lg))
             EpisodesSection(state.episodes) { video ->
                 openStreams("series", video.id, "${state.name} · ${video.title ?: "Episode"}")
             }
         }
+
+        val detailEntries =
+            buildList {
+                state.released?.takeIf { it.isNotEmpty() }?.let { add("Released" to it) }
+                state.country?.takeIf { it.isNotEmpty() }?.let { add("Country" to it) }
+            }
         if (state.cast.isNotEmpty()) {
             Spacer(Modifier.height(AppSpacing.lg))
             PeopleRow("Cast", state.cast)
@@ -184,34 +187,14 @@ fun DetailScreen(
             Spacer(Modifier.height(AppSpacing.lg))
             PeopleRow("Crew", state.crew)
         }
-        val details =
-            buildList {
-                state.released?.takeIf { it.isNotEmpty() }?.let { add("Released" to it) }
-                state.country?.takeIf { it.isNotEmpty() }?.let { add("Country" to it) }
-            }
-        if (details.isNotEmpty()) {
+        if (detailEntries.isNotEmpty()) {
             Spacer(Modifier.height(AppSpacing.lg))
-            DetailsSection(details)
+            DetailsSection(detailEntries)
         }
         if (state.similar.isNotEmpty()) {
             Spacer(Modifier.height(AppSpacing.lg))
             SimilarRow(state.similar) { preview ->
-                onOpenDetail(
-                    LibraryItem(
-                        id = preview.id,
-                        contentId = preview.id,
-                        contentType = preview.type.ifEmpty { item.contentType },
-                        name = preview.name,
-                        poster = preview.poster,
-                        background = preview.background,
-                        logo = preview.logo,
-                        description = preview.description,
-                        releaseInfo = preview.releaseInfo,
-                        imdbRating = preview.imdbRating,
-                        genres = preview.genres,
-                        addonBaseUrl = item.addonBaseUrl,
-                    ),
-                )
+                onOpenDetail(preview.toLibraryItem(item))
             }
         }
         Spacer(Modifier.height(AppSpacing.xl))
@@ -231,7 +214,6 @@ fun DetailScreen(
 @Composable
 private fun Hero(
     state: DetailUiState,
-    onBackdropColor: (Color) -> Unit,
     onBack: () -> Unit,
     onPlay: () -> Unit,
     saved: Boolean,
@@ -244,63 +226,96 @@ private fun Hero(
     onRate: () -> Unit,
 ) {
     val backdrop = state.background ?: state.poster
-    val scope = rememberCoroutineScope()
-    Box(Modifier.fillMaxWidth().height(480.dp)) {
+    val density = LocalDensity.current
+    val windowHeight =
+        with(density) {
+            LocalWindowInfo.current
+                .containerSize
+                .height
+                .toDp()
+        }
+    val heroHeight = (windowHeight * HERO_HEIGHT_FRACTION).coerceIn(heroMinHeight, heroMaxHeight)
+
+    Box(Modifier.fillMaxWidth().height(heroHeight)) {
         if (!backdrop.isNullOrEmpty()) {
             AsyncImage(
                 model = backdrop,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-                onSuccess = { imageState ->
-                    scope.launch {
-                        val color = withContext(Dispatchers.Default) { ambientColor(imageState.result.image) }
-                        if (color != null) onBackdropColor(color)
-                    }
-                },
             )
         } else {
             Box(Modifier.fillMaxSize().background(AppColors.surface))
         }
         Box(Modifier.fillMaxSize().background(AppScrim.mediaHorizontal))
-        Box(Modifier.fillMaxSize().background(AppScrim.mediaToBackground))
-        Row(
-            modifier = Modifier.align(Alignment.BottomStart).padding(AppSpacing.xl),
-            verticalAlignment = Alignment.Bottom,
-        ) {
-            Box(Modifier.width(224.dp).aspectRatio(2f / 3f).clip(RoundedCornerShape(AppRadii.md))) {
-                PosterImage(state.poster, Modifier.fillMaxSize())
-            }
-            Spacer(Modifier.width(AppSpacing.lg))
-            Info(
-                modifier = Modifier.weight(1f),
-                state = state,
-                onPlay = onPlay,
-                saved = saved,
-                savedBusy = savedBusy,
-                onToggleSaved = onToggleSaved,
-                watched = watched,
-                watchedBusy = watchedBusy,
-                onToggleWatched = onToggleWatched,
-                rating = rating,
-                onRate = onRate,
-            )
-        }
+        Box(Modifier.fillMaxSize().background(AppScrim.mediaBottom))
+
         IconButton(
             onClick = onBack,
-            modifier = Modifier.align(Alignment.TopStart).padding(AppSpacing.xs),
+            modifier = Modifier.align(Alignment.TopStart).padding(AppSpacing.sm),
         ) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        }
+
+        Column(
+            modifier =
+                Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(AppSpacing.xl)
+                    .widthIn(max = 720.dp),
+        ) {
+            MediaTitle(state.name, state.logo)
+            MetadataRow(detailMetadataParts(state))
+            Spacer(Modifier.height(AppSpacing.lg))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.xl),
+            ) {
+                PillButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
+                ActionRow(
+                    saved = saved,
+                    savedBusy = savedBusy,
+                    onToggleSaved = onToggleSaved,
+                    watched = watched,
+                    watchedBusy = watchedBusy,
+                    onToggleWatched = onToggleWatched,
+                    rating = rating,
+                    onRate = onRate,
+                )
+            }
+            state.description?.takeIf { it.isNotEmpty() }?.let {
+                Spacer(Modifier.height(AppSpacing.lg))
+                Text(
+                    it,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = AppColors.textPrimary.copy(alpha = 0.92f),
+                )
+            }
+            if (state.genres.isNotEmpty()) {
+                Spacer(Modifier.height(AppSpacing.sm))
+                Text(
+                    state.genres.joinToString("  ·  "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppColors.textSecondary,
+                )
+            }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** Release info, runtime and rating, dot-separated. */
+private fun detailMetadataParts(state: DetailUiState): List<String> =
+    buildList {
+        state.releaseInfo?.takeIf { it.isNotEmpty() }?.let { add(it) }
+        state.runtime?.takeIf { it.isNotEmpty() }?.let { add(it) }
+        state.imdbRating?.let { add("★ ${ratingText(it)}") }
+    }
+
+/** Icon + label actions under the call to action. */
 @Composable
-private fun Info(
-    modifier: Modifier = Modifier,
-    state: DetailUiState,
-    onPlay: () -> Unit,
+private fun ActionRow(
     saved: Boolean,
     savedBusy: Boolean,
     onToggleSaved: () -> Unit,
@@ -310,94 +325,80 @@ private fun Info(
     rating: Int?,
     onRate: () -> Unit,
 ) {
-    Column(modifier) {
-        val logo = state.logo
-        if (!logo.isNullOrEmpty()) {
-            AsyncImage(model = logo, contentDescription = null, modifier = Modifier.height(56.dp))
-        } else {
-            Text(
-                state.name,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.displaySmall,
-            )
-        }
-        val parts =
-            buildList {
-                state.releaseInfo?.takeIf { it.isNotEmpty() }?.let { add(it) }
-                state.runtime?.takeIf { it.isNotEmpty() }?.let { add(it) }
-                state.imdbRating?.let { add("★ ${round1(it)}") }
-            }
-        if (parts.isNotEmpty()) {
-            Spacer(Modifier.height(AppSpacing.sm))
-            Text(
-                parts.joinToString("   •   "),
-                style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.textSecondary,
-            )
-        }
-        if (state.genres.isNotEmpty()) {
-            Spacer(Modifier.height(AppSpacing.sm))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                state.genres.forEach { genre ->
-                    Text(
-                        genre,
-                        modifier =
-                            Modifier
-                                .clip(RoundedCornerShape(AppRadii.sm))
-                                .background(AppColors.surfaceHigh)
-                                .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.textPrimary,
-                    )
-                }
-            }
-        }
-        state.description?.takeIf { it.isNotEmpty() }?.let {
-            Spacer(Modifier.height(AppSpacing.md))
-            Text(
-                it,
-                maxLines = 4,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.width(720.dp),
-            )
-        }
-        Spacer(Modifier.height(AppSpacing.md))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-            TextButton(onClick = onPlay) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(Modifier.width(AppSpacing.xs))
-                Text("Play")
-            }
-            OutlinedButton(onClick = {}, enabled = false) {
-                Icon(Icons.Outlined.Movie, contentDescription = null)
-                Spacer(Modifier.width(AppSpacing.xs))
-                Text("Trailer")
-            }
-            IconButton(enabled = !watchedBusy, onClick = onToggleWatched) {
-                Icon(
-                    if (watched) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle,
-                    contentDescription = if (watched) "Mark as unwatched" else "Mark as watched",
-                    tint = if (watched) AppColors.accent else MaterialTheme.colorScheme.onSurface,
-                )
-            }
-            IconButton(enabled = !savedBusy, onClick = onToggleSaved) {
-                Icon(
-                    if (saved) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = if (saved) "Remove from library" else "Add to library",
-                    tint = if (saved) AppColors.accent else MaterialTheme.colorScheme.onSurface,
-                )
-            }
-            IconButton(onClick = onRate) {
-                Icon(
-                    if (rating != null) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                    contentDescription = "Rate",
-                    tint = if (rating != null) AppColors.accent else MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
+    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xl)) {
+        ActionItem(
+            icon = if (saved) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+            label = "My List",
+            active = saved,
+            enabled = !savedBusy,
+            onClick = onToggleSaved,
+        )
+        ActionItem(
+            icon = if (rating != null) Icons.Filled.Star else Icons.Outlined.StarBorder,
+            label = "Rate",
+            active = rating != null,
+            enabled = true,
+            onClick = onRate,
+        )
+        ActionItem(
+            icon = if (watched) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle,
+            label = "Watched",
+            active = watched,
+            enabled = !watchedBusy,
+            onClick = onToggleWatched,
+        )
     }
 }
 
-private fun round1(value: Double): String = (kotlin.math.round(value * 10) / 10.0).toString()
+@Composable
+private fun ActionItem(
+    icon: ImageVector,
+    label: String,
+    active: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val interaction = rememberInteraction()
+    Column(
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(AppRadii.sm))
+                .background(interactionHighlight(interaction))
+                .clickableSurface(interaction, onClick, enabled = enabled)
+                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            icon,
+            contentDescription = label,
+            tint = if (active) AppColors.accent else AppColors.textPrimary,
+            modifier = Modifier.size(AppIconSize.lg),
+        )
+        Spacer(Modifier.height(AppSpacing.xs))
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (active) AppColors.accent else AppColors.textPrimary,
+        )
+    }
+}
+
+private fun com.misgus.agustream.core.model.MetaPreview.toLibraryItem(from: LibraryItem): LibraryItem =
+    LibraryItem(
+        id = id,
+        contentId = id,
+        contentType = type.ifEmpty { from.contentType },
+        name = name,
+        poster = poster,
+        background = background,
+        logo = logo,
+        description = description,
+        releaseInfo = releaseInfo,
+        imdbRating = imdbRating,
+        genres = genres,
+        addonBaseUrl = from.addonBaseUrl,
+    )
+
+private const val HERO_HEIGHT_FRACTION = 0.82f
+private val heroMinHeight = 480.dp
+private val heroMaxHeight = 860.dp

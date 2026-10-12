@@ -2,9 +2,6 @@ package com.misgus.agustream.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +15,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,10 +42,9 @@ fun PosterTile(
     watched: Boolean = false,
     onTap: () -> Unit,
 ) {
-    val interaction = remember { MutableInteractionSource() }
-    val hovered by interaction.collectIsHoveredAsState()
+    val interaction = rememberInteraction()
     val borderColor by animateColorAsState(
-        targetValue = if (hovered) AppColors.accent else AppColors.divider,
+        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
     )
     val shape = RoundedCornerShape(AppRadii.md)
     val fraction = progress?.fraction
@@ -59,7 +54,7 @@ fun PosterTile(
         modifier =
             Modifier
                 .fillMaxHeight()
-                .clickable(interactionSource = interaction, indication = null, onClick = onTap)
+                .clickableSurface(interaction, onTap)
                 .pointerHoverIcon(PointerIcon.Hand),
     ) {
         Box(

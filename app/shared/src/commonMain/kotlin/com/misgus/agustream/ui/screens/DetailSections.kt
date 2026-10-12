@@ -1,7 +1,8 @@
 package com.misgus.agustream.ui.screens
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,8 @@ import com.misgus.agustream.core.model.MetaPerson
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.model.MetaVideo
 import com.misgus.agustream.ui.components.PosterImage
+import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -60,9 +63,9 @@ internal fun PeopleRow(
         )
         Spacer(Modifier.height(AppSpacing.md))
         LazyRow(
-            modifier = Modifier.height(176.dp),
+            modifier = Modifier.height(200.dp),
             contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
         ) {
             items(people) { person -> PersonCard(person) }
         }
@@ -71,9 +74,9 @@ internal fun PeopleRow(
 
 @Composable
 private fun PersonCard(person: MetaPerson) {
-    Column(modifier = Modifier.width(104.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.width(128.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
-            modifier = Modifier.size(64.dp).clip(CircleShape).background(AppColors.surfaceHigh),
+            modifier = Modifier.size(88.dp).clip(CircleShape).background(AppColors.surfaceHigh),
             contentAlignment = Alignment.Center,
         ) {
             val photo = person.photo
@@ -87,7 +90,7 @@ private fun PersonCard(person: MetaPerson) {
             } else {
                 Text(
                     person.name.firstOrNull()?.uppercase() ?: "?",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineSmall,
                 )
             }
         }
@@ -97,7 +100,7 @@ private fun PersonCard(person: MetaPerson) {
             maxLines = 2,
             textAlign = TextAlign.Center,
             overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyLarge,
+            style = PosterCaption.title(),
         )
         person.character?.takeIf { it.isNotEmpty() }?.let {
             Text(
@@ -105,7 +108,7 @@ private fun PersonCard(person: MetaPerson) {
                 maxLines = 2,
                 textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium,
+                style = PosterCaption.meta(),
             )
         }
     }
@@ -115,12 +118,6 @@ private fun PersonCard(person: MetaPerson) {
 @Composable
 internal fun DetailsSection(entries: List<Pair<String, String>>) {
     Column {
-        Text(
-            "Details",
-            modifier = Modifier.padding(horizontal = AppSpacing.xl),
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Spacer(Modifier.height(AppSpacing.md))
         Row(
             modifier = Modifier.padding(horizontal = AppSpacing.xl),
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.xl * 2),
@@ -129,7 +126,7 @@ internal fun DetailsSection(entries: List<Pair<String, String>>) {
                 Column {
                     Text(
                         label.uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = AppColors.textSecondary,
                     )
                     Spacer(Modifier.height(AppSpacing.xs))
@@ -140,7 +137,7 @@ internal fun DetailsSection(entries: List<Pair<String, String>>) {
     }
 }
 
-/** "More like this" carousel. */
+/** "You may also like" carousel. */
 @Composable
 internal fun SimilarRow(
     items: List<MetaPreview>,
@@ -148,7 +145,7 @@ internal fun SimilarRow(
 ) {
     Column {
         Text(
-            "More like this",
+            "You May Also Like",
             modifier = Modifier.padding(horizontal = AppSpacing.xl),
             style = MaterialTheme.typography.titleLarge,
         )
@@ -159,10 +156,20 @@ internal fun SimilarRow(
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
         ) {
             items(items) { item ->
+                val interaction = rememberInteraction()
+                val borderColor by animateColorAsState(
+                    targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+                )
                 Column(
-                    modifier = Modifier.width(140.dp).clickable { onOpen(item) },
+                    modifier = Modifier.width(140.dp).clickableSurface(interaction, onClick = { onOpen(item) }),
                 ) {
-                    Box(Modifier.fillMaxWidth().aspectRatio(2f / 3f).clip(RoundedCornerShape(AppRadii.md))) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(2f / 3f)
+                            .border(1.dp, borderColor, RoundedCornerShape(AppRadii.md))
+                            .clip(RoundedCornerShape(AppRadii.md)),
+                    ) {
                         PosterImage(item.poster, Modifier.fillMaxSize())
                     }
                     Spacer(Modifier.height(AppSpacing.sm))
@@ -237,8 +244,18 @@ private fun EpisodeCard(
 ) {
     val number = video.episode ?: video.number
     val title = video.title ?: "Episode ${number ?: ""}".trim()
-    Column(modifier = Modifier.width(220.dp).clickable(onClick = onTap)) {
-        Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(AppRadii.md))) {
+    val interaction = rememberInteraction()
+    val borderColor by animateColorAsState(
+        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+    )
+    Column(modifier = Modifier.width(220.dp).clickableSurface(interaction, onTap)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 9f)
+                .border(1.dp, borderColor, RoundedCornerShape(AppRadii.md))
+                .clip(RoundedCornerShape(AppRadii.md)),
+        ) {
             PosterImage(video.thumbnail, Modifier.fillMaxSize())
         }
         Spacer(Modifier.height(AppSpacing.sm))

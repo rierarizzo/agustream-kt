@@ -31,7 +31,10 @@ object AppColors {
     /** Hover / selected surfaces. */
     val surfaceHigh = Color(0xFF1F1F24)
 
-    /** Brand accent: amber, used for focus, toggles and badges. */
+    /**
+     * Attention colour (amber): selection, active states and badges. It is not a
+     * call-to-action colour — primary CTAs use the white pill button.
+     */
     val accent = Color(0xFFF0A020)
     val onAccent = Color(0xFF1A1200)
 
@@ -42,7 +45,7 @@ object AppColors {
     val posterTitle = Color(0xFFAFB0B0)
 
     /** Release year / metadata under a poster title. */
-    val posterYear = Color(0xFF62605D)
+    val posterYear = Color(0xFF8A8A92)
 
     /** Dark scrim over media, used behind badges and progress tracks. */
     val mediaScrim = Color.Black.copy(alpha = 0.54f)
@@ -81,6 +84,13 @@ object AppSizes {
     val topBarShadow: Dp = 14.dp
 }
 
+/** Shared icon sizes. */
+object AppIconSize {
+    val sm: Dp = 18.dp
+    val md: Dp = 20.dp
+    val lg: Dp = 24.dp
+}
+
 /** Elevation of floating surfaces. */
 object AppElevation {
     /** Home hero billboard. */
@@ -105,12 +115,11 @@ object AppAlpha {
     const val MEDIA_SCRIM_STRONG = 0.85f
     const val MEDIA_SCRIM_MEDIUM = 0.35f
 
-    /** Soft top and bottom edges of a media vignette. */
-    const val MEDIA_SCRIM_TOP = 0.25f
-    const val MEDIA_SCRIM_BOTTOM = 0.55f
-
     /** Strong top edge of a short media header, such as a dialog. */
     const val MEDIA_SCRIM_HEADER = 0.6f
+
+    /** Translucent highlight for the selected top-navigation item. */
+    const val NAV_SELECTED = 0.16f
 
     /** Play button backdrop over video. */
     const val PLAYER_BUTTON = 0.45f
@@ -118,9 +127,10 @@ object AppAlpha {
     /** Player top and bottom control scrims. */
     const val PLAYER_SCRIM = 0.8f
 
-    /** App-wide ambient tint, at the top and mid-window stops. */
-    const val AMBIENT_TOP = 0.22f
-    const val AMBIENT_MID = 0.06f
+    /** Interaction feedback for custom surfaces. */
+    const val INTERACT_HOVER = 0.08f
+    const val INTERACT_FOCUS = 0.18f
+    const val INTERACT_PRESSED = 0.16f
 }
 
 /**
@@ -138,19 +148,11 @@ object AppScrim {
             0.8f to Color.Transparent,
         )
 
-    /** Top-to-bottom vignette that settles the hero billboard into the page. */
-    val heroVertical: Brush =
+    /** Bottom fade to the page background, dark enough for copy to sit on any artwork. */
+    val mediaBottom: Brush =
         Brush.verticalGradient(
-            0f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_TOP),
-            0.45f to Color.Transparent,
-            1f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_BOTTOM),
-        )
-
-    /** Vertical fade that blends a media header into the page background. */
-    val mediaToBackground: Brush =
-        Brush.verticalGradient(
-            0f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_TOP),
-            0.5f to Color.Transparent,
+            0f to Color.Transparent,
+            0.4f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_MEDIUM),
             1f to AppColors.background,
         )
 
@@ -191,6 +193,7 @@ object PosterCaption {
         MaterialTheme.typography.bodyMedium.copy(
             fontSize = 14.sp,
             lineHeight = 18.sp,
+            fontWeight = FontWeight.Medium,
             color = AppColors.posterTitle,
         )
 
@@ -238,9 +241,9 @@ private fun interTypography(inter: FontFamily): Typography {
         titleLarge = base.titleLarge.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
         titleMedium = base.titleMedium.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
         titleSmall = base.titleSmall.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
-        bodyLarge = base.bodyLarge.copy(fontFamily = inter, fontWeight = FontWeight.Medium, color = AppColors.textPrimary),
-        bodyMedium = base.bodyMedium.copy(fontFamily = inter, fontWeight = FontWeight.Medium, color = AppColors.textPrimary),
-        bodySmall = base.bodySmall.copy(fontFamily = inter, fontWeight = FontWeight.Medium, color = AppColors.textSecondary),
+        bodyLarge = base.bodyLarge.copy(fontFamily = inter, fontWeight = FontWeight.Normal, color = AppColors.textPrimary),
+        bodyMedium = base.bodyMedium.copy(fontFamily = inter, fontWeight = FontWeight.Normal, color = AppColors.textPrimary),
+        bodySmall = base.bodySmall.copy(fontFamily = inter, fontWeight = FontWeight.Normal, color = AppColors.textSecondary),
         labelLarge = base.labelLarge.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
         labelMedium = base.labelMedium.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
         labelSmall = base.labelSmall.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),

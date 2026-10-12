@@ -1,7 +1,7 @@
 package com.misgus.agustream.ui.profiles
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,13 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,9 +31,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.BackendProfile
+import com.misgus.agustream.ui.components.PillButton
 import com.misgus.agustream.ui.components.ProfileAvatar
+import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.interactionHighlight
+import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import kotlinx.coroutines.launch
 
@@ -95,8 +100,14 @@ private fun ProfileTile(
     profile: BackendProfile,
     onTap: () -> Unit,
 ) {
+    val interaction = rememberInteraction()
     Column(
-        modifier = Modifier.clickable(onClick = onTap).padding(AppSpacing.sm),
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(AppRadii.md))
+                .background(interactionHighlight(interaction))
+                .clickableSurface(interaction, onTap)
+                .padding(AppSpacing.sm),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
@@ -136,10 +147,11 @@ private fun Problem(
         Spacer(Modifier.height(AppSpacing.md))
         Text(message, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(AppSpacing.md))
-        OutlinedButton(onClick = onRetry) {
-            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(AppSpacing.sm))
-            Text("Try again")
-        }
+        PillButton(
+            text = "Try again",
+            onClick = onRetry,
+            icon = Icons.Default.Refresh,
+            primary = false,
+        )
     }
 }

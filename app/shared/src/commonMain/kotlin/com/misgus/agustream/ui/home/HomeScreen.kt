@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui.home
 
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,10 +46,13 @@ import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.SyncingIndicator
+import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
@@ -176,14 +180,20 @@ private fun ContinueCard(
         }
     val backdrop = item.background ?: item.poster
 
+    val interaction = rememberInteraction()
+    val borderColor by animateColorAsState(
+        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+    )
+
     Column(
-        modifier = Modifier.width(336.dp).clickable(onClick = onTap),
+        modifier = Modifier.width(336.dp).clickableSurface(interaction, onTap),
     ) {
         Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
+                    .border(1.dp, borderColor, RoundedCornerShape(AppRadii.md))
                     .clip(RoundedCornerShape(AppRadii.md)),
         ) {
             PosterImage(backdrop, Modifier.fillMaxSize())
@@ -226,7 +236,7 @@ internal fun SectionHeader(
         onSeeAll?.let {
             TextButton(onClick = it) {
                 Text("See all")
-                Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(AppIconSize.sm))
             }
         }
     }
