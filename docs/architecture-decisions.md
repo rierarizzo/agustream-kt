@@ -209,3 +209,12 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   software renderer hands frames to Compose as bitmaps and is CPU-bound. Moving
   to libmpv's OpenGL render backend is the planned performance step and needs a
   GL context wired into the composition root.
+
+### Images
+
+- **Artwork rescaling and filtering.** Some posters and title logos render with
+  jagged (aliased) edges while others are clean, which points at inconsistent
+  filtering when Coil downsamples an asset to its on-screen size. The fix is to
+  normalise how images are requested and drawn — an explicit target size,
+  matching `ContentScale`, and the right filter quality — across every
+  `AsyncImage`/`PosterImage` in the app, including the title logos.
