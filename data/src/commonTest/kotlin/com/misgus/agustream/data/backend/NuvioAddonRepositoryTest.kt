@@ -5,7 +5,6 @@ import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.AccountState
 import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.core.repository.SignInRequest
-import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -52,14 +51,10 @@ class NuvioAddonRepositoryTest {
                         else -> respond("{}", HttpStatusCode.NotFound, jsonHeaders)
                     }
                 }
-            val client =
-                NuvioClient(
-                    baseUrl = "https://x",
-                    http = HttpClient(engine) { expectSuccess = false },
-                )
+            val stack = nuvioTestStack(engine)
             val account = FakeAccount(profileKey = "p1", profileId = 1)
-            val repository = NuvioAddonRepository(client, account)
-            client.signIn("me@example.com", "secret")
+            val repository = NuvioAddonRepository(stack.rest, account)
+            stack.auth.signIn("me@example.com", "secret")
 
             val first = repository.all()
             val second = repository.all()

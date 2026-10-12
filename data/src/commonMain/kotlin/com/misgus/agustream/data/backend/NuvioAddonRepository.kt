@@ -20,7 +20,7 @@ import kotlinx.coroutines.sync.withLock
  * no write path in this repository, so a cached list cannot go stale.
  */
 class NuvioAddonRepository(
-    private val client: NuvioClient,
+    private val rest: NuvioRest,
     private val account: AccountRepository,
 ) : AddonRepository {
     private val cacheMutex = Mutex()
@@ -38,7 +38,7 @@ class NuvioAddonRepository(
         return cacheMutex.withLock {
             cachedAddons?.takeIf { cachedProfileKey == profileKey }?.let { return@withLock it }
             val rows =
-                client.select(
+                rest.select(
                     "addons",
                     order = "sort_order.asc",
                     filter = "profile_id=eq.$profileId&enabled=is.true",

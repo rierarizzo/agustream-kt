@@ -18,7 +18,8 @@ import kotlinx.coroutines.launch
 
 /** [AccountRepository] backed by a Nuvio (Supabase) deployment. */
 class NuvioAccountRepository(
-    private val client: NuvioClient,
+    private val auth: NuvioAuth,
+    private val rest: NuvioRest,
     /**
      * Scope that owns the profile load triggered by sign-in and restore.
      *
@@ -44,11 +45,11 @@ class NuvioAccountRepository(
             when (request) {
                 is SignInRequest.EmailPassword -> request
             }
-        client.signIn(credentials.email, credentials.password)
+        auth.signIn(credentials.email, credentials.password)
         _state.value =
             AccountState(
                 isSignedIn = true,
-                email = client.session?.email,
+                email = auth.session?.email,
                 requiresProfile = true,
                 // Set before launching so the gate never flashes "no profiles".
                 isLoadingProfiles = true,
@@ -59,11 +60,11 @@ class NuvioAccountRepository(
     }
 
     override suspend fun restoreSession(): Boolean {
-        if (!client.restoreSession()) return false
+        if (!auth.restoreSession()) return false
         _state.value =
             AccountState(
                 isSignedIn = true,
-                email = client.session?.email,
+                email = auth.session?.email,
                 requiresProfile = true,
                 isLoadingProfiles = true,
             )
@@ -74,7 +75,7 @@ class NuvioAccountRepository(
     override suspend fun signOut() {
         profileLoad?.cancel()
         profileLoad = null
-        client.signOut()
+        auth.signOut()
         _state.value = AccountState(isSignedIn = false, requiresProfile = true)
     }
 
@@ -82,7 +83,7 @@ class NuvioAccountRepository(
         if (!_state.value.isSignedIn) return
         _state.update { it.copy(isLoadingProfiles = true, profilesError = null) }
         try {
-            val rows = client.select("profiles", order = "profile_index.asc")
+            val rows = rest.select("profiles", order = "profile_index.asc")
             _state.update {
                 it.copy(
                     profiles = rows.map(::backendProfileFromRow),

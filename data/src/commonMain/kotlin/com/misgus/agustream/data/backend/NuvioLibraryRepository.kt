@@ -15,20 +15,21 @@ import kotlinx.coroutines.flow.asStateFlow
  * a profile, and row-level security only stops at the account.
  */
 class NuvioLibraryRepository(
-    private val client: NuvioClient,
+    private val rest: NuvioRest,
+    private val auth: NuvioAuth,
     private val account: AccountRepository,
 ) : LibraryRepository {
     private val _changes = MutableStateFlow(0L)
     override val changes: StateFlow<Long> = _changes.asStateFlow()
 
     override suspend fun all(): List<LibraryItem> {
-        val rows = client.select("library_items", order = "added_at.desc", filter = profileFilter)
+        val rows = rest.select("library_items", order = "added_at.desc", filter = profileFilter)
         return rows.map(::libraryItemFromRow)
     }
 
     override suspend fun contains(contentId: String): Boolean {
         val rows =
-            client.select(
+            rest.select(
                 "library_items",
                 filter = "$profileFilter&content_id=eq.${postgrestLiteral(contentId)}",
             )
@@ -39,7 +40,7 @@ class NuvioLibraryRepository(
         // Guarded instead of `upsert`: it does not depend on the backend having
         // a unique constraint on `(profile_id, content_id)`.
         if (contains(item.contentId)) return
-        client.insert(
+        rest.insert(
             "library_items",
             libraryItemToRow(item, profileId = requireProfileId(), userId = requireUserId()),
         )
@@ -47,7 +48,7 @@ class NuvioLibraryRepository(
     }
 
     override suspend fun remove(contentId: String) {
-        client.delete("library_items", filter = "$profileFilter&content_id=eq.${postgrestLiteral(contentId)}")
+        rest.delete("library_items", filter = "$profileFilter&content_id=eq.${postgrestLiteral(contentId)}")
         _changes.value += 1
     }
 
@@ -59,7 +60,7 @@ class NuvioLibraryRepository(
             ?: throw BackendException("No profile selected")
 
     private fun requireUserId(): String {
-        val userId = client.session?.userId
+        val userId = auth.session?.userId
         if (userId.isNullOrEmpty()) throw BackendException("Not signed in")
         return userId
     }

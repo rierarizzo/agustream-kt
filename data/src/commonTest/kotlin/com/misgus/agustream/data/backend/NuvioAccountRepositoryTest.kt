@@ -2,7 +2,6 @@ package com.misgus.agustream.data.backend
 
 import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.core.repository.SignInRequest
-import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -45,12 +44,8 @@ class NuvioAccountRepositoryTest {
                         else -> respond("{}", HttpStatusCode.NotFound, jsonHeaders)
                     }
                 }
-            val client =
-                NuvioClient(
-                    baseUrl = "https://x",
-                    http = HttpClient(engine) { expectSuccess = false },
-                )
-            val repository = NuvioAccountRepository(client, scope = backgroundScope)
+            val stack = nuvioTestStack(engine)
+            val repository = NuvioAccountRepository(stack.auth, stack.rest, scope = backgroundScope)
 
             // Mirrors the Settings card: the sign-in runs on a scope that the
             // gate disposes as soon as `isSignedIn` flips.

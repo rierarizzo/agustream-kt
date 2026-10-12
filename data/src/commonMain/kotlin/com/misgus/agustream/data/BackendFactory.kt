@@ -7,9 +7,12 @@ import com.misgus.agustream.core.repository.LibraryRepository
 import com.misgus.agustream.core.repository.ProgressRepository
 import com.misgus.agustream.data.backend.NuvioAccountRepository
 import com.misgus.agustream.data.backend.NuvioAddonRepository
-import com.misgus.agustream.data.backend.NuvioClient
+import com.misgus.agustream.data.backend.NuvioAuth
+import com.misgus.agustream.data.backend.NuvioDiscovery
 import com.misgus.agustream.data.backend.NuvioLibraryRepository
 import com.misgus.agustream.data.backend.NuvioProgressRepository
+import com.misgus.agustream.data.backend.NuvioRest
+import com.misgus.agustream.data.backend.NuvioTransport
 import com.misgus.agustream.data.local.LocalAccountRepository
 import com.misgus.agustream.data.local.LocalAddonRepository
 import com.misgus.agustream.data.local.LocalLibraryRepository
@@ -74,7 +77,7 @@ fun createBackend(
     when (kind) {
         BackendKind.NUVIO ->
             createNuvioBackend(
-                baseUrl = baseUrl ?: NuvioClient.DEFAULT_BASE_URL,
+                baseUrl = baseUrl ?: NuvioTransport.DEFAULT_BASE_URL,
                 httpClient = httpClient,
                 sessionStore = sessionStore,
             )
@@ -95,17 +98,22 @@ fun createBackend(
 
 /** Builds the Nuvio backend, using [httpClient] for every request. */
 fun createNuvioBackend(
-    baseUrl: String = NuvioClient.DEFAULT_BASE_URL,
+    baseUrl: String = NuvioTransport.DEFAULT_BASE_URL,
     httpClient: HttpClient,
     sessionStore: SessionStore = NoopSessionStore(),
 ): BackendBundle {
-    val client = NuvioClient(baseUrl = baseUrl, http = httpClient, store = sessionStore)
-    val account = NuvioAccountRepository(client)
+    // The pieces are wired here and handed out narrowly: a repository gets the
+    // transport slice it needs, not a client that can do everything.
+    val transport = NuvioTransport(baseUrl = baseUrl, http = httpClient)
+    val discovery = NuvioDiscovery(transport)
+    val auth = NuvioAuth(transport, discovery, sessionStore)
+    val rest = NuvioRest(transport, discovery, auth)
+    val account = NuvioAccountRepository(auth, rest)
     return BackendBundle(
         account = account,
-        library = NuvioLibraryRepository(client, account),
-        progress = NuvioProgressRepository(client, account),
-        addons = NuvioAddonRepository(client, account),
-        close = client::close,
+        library = NuvioLibraryRepository(rest, auth, account),
+        progress = NuvioProgressRepository(rest, account),
+        addons = NuvioAddonRepository(rest, account),
+        close = transport::close,
     )
 }

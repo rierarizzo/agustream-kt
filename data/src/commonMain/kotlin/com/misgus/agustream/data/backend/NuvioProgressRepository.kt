@@ -22,7 +22,7 @@ import kotlin.time.Clock
  * Scoped to the active profile, like the library repository.
  */
 class NuvioProgressRepository(
-    private val client: NuvioClient,
+    private val rest: NuvioRest,
     private val account: AccountRepository,
 ) : ProgressRepository {
     private val _changes = MutableStateFlow(0L)
@@ -30,7 +30,7 @@ class NuvioProgressRepository(
 
     override suspend fun all(): List<WatchProgress> {
         val rows =
-            client.select(
+            rest.select(
                 "watch_progress",
                 order = "last_watched.desc",
                 filter = "profile_id=eq.${requireProfileId()}",
@@ -48,7 +48,7 @@ class NuvioProgressRepository(
         }
         // The sync RPC is the canonical write path: it also derives the watched
         // markers from completed entries.
-        client.callRpc(
+        rest.callRpc(
             "sync_push_watch_progress",
             JsonObject(
                 mapOf(
@@ -72,7 +72,7 @@ class NuvioProgressRepository(
                 .map { chunk ->
                     async {
                         val rows =
-                            client.select(
+                            rest.select(
                                 "watched_items",
                                 filter =
                                     "profile_id=eq.$profileId&content_id=in.(${
@@ -101,7 +101,7 @@ class NuvioProgressRepository(
                 season?.let { put("season", JsonPrimitive(it)) }
                 episode?.let { put("episode", JsonPrimitive(it)) }
             }
-        client.callRpc(
+        rest.callRpc(
             "sync_push_watched_items",
             JsonObject(
                 mapOf(
@@ -125,7 +125,7 @@ class NuvioProgressRepository(
                 season?.let { put("season", JsonPrimitive(it)) }
                 episode?.let { put("episode", JsonPrimitive(it)) }
             }
-        client.callRpc(
+        rest.callRpc(
             "sync_delete_watched_items",
             JsonObject(
                 mapOf(

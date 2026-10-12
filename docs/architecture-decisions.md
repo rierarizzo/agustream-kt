@@ -74,9 +74,11 @@ engine, the filesystem and the player touch platform source sets through
   the original: metadata is first-wins across addons, streams/subtitles are
   aggregated in parallel, and catalog `extra` values are encoded while keeping
   `=`/`&` raw.
-- **Nuvio/Supabase**: raw HTTP (`NuvioClient`) — discovery, Supabase Auth,
-  refresh, PostgREST select/insert/delete and the `sync_*` RPCs — and
-  capability repositories scoped to the active profile. Session tokens live in
+- **Nuvio/Supabase**: raw HTTP split by responsibility, instead of one client
+  class: `NuvioTransport` (verbs and base URL), `NuvioDiscovery`
+  (`/.well-known/nuvio` and the publishable key), `NuvioAuth` (session, sign-in,
+  refresh, sign-out) and `NuvioRest` (PostgREST select/insert/delete and the
+  `sync_*` RPCs). Repositories take the slice they need. Session tokens live in
   `data/`, never in the domain.
 - **Local store**: `JsonFileStore`/`JsonMapStore` and the session / ratings /
   watched-series stores. Path resolution is a platform `expect`
@@ -93,10 +95,10 @@ engine, the filesystem and the player touch platform source sets through
   can `reload()` after a manual edit; the settings screen groups the toggles by
   category, edits the same file, shows its path and can open it in the OS
   editor.
-- **Session renewal**: `NuvioClient` renews the token before a request when it
-  has expired, and once more when the backend answers `401`. Renewals are
-  serialized with a mutex so parallel requests do not refresh twice. Engines are
-  configured with finite connect/request/socket timeouts.
+- **Session renewal**: `NuvioAuth` renews the token before a request when it
+  has expired, and `NuvioRest` renews once more when the backend answers `401`.
+  Renewals are serialized with a mutex so parallel requests do not refresh
+  twice. Engines are configured with finite connect/request/socket timeouts.
 - **`BackendKind` + `createBackend`** is the single place that knows the
   concrete implementations, replacing the Flutter `backend_factory.dart`.
 - **Parallel I/O and caching.** Independent reads run together instead of in a
@@ -256,12 +258,6 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   change, but a usable account also needs `LibraryRepository`,
   `ProgressRepository` and `AddonRepository` against the Stremio datastore.
   The auth adapter is the small part; the data repositories are the bulk.
-- **`NuvioClient` is a single responsibility too many.** Discovery, Supabase
-  auth, token refresh, PostgREST select/insert/delete and the `sync_*` RPCs live
-  in one 383-line class. Every repository depending on it is reachable from the
-  same seam, so splitting it later is mechanical, but it is not a one-commit
-  change.
-
 ### Product / UX
 
 - **First-run onboarding.** The login is still the temporary card inside
