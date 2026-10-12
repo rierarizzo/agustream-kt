@@ -151,3 +151,57 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
   opening a player that only errors.
 - The Nuvio addon metadata/edit screens and the Discover/Search/Calendar
   sections are still placeholders, as they were in the Flutter app.
+
+## Improvement backlog
+
+Items that need a design decision, touch several modules, or both, so they are
+not a one-file change. They are grouped by the axis they change, not by effort.
+
+### Domain contracts
+
+- **The sign-in method is baked into the account contract.**
+  `AccountRepository.signIn(email, password)` assumes email + password. An
+  OAuth, magic-link or device-pairing flow does not fit the signature, so
+  supporting one means replacing it with a request object or a flow-based
+  operation and updating every implementation plus the sign-in card. Doing it
+  while only one backend exists is cheap; doing it after a second one lands is
+  not.
+
+### Backends
+
+- **Stremio is a full backend, not just a login.** Swapping Nuvio for Stremio
+  already fits the `BackendKind` + `createBackend` seam and needs no `ui/`
+  change, but a usable account also needs `LibraryRepository`,
+  `ProgressRepository` and `AddonRepository` against the Stremio datastore.
+  The auth adapter is the small part; the data repositories are the bulk.
+- **`NuvioClient` is a single responsibility too many.** Discovery, Supabase
+  auth, token refresh, PostgREST select/insert/delete and the `sync_*` RPCs live
+  in one 383-line class. Every repository depending on it is reachable from the
+  same seam, so splitting it later is mechanical, but it is not a one-commit
+  change.
+
+### Product / UX
+
+- **First-run onboarding.** The login is still the temporary card inside
+  Settings, and Home only tells the user to "sign in from Settings". A new user
+  has to guess where to go. The architecture is ready (a not-signed-in state and
+  a profile gate already exist); what is missing is a dedicated welcome/sign-in
+  route selected before the shell, or at minimum a CTA in the empty state.
+- **Internationalisation.** Every user-facing string is a Kotlin literal inside
+  a composable; there are no Compose Resources string resources. The migration
+  is mechanical but touches every screen in `ui/`, so it should happen before
+  the string count grows.
+- **Adaptive layouts.** Rails, poster grids and the hero use fixed sizes; only
+  the top navigation scrolls horizontally. A narrow window (or a future tablet
+  / TV target) needs width-aware column counts and rail heights.
+- **Keyboard / D-pad navigation.** `Interaction.kt` covers hover, focus and
+  pressed states, and the player has shortcuts, but there is no focus traversal
+  across the Home rails and no spatial navigation model. A TV target makes this
+  mandatory rather than nice to have.
+
+### Player performance
+
+- **OpenGL render backend.** As noted in the player section, the current
+  software renderer hands frames to Compose as bitmaps and is CPU-bound. Moving
+  to libmpv's OpenGL render backend is the planned performance step and needs a
+  GL context wired into the composition root.
