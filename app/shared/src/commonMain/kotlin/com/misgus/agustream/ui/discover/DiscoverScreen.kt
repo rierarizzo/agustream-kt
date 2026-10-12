@@ -25,16 +25,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
+import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.cellWidth
 
 /**
  * Discover section: everything the addon catalogs return, in one infinite grid.
@@ -51,9 +53,12 @@ fun DiscoverScreen(
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settingsRepository = LocalAppServices.current.settings
+    val settings by settingsRepository.state.collectAsStateWithLifecycle()
 
     DiscoverContent(
         state = state,
+        posterSize = settings.posterSize,
         onOpenSettings = onOpenSettings,
         onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
         onLoadMore = viewModel::loadMore,
@@ -63,6 +68,7 @@ fun DiscoverScreen(
 @Composable
 private fun DiscoverContent(
     state: DiscoverUiState,
+    posterSize: PosterSize,
     onOpenSettings: () -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
@@ -90,13 +96,14 @@ private fun DiscoverContent(
                 message = "Install a metadata addon with catalogs to fill this section.",
             )
         else ->
-            DiscoverGrid(state = state, onOpenDetail = onOpenDetail, onLoadMore = onLoadMore)
+            DiscoverGrid(state = state, posterSize = posterSize, onOpenDetail = onOpenDetail, onLoadMore = onLoadMore)
     }
 }
 
 @Composable
 private fun DiscoverGrid(
     state: DiscoverUiState,
+    posterSize: PosterSize,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
 ) {
@@ -120,7 +127,7 @@ private fun DiscoverGrid(
 
     LazyVerticalGrid(
         state = gridState,
-        columns = GridCells.Adaptive(230.dp),
+        columns = GridCells.Adaptive(posterSize.cellWidth),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(AppSpacing.xl),
         verticalArrangement = Arrangement.spacedBy(AppSpacing.md),

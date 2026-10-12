@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
+import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.PosterImage
@@ -44,6 +45,7 @@ import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.motionBorder
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.streams.StreamsRequest
@@ -51,7 +53,9 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
+import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.motionTween
+import com.misgus.agustream.ui.theme.railHeight
 
 /** Home section: a featured carousel, "Continue watching" and catalog rows. */
 @Composable
@@ -63,10 +67,13 @@ fun HomeScreen(
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settingsRepository = LocalAppServices.current.settings
+    val settings by settingsRepository.state.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize()) {
         HomeContent(
             state = state,
+            posterSize = settings.posterSize,
             onOpenSettings = onOpenSettings,
             onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
             onOpenPreview = { navigator.push(ContentRoute.Detail(LibraryItem.fromPreview(it))) },
@@ -94,6 +101,7 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: HomeUiState,
+    posterSize: PosterSize,
     onOpenSettings: () -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
     onOpenPreview: (MetaPreview) -> Unit,
@@ -147,14 +155,14 @@ private fun HomeContent(
                 state.rows.forEach { row ->
                     SectionHeader(title = row.title, onSeeAll = { onOpenCatalog(row.ref) })
                     LazyRow(
-                        modifier = Modifier.height(332.dp),
+                        modifier = Modifier.height(posterSize.railHeight),
                         contentPadding = PaddingValues(horizontal = AppSpacing.xl),
                         horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
                     ) {
                         items(row.items) { item ->
                             MetaPosterCard(
                                 preview = item,
-                                width = 180.dp,
+                                width = posterSize.cellWidth,
                                 watched = item.id in state.watchedIds,
                                 onTap = { onOpenPreview(item) },
                             )

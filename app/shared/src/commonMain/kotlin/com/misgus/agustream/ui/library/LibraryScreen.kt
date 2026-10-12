@@ -18,17 +18,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
+import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.PosterTile
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.SyncingIndicator
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.cellWidth
 
 /** Library section: the grid of saved titles. */
 @Composable
@@ -39,10 +41,13 @@ fun LibraryScreen(
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settingsRepository = LocalAppServices.current.settings
+    val settings by settingsRepository.state.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize()) {
         LibraryContent(
             state = state,
+            posterSize = settings.libraryPosterSize,
             onOpenSettings = onOpenSettings,
             onOpen = { navigator.push(ContentRoute.Detail(it, knownSaved = true)) },
         )
@@ -57,6 +62,7 @@ fun LibraryScreen(
 @Composable
 private fun LibraryContent(
     state: LibraryUiState,
+    posterSize: PosterSize,
     onOpenSettings: () -> Unit,
     onOpen: (LibraryItem) -> Unit,
 ) {
@@ -86,7 +92,7 @@ private fun LibraryContent(
             // The grid owns the padding through contentPadding: the scroll area
             // reaches the window edges, so the last row is never clipped.
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(230.dp),
+                columns = GridCells.Adaptive(posterSize.cellWidth),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(AppSpacing.xl),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md),

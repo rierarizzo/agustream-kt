@@ -2,6 +2,13 @@ package com.misgus.agustream.core.repository
 
 import kotlinx.coroutines.flow.StateFlow
 
+/** Nominal width of a poster, so grids and rows can be consistent. */
+enum class PosterSize {
+    SMALL,
+    DEFAULT,
+    LARGE,
+}
+
 /** Locally stored preferences. */
 data class AppSettings(
     /** Play the app's motion (transitions, hover, skeletons). */
@@ -10,6 +17,13 @@ data class AppSettings(
     val resumePlayback: Boolean = true,
     /** Start the next episode automatically when one finishes. */
     val autoPlayNext: Boolean = true,
+    /**
+     * Poster size for the browse surfaces: the catalog grids, Discover and the
+     * "More like this" row, which all share it.
+     */
+    val posterSize: PosterSize = PosterSize.DEFAULT,
+    /** Poster size for the library grid, kept apart from [posterSize]. */
+    val libraryPosterSize: PosterSize = PosterSize.DEFAULT,
 )
 
 /**
@@ -37,4 +51,8 @@ interface SettingsRepository {
     suspend fun setResumePlayback(enabled: Boolean)
 
     suspend fun setAutoPlayNext(enabled: Boolean)
+
+    suspend fun setPosterSize(size: PosterSize)
+
+    suspend fun setLibraryPosterSize(size: PosterSize)
 }

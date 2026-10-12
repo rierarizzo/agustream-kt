@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
+import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.PillButton
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.platform.openInDefaultApp
@@ -80,6 +82,10 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
             AppearanceCard(
                 animationsEnabled = state.animationsEnabled,
                 onAnimationsChange = { value -> save { settings.setAnimationsEnabled(value) } },
+                posterSize = state.posterSize,
+                onPosterSizeChange = { value -> save { settings.setPosterSize(value) } },
+                libraryPosterSize = state.libraryPosterSize,
+                onLibraryPosterSizeChange = { value -> save { settings.setLibraryPosterSize(value) } },
             )
             Spacer(Modifier.height(AppSpacing.lg))
             PlaybackSettingsCard(
@@ -196,17 +202,35 @@ private fun AccountCard() {
 private fun AppearanceCard(
     animationsEnabled: Boolean,
     onAnimationsChange: (Boolean) -> Unit,
+    posterSize: PosterSize,
+    onPosterSizeChange: (PosterSize) -> Unit,
+    libraryPosterSize: PosterSize,
+    onLibraryPosterSizeChange: (PosterSize) -> Unit,
 ) {
     SettingsCard(
         title = "Appearance",
         subtitle = "How the app looks and moves.",
     ) {
-        SettingsToggle(
-            title = "Animations",
-            subtitle = "Transitions, hover effects and loading skeletons.",
-            checked = animationsEnabled,
-            onCheckedChange = onAnimationsChange,
-        )
+        Column {
+            SettingsToggle(
+                title = "Animations",
+                subtitle = "Transitions, hover effects and loading skeletons.",
+                checked = animationsEnabled,
+                onCheckedChange = onAnimationsChange,
+            )
+            SettingsChoice(
+                title = "Poster size",
+                subtitle = "Catalogs, Discover and \"More like this\".",
+                selected = posterSize,
+                onSelect = onPosterSizeChange,
+            )
+            SettingsChoice(
+                title = "Library poster size",
+                subtitle = "The library grid only.",
+                selected = libraryPosterSize,
+                onSelect = onLibraryPosterSizeChange,
+            )
+        }
     }
 }
 
@@ -322,6 +346,36 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
         }
     }
 }
+
+@Composable
+private fun SettingsChoice(
+    title: String,
+    subtitle: String,
+    selected: PosterSize,
+    onSelect: (PosterSize) -> Unit,
+) {
+    Column(Modifier.fillMaxWidth().padding(vertical = AppSpacing.sm)) {
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+        Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = AppColors.textSecondary)
+        Spacer(Modifier.height(AppSpacing.sm))
+        Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+            PosterSize.entries.forEach { option ->
+                FilterChip(
+                    selected = option == selected,
+                    onClick = { onSelect(option) },
+                    label = { Text(option.label()) },
+                )
+            }
+        }
+    }
+}
+
+private fun PosterSize.label(): String =
+    when (this) {
+        PosterSize.SMALL -> "Small"
+        PosterSize.DEFAULT -> "Default"
+        PosterSize.LARGE -> "Large"
+    }
 
 @Composable
 private fun SettingsCard(

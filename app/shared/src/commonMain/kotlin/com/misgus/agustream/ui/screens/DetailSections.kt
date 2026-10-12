@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.MetaPerson
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.model.MetaVideo
@@ -44,11 +45,14 @@ import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.motionBorder
 import com.misgus.agustream.ui.components.rememberInteraction
+import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
+import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.motionTween
+import com.misgus.agustream.ui.theme.railHeight
 
 /** Cast or crew carousel of the detail screen. */
 @Composable
@@ -145,6 +149,10 @@ internal fun SimilarRow(
     items: List<MetaPreview>,
     onOpen: (MetaPreview) -> Unit,
 ) {
+    // The same size as the catalog grids, so a title looks the same everywhere.
+    val settingsRepository = LocalAppServices.current.settings
+    val settings by settingsRepository.state.collectAsStateWithLifecycle()
+    val posterSize = settings.posterSize
     Column {
         Text(
             "You May Also Like",
@@ -153,7 +161,7 @@ internal fun SimilarRow(
         )
         Spacer(Modifier.height(AppSpacing.sm))
         LazyRow(
-            modifier = Modifier.height(280.dp),
+            modifier = Modifier.height(posterSize.railHeight),
             contentPadding = PaddingValues(horizontal = AppSpacing.xl),
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
         ) {
@@ -166,7 +174,7 @@ internal fun SimilarRow(
                         label = "borderColor",
                     )
                 Column(
-                    modifier = Modifier.width(140.dp).clickableSurface(interaction, onClick = { onOpen(item) }),
+                    modifier = Modifier.width(posterSize.cellWidth).clickableSurface(interaction, onClick = { onOpen(item) }),
                 ) {
                     Box(
                         Modifier

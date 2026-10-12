@@ -1,8 +1,10 @@
 package com.misgus.agustream.data.store
 
 import com.misgus.agustream.core.repository.AppSettings
+import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.core.repository.SettingsRepository
 import com.misgus.agustream.data.boolOrNull
+import com.misgus.agustream.data.stringOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,6 +49,10 @@ class JsonSettingsRepository(
 
     override suspend fun setAutoPlayNext(enabled: Boolean) = update { it.copy(autoPlayNext = enabled) }
 
+    override suspend fun setPosterSize(size: PosterSize) = update { it.copy(posterSize = size) }
+
+    override suspend fun setLibraryPosterSize(size: PosterSize) = update { it.copy(libraryPosterSize = size) }
+
     /** Writes first, then publishes, so a failed save leaves the UI unchanged. */
     private suspend fun update(transform: (AppSettings) -> AppSettings) =
         mutex.withLock {
@@ -60,6 +66,8 @@ class JsonSettingsRepository(
         data[KEY_ANIMATIONS] = JsonPrimitive(settings.animationsEnabled)
         data[KEY_RESUME] = JsonPrimitive(settings.resumePlayback)
         data[KEY_AUTOPLAY] = JsonPrimitive(settings.autoPlayNext)
+        data[KEY_POSTER_SIZE] = JsonPrimitive(settings.posterSize.name.lowercase())
+        data[KEY_LIBRARY_POSTER_SIZE] = JsonPrimitive(settings.libraryPosterSize.name.lowercase())
         store.write(JsonObject(data))
     }
 
@@ -68,11 +76,23 @@ class JsonSettingsRepository(
             animationsEnabled = this[KEY_ANIMATIONS].boolOrNull() ?: true,
             resumePlayback = this[KEY_RESUME].boolOrNull() ?: true,
             autoPlayNext = this[KEY_AUTOPLAY].boolOrNull() ?: true,
+            posterSize = this[KEY_POSTER_SIZE].stringOrNull().toPosterSize() ?: PosterSize.DEFAULT,
+            libraryPosterSize = this[KEY_LIBRARY_POSTER_SIZE].stringOrNull().toPosterSize() ?: PosterSize.DEFAULT,
         )
+
+    private fun String?.toPosterSize(): PosterSize? =
+        when (this?.lowercase()) {
+            "small" -> PosterSize.SMALL
+            "default" -> PosterSize.DEFAULT
+            "large" -> PosterSize.LARGE
+            else -> null
+        }
 
     companion object {
         const val KEY_ANIMATIONS = "animations.enabled"
         const val KEY_RESUME = "player.resumePlayback"
         const val KEY_AUTOPLAY = "player.autoPlayNext"
+        const val KEY_POSTER_SIZE = "poster.size"
+        const val KEY_LIBRARY_POSTER_SIZE = "library.poster.size"
     }
 }

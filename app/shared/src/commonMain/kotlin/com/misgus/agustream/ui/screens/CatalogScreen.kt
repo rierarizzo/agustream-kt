@@ -33,17 +33,18 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.repository.CatalogRef
+import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.catalog.CatalogViewModel
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.cellWidth
 
 /**
  * Full catalog grid, opened from a Home row's "See all".
@@ -63,6 +64,8 @@ fun CatalogScreen(
         }
     LaunchedEffect(ref) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settingsRepository = services.settings
+    val settings by settingsRepository.state.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
 
     // Keep the count current inside the derived state, or it freezes at the
@@ -102,7 +105,7 @@ fun CatalogScreen(
         }
         Spacer(Modifier.height(AppSpacing.md))
         Box(Modifier.weight(1f)) {
-            CatalogContent(state, gridState, onOpenDetail)
+            CatalogContent(state, settings.posterSize, gridState, onOpenDetail)
         }
     }
 }
@@ -110,6 +113,7 @@ fun CatalogScreen(
 @Composable
 private fun CatalogContent(
     state: com.misgus.agustream.ui.catalog.CatalogUiState,
+    posterSize: PosterSize,
     gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
@@ -130,7 +134,7 @@ private fun CatalogContent(
         else ->
             LazyVerticalGrid(
                 state = gridState,
-                columns = GridCells.Adaptive(230.dp),
+                columns = GridCells.Adaptive(posterSize.cellWidth),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = AppSpacing.xl, end = AppSpacing.xl, bottom = AppSpacing.xl),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
