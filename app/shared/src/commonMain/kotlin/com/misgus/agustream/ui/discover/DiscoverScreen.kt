@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -102,13 +103,17 @@ private fun DiscoverGrid(
     onLoadMore: () -> Unit,
 ) {
     val gridState = rememberLazyGridState()
+    // `rememberUpdatedState` keeps the count current inside the derived state;
+    // capturing `state` directly would freeze it at the first composition and
+    // make `shouldLoadMore` permanently true, loading every page at once.
+    val itemCount by rememberUpdatedState(state.items.size)
     val shouldLoadMore by remember {
         derivedStateOf {
             val last =
                 gridState.layoutInfo.visibleItemsInfo
                     .lastOrNull()
                     ?.index ?: 0
-            last >= state.items.size - 8
+            last >= itemCount - 8
         }
     }
     LaunchedEffect(shouldLoadMore, state.items.size, state.hasMore) {

@@ -31,6 +31,16 @@ data class CatalogRef(
 
     /** Whether the catalog accepts a free-text `search` parameter. */
     val searches: Boolean get() = extras.any { it.name == "search" }
+
+    /**
+     * Whether the catalog can be fetched with no query parameter.
+     *
+     * A catalog with a required extra cannot be browsed: it needs a query its
+     * grid does not have (a search term, a list of ids, ...), and asking anyway
+     * just returns empty. Home and Discover only use browsable catalogs; Search
+     * uses [searches].
+     */
+    val browsable: Boolean get() = extras.none { it.isRequired }
 }
 
 /**

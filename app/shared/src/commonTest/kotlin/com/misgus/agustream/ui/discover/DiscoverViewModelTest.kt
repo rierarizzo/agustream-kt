@@ -31,10 +31,11 @@ class DiscoverViewModelTest {
     private fun ref(
         type: String,
         id: String,
+        addon: String = "addon",
         extras: List<AddonCatalogExtra> = emptyList(),
     ) = CatalogRef(
-        addonName = "Addon",
-        addonBaseUrl = "https://addon",
+        addonName = addon,
+        addonBaseUrl = "https://$addon",
         type = type,
         id = id,
         name = id,
@@ -90,7 +91,33 @@ class DiscoverViewModelTest {
             val ids =
                 viewModel.state.value.items
                     .map { it.id }
-            assertEquals(listOf("m1", "m2", "m3"), ids)
+            // m1 comes from the first catalog and m3 from the second; the second
+            // catalog's duplicate of m1 is dropped, and round-robin keeps an item
+            // of the second catalog before the first catalog's second item.
+            assertEquals(listOf("m1", "m3", "m2"), ids)
+        }
+
+    @Test
+    fun interleavesItemsFromDifferentCatalogs() =
+        runTest(dispatcher) {
+            val first = ref("movie", "top")
+            val second = ref("movie", "popular")
+            val catalogs =
+                FakeCatalogRepository(
+                    refs = listOf(first, second),
+                    items =
+                        mapOf(
+                            first.key to listOf(preview("a1", "movie"), preview("a2", "movie"), preview("a3", "movie")),
+                            second.key to listOf(preview("b1", "movie"), preview("b2", "movie")),
+                        ),
+                )
+            val viewModel = DiscoverViewModel(FakeAccountRepository(), catalogs)
+            advanceUntilIdle()
+
+            val ids =
+                viewModel.state.value.items
+                    .map { it.id }
+            assertEquals(listOf("a1", "b1", "a2", "b2", "a3"), ids)
         }
 
     @Test
@@ -123,6 +150,52 @@ class DiscoverViewModelTest {
             advanceUntilIdle()
             assertFalse(viewModel.state.value.hasMore)
             assertEquals(4, viewModel.state.value.items.size)
+        }
+
+    @Test
+    fun keepsEveryAddonWhenOneDeclaresManyCatalogs() =
+        runTest(dispatcher) {
+            // The first addon declares far more catalogs than the cap, so a plain
+            // take() would drop the second addon entirely.
+            val many = (1..25).map { ref("movie", "a$it", addon = "A") }
+            val few = (1..2).map { ref("movie", "b$it", addon = "B") }
+            val refs = many + few
+            val catalogs =
+                FakeCatalogRepository(
+                    refs = refs,
+                    items = refs.associate { it.key to listOf(preview(it.id, "movie")) },
+                )
+            val viewModel = DiscoverViewModel(FakeAccountRepository(), catalogs)
+            advanceUntilIdle()
+
+            val ids =
+                viewModel.state.value.items
+                    .map { it.id }
+            assertTrue(ids.any { it.startsWith("b") })
+        }
+
+    @Test
+    fun skipsCatalogsThatRequireAnExtra() =
+        runTest(dispatcher) {
+            val browsable = ref("movie", "top")
+            val searchOnly =
+                ref("movie", "search", extras = listOf(AddonCatalogExtra("search", isRequired = true)))
+            val catalogs =
+                FakeCatalogRepository(
+                    refs = listOf(searchOnly, browsable),
+                    items =
+                        mapOf(
+                            searchOnly.key to listOf(preview("s1", "movie")),
+                            browsable.key to listOf(preview("m1", "movie")),
+                        ),
+                )
+            val viewModel = DiscoverViewModel(FakeAccountRepository(), catalogs)
+            advanceUntilIdle()
+
+            val ids =
+                viewModel.state.value.items
+                    .map { it.id }
+            assertEquals(listOf("m1"), ids)
         }
 
     /** Serves fixed-size pages by translating the `skip` extra into a page index. */

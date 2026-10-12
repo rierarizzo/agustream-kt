@@ -104,7 +104,7 @@ class HomeViewModel(
                 coroutineScope {
                     val progressDeferred = async { progress.all() }
                     val libraryDeferred = async { library.all() }
-                    val catalogsDeferred = async { catalogs.catalogs().take(MAX_ROWS) }
+                    val catalogsDeferred = async { catalogs.catalogs().filter { it.browsable }.take(MAX_ROWS) }
                     Triple(progressDeferred.await(), libraryDeferred.await(), catalogsDeferred.await())
                 }
             progressEntries = entries

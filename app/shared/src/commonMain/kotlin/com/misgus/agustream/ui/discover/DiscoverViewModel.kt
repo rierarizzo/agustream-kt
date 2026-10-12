@@ -37,9 +37,11 @@ data class DiscoverUiState(
  * Flattens every catalog the account's addons expose into a single grid.
  *
  * Unlike Home, Discover does not keep the catalog boundaries: the items are
- * mixed and deduped. The grid pages like a feed: each [loadMore] asks every
- * catalog that declares `skip` for its next page, so scrolling keeps revealing
- * more instead of stopping at the first page.
+ * interleaved round-robin across catalogs and deduped, so the grid alternates
+ * sources instead of showing one addon's catalog as a block. The grid pages
+ * like a feed: each [loadMore] asks every catalog that declares `skip` for its
+ * next page, so scrolling keeps revealing more instead of stopping at the first
+ * page.
  */
 class DiscoverViewModel(
     private val account: AccountRepository,
@@ -98,7 +100,10 @@ class DiscoverViewModel(
     private suspend fun initialLoad() {
         _state.update { it.copy(isSignedIn = true, isLoading = true, error = null, hasMore = true) }
         try {
-            refs = catalogs.catalogs().distinctBy { it.key }.take(MAX_CATALOGS)
+            // `catalogs()` returns the catalogs grouped per addon; reorder them so
+            // an addon that declares many does not crowd out the rest when the
+            // list is truncated.
+            refs = diversify(catalogs.catalogs().filter { it.browsable }.distinctBy { it.key }).take(MAX_CATALOGS)
             offsets.clear()
             exhausted.clear()
             seen.clear()
@@ -141,6 +146,7 @@ class DiscoverViewModel(
                         }
                     }.awaitAll()
             }
+        val freshPerCatalog = mutableListOf<List<MetaPreview>>()
         for ((ref, result) in results) {
             // A transient failure is not the end of the catalog: leave it for
             // the next loadMore instead of dropping it.
@@ -157,10 +163,52 @@ class DiscoverViewModel(
             if (fresh.isEmpty()) {
                 exhausted += ref.key
             } else {
-                items += fresh
-                if (items.size >= MAX_ITEMS) refs.forEach { exhausted += it.key }
+                freshPerCatalog += fresh
             }
         }
+        // Round-robin so consecutive items come from different catalogs: the
+        // grid never turns into a block of a single addon's catalog.
+        items += interleave(freshPerCatalog)
+        if (items.size >= MAX_ITEMS) refs.forEach { exhausted += it.key }
+    }
+
+    /** One item from each list in turn, then the second of each, and so on. */
+    private fun interleave(lists: List<List<MetaPreview>>): List<MetaPreview> {
+        if (lists.size <= 1) return lists.firstOrNull().orEmpty()
+        val result = ArrayList<MetaPreview>(lists.sumOf { it.size })
+        var index = 0
+        var advanced = true
+        while (advanced) {
+            advanced = false
+            for (list in lists) {
+                if (index < list.size) {
+                    result += list[index]
+                    advanced = true
+                }
+            }
+            index++
+        }
+        return result
+    }
+
+    /** Alternates catalogs across addons, keeping the account's addon order. */
+    private fun diversify(all: List<CatalogRef>): List<CatalogRef> {
+        val byAddon = all.groupBy { it.addonBaseUrl }
+        if (byAddon.size <= 1) return all
+        val result = ArrayList<CatalogRef>(all.size)
+        var index = 0
+        var advanced = true
+        while (advanced) {
+            advanced = false
+            for (list in byAddon.values) {
+                if (index < list.size) {
+                    result += list[index]
+                    advanced = true
+                }
+            }
+            index++
+        }
+        return result
     }
 
     private fun moreAvailable(): Boolean = items.size < MAX_ITEMS && refs.any { it.key !in exhausted }

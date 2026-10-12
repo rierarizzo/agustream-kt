@@ -29,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -63,13 +64,16 @@ fun CatalogScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
 
+    // Keep the count current inside the derived state, or it freezes at the
+    // first composition and every page loads at once.
+    val itemCount by rememberUpdatedState(state.items.size)
     val shouldLoadMore by remember {
         derivedStateOf {
             val last =
                 gridState.layoutInfo.visibleItemsInfo
                     .lastOrNull()
                     ?.index ?: 0
-            last >= state.items.size - 6
+            last >= itemCount - 6
         }
     }
     LaunchedEffect(shouldLoadMore, state.items.size) {

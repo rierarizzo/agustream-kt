@@ -117,8 +117,14 @@ engine, the filesystem and the player touch platform source sets through
   as the detail one fills the whole window — the same behaviour as the Flutter
   nested `Navigator`, without adding a navigation library.
 - **Discover** flattens every catalog the enabled addons declare into a single
-  mixed grid, like the Library, so the addon catalog boundaries stay invisible;
-  it pages with `skip` as the grid is scrolled, so it keeps growing instead of
+  mixed grid, like the Library, so the addon catalog boundaries stay invisible.
+  Only browsable catalogs are used: one whose extras are required (a search
+  term, a list of ids, ...) cannot be fetched without a query, so Home and
+  Discover skip it instead of asking and getting an empty page. The catalogs are
+  interleaved across addons before the cap, so one addon with many catalogs does
+  not crowd out the rest, and the items are interleaved round-robin and deduped,
+  so the grid alternates sources instead of showing one catalog as a block. It
+  pages with `skip` as the grid is scrolled, so it keeps growing instead of
   stopping at the first page. **Search** aggregates the catalogs that declare
   the `search` extra in parallel, debounced and deduped across addons, and
   splits the results into a Movies rail and a Series rail. **Calendar** paints a
