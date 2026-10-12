@@ -64,14 +64,16 @@ fun <T> motionTween(
  * Applies [scale] and [alpha] in the draw phase.
  *
  * `graphicsLayer` transforms the layer without relayout and without recomposing
- * per frame, which is the cheap path every animation in the app uses.
+ * per frame. The values are read from the lambdas inside the layer block (the
+ * draw phase), so callers should pass `{ state.value }` and not read the state
+ * in composition.
  */
 fun Modifier.motionLayer(
-    scale: Float = 1f,
-    alpha: Float = 1f,
+    scale: () -> Float = { 1f },
+    alpha: () -> Float = { 1f },
 ): Modifier =
     graphicsLayer {
-        this.alpha = alpha
-        scaleX = scale
-        scaleY = scale
+        this.alpha = alpha()
+        scaleX = scale()
+        scaleY = scale()
     }

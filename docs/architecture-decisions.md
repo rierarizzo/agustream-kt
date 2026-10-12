@@ -159,8 +159,11 @@ engine, the filesystem and the player touch platform source sets through
   with a constant padding, so the viewport never changes. The size animation is
   disabled (`.using(null)`) because it relayouts every frame. Posters scale on
   hover, loading grids share a single shimmer, and dialogs fade/scale in. The
-  player is deliberately outside the route transition because it drives a single
-  shared engine.
+  detail hero does not paint the library fallback as if it were the final
+  artwork: it reserves the logo's space without drawing a placeholder, and the
+  logo and backdrop fade in when the image itself is ready (`RemoteImage(fadeIn)`),
+  so a slow load never pops. The player is deliberately outside the route
+  transition because it drives a single shared engine.
 - **Window**: the app keeps the **native window decoration** (title bar,
   minimize, maximize, close and resizing are OS-managed), which avoids the
   glitches a custom title bar can cause on Windows. Compose Desktop draws its

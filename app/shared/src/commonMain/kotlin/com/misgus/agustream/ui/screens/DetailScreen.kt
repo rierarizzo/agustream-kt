@@ -1,5 +1,6 @@
 package com.misgus.agustream.ui.screens
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -65,9 +67,11 @@ import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
+import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.motionTween
 import kotlinx.coroutines.launch
 
 /** Title detail: an immersive hero, episodes and the extra sections. */
@@ -278,6 +282,13 @@ private fun DetailBackdrop(
     fade: Float,
 ) {
     val backdrop = state.background ?: state.poster
+    // The library fallback is not the final artwork, so it is not painted as if
+    // it were: the image fades in once the metadata is in.
+    val imageAlpha by animateFloatAsState(
+        targetValue = if (state.hasLoaded) 1f else 0f,
+        animationSpec = motionTween(durationMillis = AppMotion.SLOW),
+        label = "backdropAlpha",
+    )
     Box(Modifier.fillMaxSize().blur(MAX_BLUR * fade)) {
         // Dark base so a slow or failed image never shows a bright gap; the
         // artwork fills the box on top when it can.
@@ -286,7 +297,8 @@ private fun DetailBackdrop(
             RemoteImage(
                 url = backdrop,
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
+                fadeIn = true,
+                modifier = Modifier.fillMaxSize().graphicsLayer { alpha = imageAlpha },
             )
         }
         Box(Modifier.fillMaxSize().background(AppScrim.mediaHorizontal))
@@ -320,7 +332,7 @@ private fun HeroContent(
                     .padding(AppSpacing.xl)
                     .widthIn(max = 720.dp),
         ) {
-            MediaTitle(state.name, state.logo)
+            MediaTitle(state.name, state.logo, loading = !state.hasLoaded)
             MetadataRow(detailMetadataParts(state))
             Spacer(Modifier.height(AppSpacing.lg))
             Row(

@@ -15,7 +15,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -31,15 +33,16 @@ import com.misgus.agustream.ui.theme.LocalMotionEnabled
 /**
  * Full-screen grid of poster skeletons for a loading library or catalog.
  *
- * One shimmer transition drives every cell: a single infinite animation, read in
- * the draw phase, repaints without recomposing and stops with the loading screen.
+ * One shimmer transition drives every cell. The progress is a [State] read in
+ * the draw phase, so the grid repaints without recomposing per frame, and it
+ * stops with the loading screen.
  */
 @Composable
 fun SkeletonPosterGrid(
     modifier: Modifier = Modifier,
     count: Int = 18,
 ) {
-    val progress = shimmerProgress()
+    val progress = rememberShimmerProgress()
     LazyVerticalGrid(
         columns = GridCells.Adaptive(230.dp),
         modifier = modifier.fillMaxSize(),
@@ -61,19 +64,20 @@ fun SkeletonPosterGrid(
 /** A placeholder block that shimmers while content loads. */
 @Composable
 fun SkeletonBox(
-    progress: Float,
+    progress: State<Float>,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(AppRadii.md),
 ) {
     if (LocalMotionEnabled.current) {
         Box(
             modifier.clip(shape).drawBehind {
+                val p = progress.value
                 val width = size.width
                 val brush =
                     Brush.linearGradient(
                         colors = listOf(AppColors.surface, AppColors.surfaceHigh, AppColors.surface),
-                        start = Offset(progress * width, 0f),
-                        end = Offset((progress + 0.6f) * width, 0f),
+                        start = Offset(p * width, 0f),
+                        end = Offset((p + 0.6f) * width, 0f),
                     )
                 drawRect(brush)
             },
@@ -85,13 +89,14 @@ fun SkeletonBox(
 
 /** A single infinite 0..1 sweep shared by every skeleton on screen. */
 @Composable
-private fun shimmerProgress(): Float {
+fun rememberShimmerProgress(): State<Float> {
+    // Do not spin an infinite animation when motion is off.
+    if (!LocalMotionEnabled.current) return remember { mutableStateOf(0f) }
     val transition = rememberInfiniteTransition(label = "skeleton")
-    val progress by transition.animateFloat(
+    return transition.animateFloat(
         initialValue = -1f,
         targetValue = 2f,
         animationSpec = infiniteRepeatable(tween(1_200, easing = LinearEasing)),
         label = "skeletonProgress",
     )
-    return progress
 }

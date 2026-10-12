@@ -48,6 +48,7 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
+import com.misgus.agustream.ui.theme.motionTween
 
 /** Cast or crew carousel of the detail screen. */
 @Composable
@@ -160,6 +161,7 @@ internal fun SimilarRow(
                 val interaction = rememberInteraction()
                 val borderColor by animateColorAsState(
                     targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+                    animationSpec = motionTween(),
                 )
                 Column(
                     modifier = Modifier.width(140.dp).clickableSurface(interaction, onClick = { onOpen(item) }),
@@ -293,6 +295,7 @@ private fun EpisodeCard(
     val interaction = rememberInteraction()
     val borderColor by animateColorAsState(
         targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+        animationSpec = motionTween(),
     )
     Column(modifier = Modifier.width(220.dp).clickableSurface(interaction, onTap)) {
         Box(

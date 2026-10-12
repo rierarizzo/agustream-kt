@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppScrim
+import com.misgus.agustream.ui.theme.motionTween
 import kotlin.time.Duration
 
 /**
@@ -64,7 +65,7 @@ fun PlayerControls(
     onAudio: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val alpha by animateFloatAsState(if (visible) 1f else 0f)
+    val alpha by animateFloatAsState(if (visible) 1f else 0f, animationSpec = motionTween())
     Box(Modifier.fillMaxSize().alpha(alpha)) {
         TopBar(title, onBack, Modifier.align(Alignment.TopCenter))
         if (!playing) {

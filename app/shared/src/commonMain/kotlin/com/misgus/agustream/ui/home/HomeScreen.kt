@@ -51,6 +51,7 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
+import com.misgus.agustream.ui.theme.motionTween
 
 /** Home section: a featured carousel, "Continue watching" and catalog rows. */
 @Composable
@@ -183,6 +184,7 @@ private fun ContinueCard(
     val interaction = rememberInteraction()
     val borderColor by animateColorAsState(
         targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+        animationSpec = motionTween(),
     )
 
     Column(

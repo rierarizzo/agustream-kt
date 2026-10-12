@@ -51,15 +51,17 @@ fun PosterTile(
     val interaction = rememberInteraction()
     val borderColor by animateColorAsState(
         targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+        animationSpec = motionTween(),
     )
     val shape = RoundedCornerShape(AppRadii.md)
     val fraction = progress?.fraction
     val inProgress = !watched && fraction != null && fraction > 0.02 && fraction < 0.95
-    val scale by animateFloatAsState(
-        targetValue = if (interaction.active) HOVER_SCALE else 1f,
-        animationSpec = motionTween(durationMillis = AppMotion.FAST),
-        label = "posterScale",
-    )
+    val scale =
+        animateFloatAsState(
+            targetValue = if (interaction.active) HOVER_SCALE else 1f,
+            animationSpec = motionTween(durationMillis = AppMotion.FAST),
+            label = "posterScale",
+        )
 
     Column(
         modifier =
@@ -73,7 +75,7 @@ fun PosterTile(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .motionLayer(scale = scale)
+                    .motionLayer(scale = { scale.value })
                     .border(1.dp, borderColor, shape)
                     .clip(shape),
         ) {

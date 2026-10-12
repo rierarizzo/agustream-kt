@@ -93,22 +93,24 @@ fun StreamsDialog(
 
             var shown by remember { mutableStateOf(false) }
             LaunchedEffect(Unit) { shown = true }
-            val enterAlpha by animateFloatAsState(
-                targetValue = if (shown) 1f else 0f,
-                animationSpec = motionTween(),
-                label = "dialogAlpha",
-            )
-            val enterScale by animateFloatAsState(
-                targetValue = if (shown) 1f else 0.96f,
-                animationSpec = motionTween(durationMillis = AppMotion.MEDIUM),
-                label = "dialogScale",
-            )
+            val enterAlpha =
+                animateFloatAsState(
+                    targetValue = if (shown) 1f else 0f,
+                    animationSpec = motionTween(),
+                    label = "dialogAlpha",
+                )
+            val enterScale =
+                animateFloatAsState(
+                    targetValue = if (shown) 1f else 0.96f,
+                    animationSpec = motionTween(durationMillis = AppMotion.MEDIUM),
+                    label = "dialogScale",
+                )
             Box(
                 modifier =
                     Modifier
                         .width(900.dp)
                         .fillMaxHeight(0.82f)
-                        .motionLayer(scale = enterScale, alpha = enterAlpha)
+                        .motionLayer(scale = { enterScale.value }, alpha = { enterAlpha.value })
                         .clip(RoundedCornerShape(AppRadii.lg))
                         .background(AppColors.background),
             ) {

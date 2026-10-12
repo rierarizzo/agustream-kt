@@ -50,12 +50,14 @@ fun MetaPosterCard(
     val interaction = rememberInteraction()
     val borderColor by animateColorAsState(
         targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+        animationSpec = motionTween(),
     )
-    val scale by animateFloatAsState(
-        targetValue = if (interaction.active) HOVER_SCALE else 1f,
-        animationSpec = motionTween(durationMillis = AppMotion.FAST),
-        label = "posterScale",
-    )
+    val scale =
+        animateFloatAsState(
+            targetValue = if (interaction.active) HOVER_SCALE else 1f,
+            animationSpec = motionTween(durationMillis = AppMotion.FAST),
+            label = "posterScale",
+        )
     Column(
         modifier =
             Modifier
@@ -68,7 +70,7 @@ fun MetaPosterCard(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .motionLayer(scale = scale)
+                    .motionLayer(scale = { scale.value })
                     .border(1.dp, borderColor, shape)
                     .clip(shape),
         ) {

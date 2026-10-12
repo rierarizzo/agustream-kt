@@ -20,24 +20,32 @@ import com.misgus.agustream.ui.theme.AppSpacing
 fun MediaTitle(
     name: String,
     logo: String?,
+    /** While the metadata loads, reserve the logo's space without drawing anything. */
+    loading: Boolean = false,
 ) {
-    if (!logo.isNullOrEmpty()) {
-        // A fixed height keeps every logo the same visual weight; the width
-        // follows the asset's aspect ratio and the hero column bounds it.
-        RemoteImage(
-            url = logo,
-            contentDescription = name,
-            contentScale = ContentScale.Fit,
-            filterQuality = LogoFilterQuality,
-            modifier = Modifier.height(LOGO_HEIGHT),
-        )
-    } else {
-        Text(
-            name,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.displayMedium,
-        )
+    when {
+        loading ->
+            // Reserve the space so the title does not jump when it arrives, but
+            // draw nothing: a skeleton here reads as a stray block.
+            Spacer(Modifier.height(LOGO_HEIGHT))
+        !logo.isNullOrEmpty() ->
+            // A fixed height keeps every logo the same visual weight; the width
+            // follows the asset's aspect ratio and the hero column bounds it.
+            RemoteImage(
+                url = logo,
+                contentDescription = name,
+                contentScale = ContentScale.Fit,
+                filterQuality = LogoFilterQuality,
+                fadeIn = true,
+                modifier = Modifier.height(LOGO_HEIGHT),
+            )
+        else ->
+            Text(
+                name,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.displayMedium,
+            )
     }
 }
 

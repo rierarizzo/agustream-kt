@@ -1,5 +1,6 @@
 package com.misgus.agustream.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,10 +23,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +41,7 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.motionTween
 
 /** Check badge shown on a title the account marked as watched. */
 @Composable
@@ -161,14 +168,35 @@ fun RemoteImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     filterQuality: FilterQuality = ArtworkFilterQuality,
+    /** Fade the image in once it has loaded, instead of popping. */
+    fadeIn: Boolean = false,
 ) {
     if (url.isNullOrEmpty()) return
+    if (!fadeIn) {
+        AsyncImage(
+            model = url,
+            contentDescription = contentDescription,
+            contentScale = contentScale,
+            filterQuality = filterQuality,
+            modifier = modifier,
+        )
+        return
+    }
+    // Fade when the image itself is ready, not when its URL is known, so the
+    // reveal is smooth even if the load lags behind the metadata.
+    var loaded by remember(url) { mutableStateOf(false) }
+    val alpha by animateFloatAsState(
+        targetValue = if (loaded) 1f else 0f,
+        animationSpec = motionTween(),
+        label = "imageFade",
+    )
     AsyncImage(
         model = url,
         contentDescription = contentDescription,
         contentScale = contentScale,
         filterQuality = filterQuality,
-        modifier = modifier,
+        onSuccess = { loaded = true },
+        modifier = modifier.graphicsLayer { this.alpha = alpha },
     )
 }
 
