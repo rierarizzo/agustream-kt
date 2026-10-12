@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.repository.PosterSize
@@ -24,6 +25,7 @@ import com.misgus.agustream.ui.components.rememberShimmerProgress
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.railHeight
@@ -43,14 +45,18 @@ internal fun HomeSkeleton(
 ) {
     val progress = rememberShimmerProgress()
     val windowSize = LocalWindowSize.current
+    // Mirrors the real billboard: full-bleed on a phone, an inset card otherwise.
+    val compact = windowSize == WindowSize.COMPACT
+    val heroHorizontal = if (compact) 0.dp else windowSize.screenPadding
+    val heroVertical = if (compact) 0.dp else AppSpacing.md
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = LocalWindowSize.current.screenPadding, vertical = AppSpacing.md)
-                .aspectRatio(HERO_ASPECT_RATIO),
+                .padding(horizontal = heroHorizontal, vertical = heroVertical)
+                .aspectRatio(if (compact) COMPACT_HERO_ASPECT_RATIO else HERO_ASPECT_RATIO),
         ) {
-            SkeletonBox(progress, Modifier.fillMaxSize(), AppRadii.xlShape)
+            SkeletonBox(progress, Modifier.fillMaxSize(), if (compact) RectangleShape else AppRadii.xlShape)
         }
         SkeletonRailHeader(progress)
         SkeletonRail(progress, CONTINUE_CARD_WIDTH, CONTINUE_CARD_WIDTH / (16f / 9f))

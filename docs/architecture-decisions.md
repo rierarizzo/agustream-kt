@@ -149,6 +149,19 @@ engine, the filesystem and the player touch platform source sets through
   windows also use a tighter screen padding (16dp) and grid gap, and the detail
   actions are icon-only (with a `contentDescription`) at the call-to-action's
   height, so the row lines up.
+- **Edge-to-edge and system insets.** Android runs the activity edge-to-edge
+  (`enableEdgeToEdge`, with light system-bar icons forced because the app always
+  paints dark), and the `Scaffold` no longer reserves the system bars
+  (`contentWindowInsets` is zero). Screens place the insets themselves through
+  `safeTopInset` / `safeBottomInset` (`ui/theme/WindowSize.kt`, backed by
+  `WindowInsets.statusBars` / `navigationBars`, zero on desktop) or the
+  `statusBarsPadding` / `navigationBarsPadding` / `safeDrawingPadding`
+  modifiers. The shell reserves the status bar plus the floating top bar (or the
+  bottom bar plus the navigation inset) for a section; the navigation bars carry
+  their own inset; the detail backdrop, the player and the onboarding/profile
+  gates paint behind the bars while their controls sit below them; and the Home
+  billboard is full-bleed on a phone, so the artwork reaches the status bar
+  instead of leaving an empty band above it.
 - **Typography.** Inter is bundled through Compose Resources, so every target
   renders the same typeface, and text is written in `sp` so Android's system
   font size keeps working. `LocalDensity` is deliberately never overridden: that

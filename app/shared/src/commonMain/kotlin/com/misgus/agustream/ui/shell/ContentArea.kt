@@ -28,6 +28,8 @@ import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
+import com.misgus.agustream.ui.theme.safeBottomInset
+import com.misgus.agustream.ui.theme.safeTopInset
 
 /** Host for transient snackbars, so any screen can show one. */
 val LocalSnackbarHost = staticCompositionLocalOf<SnackbarHostState?> { null }
@@ -67,14 +69,18 @@ fun ContentArea(
             },
             label = "section",
         ) { section ->
-            // Sections reserve the navigation's height; the padding is constant,
-            // so fading the bar never resizes the section's scroll. Compact
-            // windows keep that space at the bottom for the bottom bar.
+            // Sections reserve the navigation's height plus the system bar it
+            // sits behind. Home on a phone keeps the billboard full-bleed under
+            // the status bar, so it reserves only the bottom bar.
+            val compact = LocalWindowSize.current == WindowSize.COMPACT
             val contentPadding =
-                if (LocalWindowSize.current == WindowSize.COMPACT) {
-                    PaddingValues(bottom = AppSizes.bottomBarHeight)
-                } else {
-                    PaddingValues(top = AppSizes.topBarHeight)
+                when {
+                    compact && section == AppSection.HOME ->
+                        PaddingValues(bottom = AppSizes.bottomBarHeight + safeBottomInset)
+                    compact ->
+                        PaddingValues(top = safeTopInset, bottom = AppSizes.bottomBarHeight + safeBottomInset)
+                    else ->
+                        PaddingValues(top = AppSizes.topBarHeight + safeTopInset)
                 }
             Box(Modifier.fillMaxSize().padding(contentPadding)) {
                 SectionHost(section, navigator, onOpenStreams)

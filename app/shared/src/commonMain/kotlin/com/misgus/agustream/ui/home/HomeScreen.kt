@@ -58,6 +58,7 @@ import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.railHeight
+import com.misgus.agustream.ui.theme.safeTopInset
 import com.misgus.agustream.ui.theme.screenPadding
 
 /** Home section: a featured carousel, "Continue watching" and catalog rows. */
@@ -130,6 +131,9 @@ private fun HomeContent(
             ) {
                 if (state.featured.isNotEmpty()) {
                     Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
+                } else if (windowSize == WindowSize.COMPACT) {
+                    // No billboard to tuck under the status bar: reserve its height.
+                    Spacer(Modifier.height(safeTopInset))
                 }
                 if (state.continueWatching.isNotEmpty()) {
                     val compact = windowSize == WindowSize.COMPACT

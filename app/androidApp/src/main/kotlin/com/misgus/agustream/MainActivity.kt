@@ -2,6 +2,7 @@ package com.misgus.agustream
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.misgus.agustream.core.player.NoopPlayerService
@@ -34,7 +35,13 @@ class MainActivity : ComponentActivity() {
     private lateinit var backend: BackendBundle
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        // The app always paints a dark surface, so the system-bar icons are
+        // forced light: the default `auto` follows the OS and turns them dark in
+        // light mode, which is invisible over the artwork.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+        )
         super.onCreate(savedInstanceState)
 
         // Gives the platform layer a real, persistent app directory.

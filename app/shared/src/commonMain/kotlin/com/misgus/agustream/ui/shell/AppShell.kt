@@ -9,9 +9,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -91,7 +93,12 @@ fun AppShell() {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = Color.Transparent,
-                    snackbarHost = { SnackbarHost(snackbarHost) },
+                    // The app is edge-to-edge: screens place the system insets
+                    // themselves, so the Scaffold must not reserve them again.
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                    snackbarHost = {
+                        SnackbarHost(snackbarHost, modifier = Modifier.navigationBarsPadding())
+                    },
                 ) { padding ->
                     Box(Modifier.fillMaxSize().padding(padding)) {
                         ContentArea(

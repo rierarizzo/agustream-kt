@@ -44,13 +44,14 @@ import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
+import com.misgus.agustream.ui.theme.safeTopInset
 import com.misgus.agustream.ui.theme.screenPadding
 
 /** Billboard crop ratio (Netflix-style wide banner). */
 internal const val HERO_ASPECT_RATIO = 1920f / 823f
 
 /** Portrait crop used on a compact window, where the poster carries the hero. */
-private const val COMPACT_HERO_ASPECT_RATIO = 2f / 3f
+internal const val COMPACT_HERO_ASPECT_RATIO = 2f / 3f
 
 /** Featured billboard carousel. */
 @Composable
@@ -68,8 +69,11 @@ internal fun Hero(
         Modifier
             .fillMaxWidth()
             .padding(
-                horizontal = if (compact) AppSpacing.md else AppSpacing.xl,
-                vertical = AppSpacing.md,
+                // On a phone the billboard is full-bleed: it reaches the screen
+                // edges and tucks under the status bar, so no empty band is left
+                // above it. Wider windows keep it as an inset card.
+                horizontal = if (compact) 0.dp else AppSpacing.xl,
+                vertical = if (compact) 0.dp else AppSpacing.md,
             ),
     ) {
         Box(
@@ -77,9 +81,16 @@ internal fun Hero(
                 Modifier
                     .fillMaxWidth()
                     .aspectRatio(if (compact) COMPACT_HERO_ASPECT_RATIO else HERO_ASPECT_RATIO)
-                    .shadow(elevation = AppElevation.hero, shape = AppRadii.xlShape, clip = false)
-                    .clip(AppRadii.xlShape)
-                    .border(1.dp, Color.White.copy(alpha = AppAlpha.HERO_RIM), AppRadii.xlShape),
+                    .then(
+                        if (compact) {
+                            Modifier
+                        } else {
+                            Modifier
+                                .shadow(elevation = AppElevation.hero, shape = AppRadii.xlShape, clip = false)
+                                .clip(AppRadii.xlShape)
+                                .border(1.dp, Color.White.copy(alpha = AppAlpha.HERO_RIM), AppRadii.xlShape)
+                        },
+                    ),
         ) {
             HorizontalPager(
                 state = pagerState,
@@ -141,6 +152,17 @@ private fun HeroSlide(
         // the copy stays readable no matter how bright the artwork is.
         Box(Modifier.fillMaxSize().background(AppScrim.mediaHorizontal))
         Box(Modifier.fillMaxSize().background(AppScrim.mediaBottom))
+        if (compact) {
+            // The billboard runs under the status bar, so a short top fade keeps
+            // the system icons legible over bright artwork.
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .height(safeTopInset + AppSpacing.xl)
+                    .background(AppScrim.detailTop),
+            )
+        }
         Column(
             modifier =
                 Modifier

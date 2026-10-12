@@ -1,5 +1,10 @@
 package com.misgus.agustream.ui.theme
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -54,6 +59,19 @@ val LocalWindowSize = staticCompositionLocalOf { WindowSize.EXPANDED }
  * Defaults to [Dp.Infinity], which leaves such a caller unconstrained.
  */
 val LocalWindowWidth = staticCompositionLocalOf { Dp.Infinity }
+
+/**
+ * Height of the status bar (and any display cutout), in dp.
+ *
+ * Zero on desktop, where no system chrome draws over the window. Android runs
+ * edge-to-edge, so a surface adds it wherever it must not paint under the bars.
+ */
+val safeTopInset: Dp
+    @Composable get() = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
+/** Height of the navigation bar / gesture area, in dp. Zero on desktop. */
+val safeBottomInset: Dp
+    @Composable get() = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
 /** Side padding for grids, rails, headers and form fields; smaller on a phone. */
 val WindowSize.screenPadding: Dp

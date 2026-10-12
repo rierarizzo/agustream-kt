@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -76,6 +77,7 @@ import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
+import com.misgus.agustream.ui.theme.safeBottomInset
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -251,7 +253,7 @@ fun DetailScreen(
             // top scrim is what keeps it legible.
             IconButton(
                 onClick = onBack,
-                modifier = Modifier.align(Alignment.TopStart).padding(AppSpacing.md),
+                modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(AppSpacing.md),
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
             }
@@ -306,7 +308,7 @@ private fun DetailScrollContent(
             onOpenDetail(preview.toLibraryItem(item))
         }
     }
-    Spacer(Modifier.height(AppSpacing.xl))
+    Spacer(Modifier.height(AppSpacing.xl + safeBottomInset))
 }
 
 @Composable

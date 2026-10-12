@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -57,7 +58,7 @@ fun ProfilePicker(modifier: Modifier = Modifier) {
     val state by account.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.width(720.dp).padding(LocalWindowSize.current.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,

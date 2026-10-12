@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -47,6 +48,7 @@ import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
+import com.misgus.agustream.ui.theme.safeBottomInset
 import com.misgus.agustream.ui.theme.screenPadding
 
 /**
@@ -88,7 +90,7 @@ fun CatalogScreen(
         if (shouldLoadMore) viewModel.loadMore()
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().statusBarsPadding()) {
         Row(
             modifier = Modifier.padding(start = windowSize.screenPadding, top = windowSize.screenPadding, end = windowSize.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
@@ -145,7 +147,7 @@ private fun CatalogContent(
                     PaddingValues(
                         start = windowSize.screenPadding,
                         end = windowSize.screenPadding,
-                        bottom = windowSize.screenPadding,
+                        bottom = windowSize.screenPadding + safeBottomInset,
                     ),
                 verticalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
                 horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
