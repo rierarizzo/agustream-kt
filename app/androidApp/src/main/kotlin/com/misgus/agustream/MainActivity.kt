@@ -15,6 +15,9 @@ import com.misgus.agustream.data.createBackend
 import com.misgus.agustream.data.platform.createHttpClient
 import com.misgus.agustream.data.platform.initPlatform
 import com.misgus.agustream.data.store.FileSessionStore
+import com.misgus.agustream.data.store.AppPaths
+import com.misgus.agustream.data.store.JsonMapStore
+import com.misgus.agustream.data.store.JsonSettingsRepository
 import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
 import com.misgus.agustream.ui.window.NoopWindowController
@@ -44,8 +47,10 @@ class MainActivity : ComponentActivity() {
             sessionStore = FileSessionStore(),
         )
         val addons = backend.addons
+        val settings = JsonSettingsRepository(JsonMapStore(AppPaths.settingsFile, pretty = true))
         val services = AppServices(
             account = backend.account,
+            settings = settings,
             library = backend.library,
             progress = backend.progress,
             metadata = StremioMetadataRepository(addons, httpClient),

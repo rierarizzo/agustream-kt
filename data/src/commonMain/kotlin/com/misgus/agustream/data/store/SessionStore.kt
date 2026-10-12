@@ -17,6 +17,7 @@ object AppPaths {
     val localStoreDir: String get() = "$configDir/local"
     val watchedSeriesCacheFile: String get() = "$configDir/watched_series.json"
     val ratingsFile: String get() = "$configDir/ratings.json"
+    val settingsFile: String get() = "$configDir/settings.json"
 }
 
 /**

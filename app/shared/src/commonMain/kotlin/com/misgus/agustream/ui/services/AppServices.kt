@@ -12,6 +12,7 @@ import com.misgus.agustream.core.repository.NoRatingRepository
 import com.misgus.agustream.core.repository.NoSubtitleRepository
 import com.misgus.agustream.core.repository.ProgressRepository
 import com.misgus.agustream.core.repository.RatingRepository
+import com.misgus.agustream.core.repository.SettingsRepository
 import com.misgus.agustream.core.repository.StreamRepository
 import com.misgus.agustream.core.repository.SubtitleRepository
 import com.misgus.agustream.core.watched.NoopWatchedSeriesCache
@@ -32,6 +33,8 @@ import com.misgus.agustream.ui.window.WindowController
 class AppServices(
     /** Session and profiles. */
     val account: AccountRepository,
+    /** Local preferences (`settings.json`). */
+    val settings: SettingsRepository,
     /** Saved titles. */
     val library: LibraryRepository,
     /** Watch progress. */

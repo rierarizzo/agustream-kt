@@ -18,6 +18,13 @@ internal val appJson: Json =
         explicitNulls = false
     }
 
+/** Same codec, but pretty-printed for files a human reads or edits. */
+internal val prettyJson: Json =
+    Json {
+        prettyPrint = true
+        prettyPrintIndent = "  "
+    }
+
 /**
  * Small, defensive JSON coercion helpers.
  *

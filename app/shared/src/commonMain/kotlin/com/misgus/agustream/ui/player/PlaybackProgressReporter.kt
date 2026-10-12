@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.player
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.ProgressRepository
+import com.misgus.agustream.core.repository.SettingsRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -15,6 +16,7 @@ import kotlin.time.Duration
  */
 class PlaybackProgressReporter(
     private val repository: ProgressRepository,
+    private val settings: SettingsRepository,
     private val target: PlaybackTarget,
 ) {
     private var position: Duration = Duration.ZERO
@@ -26,6 +28,7 @@ class PlaybackProgressReporter(
     suspend fun resumePosition(): Duration? {
         if (!target.canReportProgress || resumeResolved) return null
         resumeResolved = true
+        if (!settings.state.value.resumePlayback) return null
         return runCatchingCancellable {
             val entry = find(repository.all())
             val savedPosition = entry?.position

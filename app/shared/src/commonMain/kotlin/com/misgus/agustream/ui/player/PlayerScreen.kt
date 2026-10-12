@@ -71,7 +71,7 @@ fun PlayerScreen(
     val snackbar = LocalSnackbarHost.current
     val scope = rememberCoroutineScope()
     val state by player.state.collectAsStateWithLifecycle()
-    val reporter = remember(target) { PlaybackProgressReporter(services.progress, target) }
+    val reporter = remember(target) { PlaybackProgressReporter(services.progress, services.settings, target) }
     val focusRequester = remember { FocusRequester() }
 
     var controlsVisible by remember { mutableStateOf(true) }
@@ -116,7 +116,7 @@ fun PlayerScreen(
         player.state.collect { snapshot ->
             reporter.update(snapshot.position, snapshot.duration)
             if (!snapshot.playing || snapshot.completed) reporter.flush(force = true) else reporter.flush()
-            if (snapshot.completed && target.videoId != null) {
+            if (snapshot.completed && target.videoId != null && services.settings.state.value.autoPlayNext) {
                 playNextIfPossible(target, services)?.let(onPlayNext)
             }
         }

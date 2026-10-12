@@ -6,6 +6,7 @@ import com.misgus.agustream.data.objOrNull
 import com.misgus.agustream.data.platform.ioDispatcher
 import com.misgus.agustream.data.platform.readTextFile
 import com.misgus.agustream.data.platform.writeTextFile
+import com.misgus.agustream.data.prettyJson
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -41,10 +42,12 @@ class JsonFileStore(
 /**
  * A JSON-object document store backed by a file.
  *
- * A missing or corrupt file reads as `{}` instead of throwing.
+ * A missing or corrupt file reads as `{}` instead of throwing. With [pretty]
+ * the file is indented, for documents a human reads or edits.
  */
 class JsonMapStore(
     private val path: String,
+    private val pretty: Boolean = false,
 ) {
     suspend fun read(): JsonObject =
         withContext(ioDispatcher) {
@@ -56,6 +59,12 @@ class JsonMapStore(
     /** Persists [data]. Throws when the write fails, like [JsonFileStore.write]. */
     suspend fun write(data: JsonObject) =
         withContext(ioDispatcher) {
-            writeTextFile(path, data.toString())
+            val text =
+                if (pretty) {
+                    prettyJson.encodeToString(JsonObject.serializer(), data)
+                } else {
+                    data.toString()
+                }
+            writeTextFile(path, text)
         }
 }

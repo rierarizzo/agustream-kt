@@ -30,3 +30,16 @@ actual suspend fun pickVideoFile(): String? =
         }
         selected
     }
+
+/** Opens the file with the OS default app through AWT's [java.awt.Desktop]. */
+actual suspend fun openInDefaultApp(path: String): Boolean =
+    withContext(Dispatchers.IO) {
+        runCatching {
+            val desktop = java.awt.Desktop.getDesktop()
+            desktop.isSupported(java.awt.Desktop.Action.OPEN) &&
+                run {
+                    desktop.open(java.io.File(path))
+                    true
+                }
+        }.getOrDefault(false)
+    }

@@ -22,6 +22,7 @@ import com.misgus.agustream.data.store.AppPaths
 import com.misgus.agustream.data.store.FileSessionStore
 import com.misgus.agustream.data.store.FileWatchedSeriesCache
 import com.misgus.agustream.data.store.JsonMapStore
+import com.misgus.agustream.data.store.JsonSettingsRepository
 import com.misgus.agustream.data.store.LocalRatingRepository
 import com.misgus.agustream.imaging.configureImageLoader
 import com.misgus.agustream.player.MpvPlayerService
@@ -55,6 +56,7 @@ fun main(args: Array<String>) {
     val catalogs = StremioCatalogRepository(addons, httpClient)
     val subtitles = StremioSubtitleRepository(addons, httpClient)
     val ratings = LocalRatingRepository(JsonMapStore(AppPaths.ratingsFile))
+    val settings = JsonSettingsRepository(JsonMapStore(AppPaths.settingsFile, pretty = true))
     val watchedCache = FileWatchedSeriesCache()
     val player = MpvPlayerService()
 
@@ -67,6 +69,7 @@ fun main(args: Array<String>) {
             remember {
                 AppServices(
                     account = backend.account,
+                    settings = settings,
                     library = backend.library,
                     progress = backend.progress,
                     metadata = metadata,

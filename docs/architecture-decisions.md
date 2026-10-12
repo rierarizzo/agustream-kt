@@ -80,6 +80,11 @@ engine, the filesystem and the player touch platform source sets through
   being swallowed. Read-modify-write cycles in the local repositories are
   serialized with a `Mutex`. The session file is restricted to the current user
   where the OS allows it; that is best-effort hardening, not a keychain.
+- **Settings** live in `settings.json` as a flat JSON object with dotted keys,
+  like VS Code's `settings.json` (`animations.enabled`, `player.resumePlayback`,
+  `player.autoPlayNext`). `JsonSettingsRepository` reads it defensively, keeps
+  unknown keys on write and can `reload()` after a manual edit; the settings
+  screen edits the same file, shows its path and can open it in the OS editor.
 - **Session renewal**: `NuvioClient` renews the token before a request when it
   has expired, and once more when the backend answers `401`. Renewals are
   serialized with a mutex so parallel requests do not refresh twice. Engines are
@@ -272,10 +277,3 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   software renderer hands frames to Compose as bitmaps and is CPU-bound. Moving
   to libmpv's OpenGL render backend is the planned performance step and needs a
   GL context wired into the composition root.
-
-### Motion
-
-- **A "disable animations" setting.** The plumbing already exists:
-  `AgustreamApp` takes `animationsEnabled` and provides `LocalMotionEnabled`,
-  which every animation reads. It only needs a persisted preference (a settings
-  repository) that the composition root collects and passes down.
