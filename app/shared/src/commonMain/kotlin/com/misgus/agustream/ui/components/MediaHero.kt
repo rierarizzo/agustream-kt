@@ -3,14 +3,13 @@ package com.misgus.agustream.ui.components
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -24,10 +23,13 @@ fun MediaTitle(
     logo: String?,
 ) {
     if (!logo.isNullOrEmpty()) {
+        // A fixed height keeps every logo the same visual weight; the width
+        // follows the asset's aspect ratio and the hero column bounds it.
         AsyncImage(
             model = logo,
             contentDescription = name,
-            modifier = Modifier.heightIn(max = 140.dp).widthIn(max = 480.dp),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.height(LOGO_HEIGHT),
         )
     } else {
         Text(
@@ -61,3 +63,6 @@ fun MetadataRow(parts: List<String>) {
 
 /** Formats a rating to one decimal place. */
 fun ratingText(value: Double): String = (kotlin.math.round(value * 10) / 10.0).toString()
+
+/** Height every title logo is painted at. */
+private val LOGO_HEIGHT = 96.dp
