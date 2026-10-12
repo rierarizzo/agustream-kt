@@ -149,7 +149,7 @@ private fun MonthHeader(
     onNext: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = AppSpacing.xl, vertical = AppSpacing.md),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = AppSpacing.xl, vertical = AppSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onPrevious) {
@@ -290,18 +290,37 @@ private fun EpisodeChip(
         Box(
             modifier =
                 Modifier
-                    .size(width = 18.dp, height = 24.dp)
+                    .size(width = 30.dp, height = 42.dp)
                     .clip(RoundedCornerShape(AppRadii.sm)),
         ) {
             PosterImage(entry.item.poster, Modifier.fillMaxSize())
         }
-        Spacer(Modifier.width(AppSpacing.xs))
-        Text(
-            text = episodeLabel(entry),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.labelSmall,
-        )
+        Spacer(Modifier.width(AppSpacing.sm))
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = entry.item.name,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelMedium,
+                color = AppColors.textPrimary,
+            )
+            Text(
+                text = episodeLabel(entry),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelSmall,
+                color = AppColors.accent,
+            )
+            entry.video.title?.takeIf { it.isNotEmpty() }?.let {
+                Text(
+                    text = it,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AppColors.textSecondary,
+                )
+            }
+        }
     }
 }
 
@@ -324,5 +343,7 @@ private fun formatMonth(month: LocalDate): String {
 }
 
 private const val DAYS_PER_WEEK = 7
-private const val MAX_ENTRIES_PER_DAY = 2
+
+/** One entry per day: the richer chip (poster, series, episode) needs the room. */
+private const val MAX_ENTRIES_PER_DAY = 1
 private val WEEKDAY_LABELS = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
