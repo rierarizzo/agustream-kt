@@ -116,8 +116,9 @@ engine, the filesystem and the player touch platform source sets through
   own resizers only when the window is undecorated, so nothing custom is needed.
   The only window behaviour routed through `WindowController` is **fullscreen**,
   which the player owns; the previous placement is restored on exit. On Windows
-  the native title bar is opted into the DWM immersive dark mode
-  (`WindowAppearance.kt`), because AWT does not follow the OS dark mode on its own.
+  the native title bar is opted into the DWM immersive dark mode and, on
+  Windows 11, tinted to the app background (`WindowAppearance.kt`), because AWT
+  does not follow the OS dark mode on its own.
 
 ## Player
 

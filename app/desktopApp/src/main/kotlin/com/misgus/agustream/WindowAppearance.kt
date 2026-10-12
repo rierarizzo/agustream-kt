@@ -4,41 +4,67 @@ import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.platform.win32.WinDef.HWND
 import com.sun.jna.ptr.IntByReference
+import java.awt.Color
 import java.awt.Window
 
 /**
- * Asks Windows to paint the native title bar dark.
+ * Paints the native window decoration to match the app.
  *
  * AWT windows keep the light system title bar until the app opts into the DWM
- * immersive dark mode, so the bar stays light even when the OS is in dark mode.
- * The app keeps the native decoration on purpose (see the architecture
- * decisions), so this is the only place that talks to DWM.
+ * immersive dark mode; Windows 11 additionally lets the app set an explicit
+ * caption and text colour (attributes 35 and 36), while Windows 10 only
+ * supports the light/dark flag. The app keeps the native decoration on purpose
+ * (see the architecture decisions), so this is the only place that talks to DWM.
  *
  * Returns `true` once the request reached the window, or `false` when the native
  * peer does not exist yet, so the caller can retry on the next frame.
  */
-fun applyDarkTitleBar(window: Window): Boolean {
+fun applyDarkTitleBar(
+    window: Window,
+    caption: Color? = null,
+    text: Color? = null,
+): Boolean {
     if (!isWindows()) return true
     val hwnd =
         runCatching { Native.getWindowPointer(window) }
             .getOrNull()
             ?.let { HWND(it) }
             ?: return false
+
+    // Immersive dark mode, so the caption buttons match a dark title bar.
     val enabled = IntByReference(1)
-    // DWMWA_USE_IMMERSIVE_DARK_MODE is 20 since Windows 10 20H1; earlier builds used 19.
-    val result = DwmApi.INSTANCE.DwmSetWindowAttribute(hwnd, 20, enabled, ENABLE_SIZE)
-    if (result != 0) {
-        DwmApi.INSTANCE.DwmSetWindowAttribute(hwnd, 19, enabled, ENABLE_SIZE)
+    if (DwmApi.INSTANCE.DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, enabled, INT_SIZE) != 0) {
+        DwmApi.INSTANCE.DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_OLD, enabled, INT_SIZE)
     }
+    // Explicit colours; Windows 11 only, ignored on older builds.
+    caption?.let { setColor(hwnd, DWMWA_CAPTION_COLOR, it) }
+    text?.let { setColor(hwnd, DWMWA_TEXT_COLOR, it) }
     return true
 }
 
+private fun setColor(
+    hwnd: HWND,
+    attribute: Int,
+    color: Color,
+) {
+    val value = IntByReference(color.toColorRef())
+    DwmApi.INSTANCE.DwmSetWindowAttribute(hwnd, attribute, value, INT_SIZE)
+}
+
+/** Windows COLORREF is `0x00BBGGRR`, the reverse of the usual RGB order. */
+private fun Color.toColorRef(): Int = (blue shl 16) or (green shl 8) or red
+
 /** Bytes in an `Int` attribute value. */
-private const val ENABLE_SIZE = 4
+private const val INT_SIZE = 4
+
+private const val DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+private const val DWMWA_USE_IMMERSIVE_DARK_MODE_OLD = 19
+private const val DWMWA_CAPTION_COLOR = 35
+private const val DWMWA_TEXT_COLOR = 36
 
 private fun isWindows(): Boolean = System.getProperty("os.name").startsWith("Windows")
 
-/** The one DWM entry point this app needs. */
+/** The DWM entry points this app needs. */
 private interface DwmApi : Library {
     // Matches the exported Win32 symbol, so the naming rule does not apply.
     @Suppress("ktlint:standard:function-naming")

@@ -3,6 +3,8 @@ package com.misgus.agustream
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -24,6 +26,7 @@ import com.misgus.agustream.data.store.LocalRatingRepository
 import com.misgus.agustream.player.MpvPlayerService
 import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
+import com.misgus.agustream.ui.theme.AppColors
 import kotlinx.coroutines.delay
 
 fun main(args: Array<String>) {
@@ -95,16 +98,17 @@ fun main(args: Array<String>) {
             // AWT does not follow the OS dark mode for the native title bar, so
             // ask DWM. The native peer may not exist on the first frame; retry.
             LaunchedEffect(window) {
+                val caption = AppColors.background.toAwtColor()
+                val title = AppColors.textPrimary.toAwtColor()
                 repeat(DARK_TITLE_BAR_ATTEMPTS) {
-                    if (applyDarkTitleBar(window)) return@LaunchedEffect
+                    if (applyDarkTitleBar(window, caption = caption, text = title)) return@LaunchedEffect
                     delay(TITLE_BAR_RETRY_DELAY_MS)
                 }
             }
             // Paint the native window with the app background so resizing does
             // not flash the default white surface before Compose's next frame.
             SideEffect {
-                val background = java.awt.Color(0x0A, 0x0A, 0x0C)
-                applyBackground(window, background)
+                applyBackground(window, AppColors.background.toAwtColor())
             }
             AgustreamApp(services = services, initialSource = initialSource)
         }
@@ -121,6 +125,9 @@ private fun applyBackground(
         component.components.forEach { applyBackground(it, color) }
     }
 }
+
+/** Converts a Compose colour to the AWT colour the window helpers use. */
+private fun Color.toAwtColor(): java.awt.Color = java.awt.Color(toArgb(), true)
 
 /**
  * Development shortcut: signs in with `NUVIO_EMAIL` / `NUVIO_PASSWORD`.
