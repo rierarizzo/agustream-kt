@@ -142,7 +142,12 @@ fun DetailScreen(
                     state = state,
                     height = viewportHeight,
                     onPlay = {
-                        val first = state.episodes.firstOrNull()
+                        // Prefer a regular episode: season 0 is specials.
+                        val first =
+                            state.episodes
+                                .filter { (it.season ?: 0) > 0 }
+                                .minByOrNull { (it.season ?: 0) * 1000 + (it.episode ?: it.number ?: 0) }
+                                ?: state.episodes.firstOrNull()
                         if (state.isSeries && first != null) {
                             openStreams("series", first.id, "${state.name} · ${first.title ?: "Episode"}")
                         } else {

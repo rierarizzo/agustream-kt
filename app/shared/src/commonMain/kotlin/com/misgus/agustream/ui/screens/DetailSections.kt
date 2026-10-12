@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.screens
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +41,7 @@ import coil3.compose.AsyncImage
 import com.misgus.agustream.core.model.MetaPerson
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.model.MetaVideo
+import com.misgus.agustream.ui.components.MarqueeText
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.rememberInteraction
@@ -74,9 +75,13 @@ internal fun PeopleRow(
 
 @Composable
 private fun PersonCard(person: MetaPerson) {
-    Column(modifier = Modifier.width(128.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    val interaction = rememberInteraction()
+    Column(
+        modifier = Modifier.width(128.dp).hoverable(interaction.source),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Box(
-            modifier = Modifier.size(88.dp).clip(CircleShape).background(AppColors.surfaceHigh),
+            modifier = Modifier.size(88.dp).clip(RoundedCornerShape(AppRadii.md)).background(AppColors.surfaceHigh),
             contentAlignment = Alignment.Center,
         ) {
             val photo = person.photo
@@ -95,20 +100,18 @@ private fun PersonCard(person: MetaPerson) {
             }
         }
         Spacer(Modifier.height(AppSpacing.sm))
-        Text(
-            person.name,
-            maxLines = 2,
-            textAlign = TextAlign.Center,
-            overflow = TextOverflow.Ellipsis,
+        MarqueeText(
+            text = person.name,
             style = PosterCaption.title(),
+            active = interaction.active,
+            textAlign = TextAlign.Center,
         )
         person.character?.takeIf { it.isNotEmpty() }?.let {
-            Text(
-                it,
-                maxLines = 2,
-                textAlign = TextAlign.Center,
-                overflow = TextOverflow.Ellipsis,
+            MarqueeText(
+                text = it,
                 style = PosterCaption.meta(),
+                active = interaction.active,
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -173,11 +176,10 @@ internal fun SimilarRow(
                         PosterImage(item.poster, Modifier.fillMaxSize())
                     }
                     Spacer(Modifier.height(AppSpacing.sm))
-                    Text(
-                        item.name,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    MarqueeText(
+                        text = item.name,
                         style = PosterCaption.title(),
+                        active = interaction.active,
                     )
                     item.releaseInfo?.takeIf { it.isNotEmpty() }?.let {
                         Text(
@@ -199,9 +201,9 @@ internal fun EpisodesSection(
     videos: List<MetaVideo>,
     onPlayEpisode: (MetaVideo) -> Unit,
 ) {
-    val seasons = remember(videos) { videos.mapNotNull { it.season }.distinct().sorted() }
+    val seasons = remember(videos) { orderSeasons(videos.mapNotNull { it.season }.distinct()) }
     if (seasons.isEmpty()) return
-    var season by remember { mutableStateOf(seasons.first()) }
+    var season by remember(seasons) { mutableStateOf(defaultSeason(seasons)) }
     val episodes =
         remember(videos, season) {
             videos.filter { it.season == season }.sortedBy { it.episode ?: it.number ?: 0 }
@@ -218,7 +220,7 @@ internal fun EpisodesSection(
                     seasons.forEach { value ->
                         TextButton(onClick = { season = value }) {
                             Text(
-                                "S$value",
+                                seasonLabel(value),
                                 color = if (value == season) AppColors.accent else AppColors.textSecondary,
                             )
                         }
@@ -235,6 +237,52 @@ internal fun EpisodesSection(
             items(episodes) { video -> EpisodeCard(video) { onPlayEpisode(video) } }
         }
     }
+}
+
+/**
+ * Seasons in display order: regular ones ascending first, then season `0`
+ * ("Specials") at the end.
+ */
+private fun orderSeasons(seasons: List<Int>): List<Int> =
+    seasons.filter { it != 0 }.sorted().let { regular ->
+        if (seasons.contains(0)) regular + 0 else regular
+    }
+
+/** Season 1 opens the picker when present; otherwise the first season shown. */
+private fun defaultSeason(seasons: List<Int>): Int = seasons.firstOrNull { it == 1 } ?: seasons.first()
+
+/** Season `0` is presented as "Specials"; every other season as `S<n>`. */
+private fun seasonLabel(season: Int): String = if (season == 0) "Specials" else "S$season"
+
+private val RELEASE_MONTHS =
+    listOf(
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    )
+
+private val RELEASE_DATE = Regex("(\\d{4})-(\\d{2})-(\\d{2})")
+
+/**
+ * Formats an addon release value (`2024-03-01` or a full ISO datetime) as a
+ * short, readable English date such as `1 March 2024`.
+ *
+ * Returns `null` when there is no usable date, so the caller can omit the line.
+ */
+internal fun formatReleaseDate(raw: String?): String? {
+    val match = RELEASE_DATE.find(raw ?: "") ?: return null
+    val (year, month, day) = match.destructured
+    val monthName = RELEASE_MONTHS.getOrNull(month.toInt() - 1) ?: return null
+    return "${day.toInt()} $monthName $year"
 }
 
 @Composable
@@ -259,14 +307,13 @@ private fun EpisodeCard(
             PosterImage(video.thumbnail, Modifier.fillMaxSize())
         }
         Spacer(Modifier.height(AppSpacing.sm))
-        Text(
-            "${number?.let { "$it. " } ?: ""}$title".trim(),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.bodyLarge,
+        MarqueeText(
+            text = "${number?.let { "$it. " } ?: ""}$title".trim(),
+            style = PosterCaption.title(),
+            active = interaction.active,
         )
-        video.released?.takeIf { it.isNotEmpty() }?.let {
-            Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
+        formatReleaseDate(video.released)?.let {
+            Text(it, maxLines = 1, overflow = TextOverflow.Ellipsis, style = PosterCaption.meta())
         }
     }
 }
