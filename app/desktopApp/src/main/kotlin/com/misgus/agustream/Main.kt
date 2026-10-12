@@ -5,6 +5,8 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -31,6 +33,7 @@ import com.misgus.agustream.ui.services.AppServices
 import com.misgus.agustream.ui.theme.AppColors
 import kotlinx.coroutines.delay
 
+import java.awt.Dimension
 fun main(args: Array<String>) {
     // The desktop Coil decoder aliases when it downsamples; install the cubic
     // one before any image is rendered.
@@ -63,7 +66,7 @@ fun main(args: Array<String>) {
     val initialSource = initialSource(args)
 
     application {
-        val windowState = rememberWindowState(width = 1280.dp, height = 720.dp)
+        val windowState = rememberWindowState(width = WINDOW_WIDTH, height = WINDOW_HEIGHT)
         val windowController = remember { ComposeWindowController(windowState) }
         val services =
             remember {
@@ -104,6 +107,17 @@ fun main(args: Array<String>) {
             title = "Agustream",
         ) {
             // AWT does not follow the OS dark mode for the native title bar, so
+            // The OS enforces the minimum: the window can grow or maximise but
+            // never shrink below the size it opens with. Reapplied when the
+            // density changes (e.g. moving to a monitor with another scale).
+            val density = LocalDensity.current
+            LaunchedEffect(window, density) {
+                window.minimumSize =
+                    Dimension(
+                        with(density) { WINDOW_WIDTH.roundToPx() },
+                        with(density) { WINDOW_HEIGHT.roundToPx() },
+                    )
+            }
             // ask DWM. The native peer may not exist on the first frame; retry.
             LaunchedEffect(window) {
                 val caption = AppColors.background.toAwtColor()
@@ -176,4 +190,8 @@ private fun initialSource(args: Array<String>): String? {
 private const val DARK_TITLE_BAR_ATTEMPTS = 20
 
 /** Delay between dark-title-bar retries, in milliseconds. */
+/** Size the desktop window opens with, and the smallest it can be resized to. */
+private val WINDOW_WIDTH: Dp = 1280.dp
+private val WINDOW_HEIGHT: Dp = 720.dp
+
 private const val TITLE_BAR_RETRY_DELAY_MS = 50L

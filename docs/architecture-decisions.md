@@ -184,6 +184,9 @@ engine, the filesystem and the player touch platform source sets through
   minimize, maximize, close and resizing are OS-managed), which avoids the
   glitches a custom title bar can cause on Windows. Compose Desktop draws its
   own resizers only when the window is undecorated, so nothing custom is needed.
+  The window opens at 1280x720 and that is also its **minimum** (set as
+  `minimumSize` on the AWT window), so the OS lets it grow and maximise but
+  never shrink below the size it started with.
   The only window behaviour routed through `WindowController` is **fullscreen**,
   which the player owns; the previous placement is restored on exit. On Windows
   the native title bar is opted into the DWM immersive dark mode and, on
