@@ -135,6 +135,14 @@ engine, the filesystem and the player touch platform source sets through
   backend that signs in another way renders another form. The desktop
   `NUVIO_EMAIL` / `NUVIO_PASSWORD` shortcut is passed in as an `autoSignIn`
   request, applied only when there is no stored session.
+- **Adaptive layout.** `AppShell` measures the window once with
+  `BoxWithConstraints` and publishes a `WindowSize` (compact / medium /
+  expanded, at Material's 600 and 840 dp breakpoints) through
+  `LocalWindowSize`, so a screen picks a layout without measuring anything.
+  Compact windows (phones) get an icon-only bottom navigation bar and reserve
+  its height instead of the top bar's; wider windows keep the floating top bar
+  with labels. The breakpoint lives in one place so the remaining surfaces
+  (rails, grids, heroes) can clamp against it.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
   rendered inside the shell content area. Sections keep the top navigation
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such
@@ -274,9 +282,11 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   a composable; there are no Compose Resources string resources. The migration
   is mechanical but touches every screen in `ui/`, so it should happen before
   the string count grows.
-- **Adaptive layouts.** Rails, poster grids and the hero use fixed sizes; only
-  the top navigation scrolls horizontally. A narrow window (or a future tablet
-  / TV target) needs width-aware column counts and rail heights.
+- **Adaptive layouts.** The `WindowSize` breakpoints and the compact bottom bar
+  exist, but rails, poster grids and the heroes still use fixed sizes, and the
+  wide dialogs (`StreamsDialog`) can exceed a narrow window. They need to clamp
+  their card widths, grid cell width and hero crop against
+  `LocalWindowSize`.
 - **Keyboard / D-pad navigation.** `Interaction.kt` covers hover, focus and
   pressed states, and the player has shortcuts, but there is no focus traversal
   across the Home rails and no spatial navigation model. A TV target makes this

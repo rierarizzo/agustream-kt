@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHostState
@@ -25,6 +26,8 @@ import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.WindowSize
 
 /** Host for transient snackbars, so any screen can show one. */
 val LocalSnackbarHost = staticCompositionLocalOf<SnackbarHostState?> { null }
@@ -64,9 +67,16 @@ fun ContentArea(
             },
             label = "section",
         ) { section ->
-            // Sections reserve the floating top bar's height; the padding is
-            // constant, so fading the bar never resizes the section's scroll.
-            Box(Modifier.fillMaxSize().padding(top = AppSizes.topBarHeight)) {
+            // Sections reserve the navigation's height; the padding is constant,
+            // so fading the bar never resizes the section's scroll. Compact
+            // windows keep that space at the bottom for the bottom bar.
+            val contentPadding =
+                if (LocalWindowSize.current == WindowSize.COMPACT) {
+                    PaddingValues(bottom = AppSizes.bottomBarHeight)
+                } else {
+                    PaddingValues(top = AppSizes.topBarHeight)
+                }
+            Box(Modifier.fillMaxSize().padding(contentPadding)) {
                 SectionHost(section, navigator, onOpenStreams)
             }
         }

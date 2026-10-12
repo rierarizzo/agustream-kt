@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,8 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.WindowSize
 import kotlinx.coroutines.launch
 
 /**
@@ -72,8 +75,12 @@ fun AppShell() {
     val showNav = !isFullScreen && !immersive && navigator.current == null
     val gate = account.isSignedIn && account.requiresProfile && account.activeProfile == null
 
-    Box(Modifier.fillMaxSize().background(AppColors.background)) {
-        CompositionLocalProvider(LocalSnackbarHost provides snackbarHost) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(AppColors.background)) {
+        val windowSize = WindowSize.of(maxWidth)
+        CompositionLocalProvider(
+            LocalSnackbarHost provides snackbarHost,
+            LocalWindowSize provides windowSize,
+        ) {
             if (gate) {
                 // Profile gate: the library and every write belong to a profile, so
                 // there is no safe default. Backends without profiles never enter here.
@@ -100,33 +107,45 @@ fun AppShell() {
                                 }
                             },
                         )
-                        // Floating top bar: it never changes the content height,
-                        // it just fades in and out over it.
+                        // The navigation never changes the content height: it
+                        // fades in over the space the sections reserve. Compact
+                        // windows (phones) get an icon-only bottom bar.
                         val navFade = AppMotion.spec<Float>(motionEnabled, AppMotion.MEDIUM)
                         val navSlide = AppMotion.spec<IntOffset>(motionEnabled, AppMotion.MEDIUM)
-                        AnimatedVisibility(
-                            visible = showNav,
-                            modifier = Modifier.align(Alignment.TopCenter),
-                            enter = fadeIn(navFade) + slideInVertically(navSlide) { -it },
-                            exit = fadeOut(navFade) + slideOutVertically(navSlide) { -it },
-                        ) {
-                            Column(Modifier.fillMaxWidth()) {
-                                TopNav(
-                                    selected = selected,
-                                    onSelected = selectSection,
-                                    activeProfile = account.activeProfile,
-                                )
-                                // Shadow cast by the bar over the content below it.
-                                Box(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(AppSizes.topBarShadow)
-                                        .background(
-                                            Brush.verticalGradient(
-                                                listOf(Color.Black.copy(alpha = AppAlpha.TOP_BAR_SHADOW), Color.Transparent),
+                        if (windowSize == WindowSize.COMPACT) {
+                            AnimatedVisibility(
+                                visible = showNav,
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                                enter = fadeIn(navFade) + slideInVertically(navSlide) { it },
+                                exit = fadeOut(navFade) + slideOutVertically(navSlide) { it },
+                            ) {
+                                BottomNav(selected = selected, onSelected = selectSection)
+                            }
+                        } else {
+                            AnimatedVisibility(
+                                visible = showNav,
+                                modifier = Modifier.align(Alignment.TopCenter),
+                                enter = fadeIn(navFade) + slideInVertically(navSlide) { -it },
+                                exit = fadeOut(navFade) + slideOutVertically(navSlide) { -it },
+                            ) {
+                                Column(Modifier.fillMaxWidth()) {
+                                    TopNav(
+                                        selected = selected,
+                                        onSelected = selectSection,
+                                        activeProfile = account.activeProfile,
+                                    )
+                                    // Shadow cast by the bar over the content below it.
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(AppSizes.topBarShadow)
+                                            .background(
+                                                Brush.verticalGradient(
+                                                    listOf(Color.Black.copy(alpha = AppAlpha.TOP_BAR_SHADOW), Color.Transparent),
+                                                ),
                                             ),
-                                        ),
-                                )
+                                    )
+                                }
                             }
                         }
                     }

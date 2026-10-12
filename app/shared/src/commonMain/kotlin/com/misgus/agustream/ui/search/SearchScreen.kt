@@ -27,17 +27,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
+import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SectionHeader
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.cellWidth
+import com.misgus.agustream.ui.theme.railHeight
 
 /** Search section: free-text search across every searchable addon catalog. */
 @Composable
@@ -46,12 +49,15 @@ fun SearchScreen(
     navigator: ContentNavigator,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settingsRepository = LocalAppServices.current.settings
+    val settings by settingsRepository.state.collectAsStateWithLifecycle()
 
     Column(Modifier.fillMaxSize()) {
         SearchField(query = state.query, onQueryChange = viewModel::onQueryChange)
         Box(Modifier.weight(1f)) {
             SearchContent(
                 state = state,
+                posterSize = settings.posterSize,
                 onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
             )
         }
@@ -86,6 +92,7 @@ private fun SearchField(
 @Composable
 private fun SearchContent(
     state: SearchUiState,
+    posterSize: PosterSize,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     when {
@@ -118,15 +125,15 @@ private fun SearchContent(
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 if (movies.isNotEmpty()) {
                     SectionHeader("Movies")
-                    ResultsRail(movies, onOpenDetail)
+                    ResultsRail(movies, posterSize, onOpenDetail)
                 }
                 if (series.isNotEmpty()) {
                     SectionHeader("Series")
-                    ResultsRail(series, onOpenDetail)
+                    ResultsRail(series, posterSize, onOpenDetail)
                 }
                 if (other.isNotEmpty()) {
                     SectionHeader("Other")
-                    ResultsRail(other, onOpenDetail)
+                    ResultsRail(other, posterSize, onOpenDetail)
                 }
                 Spacer(Modifier.height(AppSpacing.xl))
             }
@@ -137,17 +144,18 @@ private fun SearchContent(
 @Composable
 private fun ResultsRail(
     previews: List<MetaPreview>,
+    posterSize: PosterSize,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     LazyRow(
-        modifier = Modifier.height(332.dp),
+        modifier = Modifier.height(posterSize.railHeight),
         contentPadding = PaddingValues(horizontal = AppSpacing.xl),
         horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
     ) {
         items(previews, key = { "${it.type}:${it.id}" }) { item ->
             MetaPosterCard(
                 preview = item,
-                width = 180.dp,
+                width = posterSize.cellWidth,
                 onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },
             )
         }

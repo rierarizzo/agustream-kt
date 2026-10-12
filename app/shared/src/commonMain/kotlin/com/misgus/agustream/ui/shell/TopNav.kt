@@ -2,7 +2,9 @@ package com.misgus.agustream.ui.shell
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,6 +60,55 @@ fun TopNav(
                 NavItem(section, section == selected) { onSelected(section) }
             }
         }
+    }
+}
+
+/**
+ * Icon-only bottom navigation for compact windows.
+ *
+ * A bar with labels does not fit a phone; the icons alone do, and the bar sits
+ * in reserved space instead of floating over the content.
+ */
+@Composable
+fun BottomNav(
+    selected: AppSection,
+    onSelected: (AppSection) -> Unit,
+) {
+    Column(Modifier.fillMaxWidth().background(AppColors.background)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(AppColors.divider))
+        Row(
+            modifier = Modifier.fillMaxWidth().height(AppSizes.bottomBarHeight),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AppSection.entries.forEach { section ->
+                BottomNavItem(section, section == selected) { onSelected(section) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BottomNavItem(
+    section: AppSection,
+    selected: Boolean,
+    onTap: () -> Unit,
+) {
+    val interaction = rememberInteraction()
+    Box(
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(AppRadii.md))
+                .background(interactionHighlight(interaction))
+                .clickableSurface(interaction, onTap)
+                .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
+    ) {
+        Icon(
+            imageVector = if (selected) section.selectedIcon else section.icon,
+            contentDescription = section.label,
+            tint = if (selected) AppColors.textPrimary else AppColors.textSecondary,
+            modifier = Modifier.size(AppIconSize.lg),
+        )
     }
 }
 

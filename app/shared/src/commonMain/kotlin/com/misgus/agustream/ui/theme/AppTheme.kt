@@ -84,6 +84,9 @@ object AppSizes {
     /** Height of the horizontal top navigation bar. */
     val topBarHeight: Dp = 64.dp
 
+    /** Height of the icon-only bottom navigation bar, used on compact windows. */
+    val bottomBarHeight: Dp = 64.dp
+
     /** Height of the shadow the top bar casts onto the content below. */
     val topBarShadow: Dp = 14.dp
 }
