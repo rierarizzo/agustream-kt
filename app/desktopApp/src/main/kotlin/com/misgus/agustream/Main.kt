@@ -24,6 +24,7 @@ import com.misgus.agustream.data.store.LocalRatingRepository
 import com.misgus.agustream.player.MpvPlayerService
 import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
+import kotlinx.coroutines.delay
 
 fun main(args: Array<String>) {
     val environment = System.getenv()
@@ -91,6 +92,14 @@ fun main(args: Array<String>) {
             state = windowState,
             title = "Agustream",
         ) {
+            // AWT does not follow the OS dark mode for the native title bar, so
+            // ask DWM. The native peer may not exist on the first frame; retry.
+            LaunchedEffect(window) {
+                repeat(DARK_TITLE_BAR_ATTEMPTS) {
+                    if (applyDarkTitleBar(window)) return@LaunchedEffect
+                    delay(TITLE_BAR_RETRY_DELAY_MS)
+                }
+            }
             // Paint the native window with the app background so resizing does
             // not flash the default white surface before Compose's next frame.
             SideEffect {
@@ -147,3 +156,9 @@ private fun initialSource(args: Array<String>): String? {
     val flag = "--play="
     return args.firstOrNull { it.startsWith(flag) }?.substring(flag.length)
 }
+
+/** Frames to wait for the native window peer before giving up on the dark title bar. */
+private const val DARK_TITLE_BAR_ATTEMPTS = 20
+
+/** Delay between dark-title-bar retries, in milliseconds. */
+private const val TITLE_BAR_RETRY_DELAY_MS = 50L
