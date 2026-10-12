@@ -64,7 +64,12 @@ class CalendarViewModel(
     init {
         viewModelScope.launch {
             account.state.collect { accountState ->
-                if (accountState.isSignedIn) load(force = true) else clear()
+                when {
+                    !accountState.isSignedIn -> clear()
+                    // The library belongs to a profile, so wait for one.
+                    accountState.requiresProfile && accountState.activeProfile == null -> Unit
+                    else -> load(force = true)
+                }
             }
         }
     }

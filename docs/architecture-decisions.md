@@ -86,6 +86,16 @@ engine, the filesystem and the player touch platform source sets through
   configured with finite connect/request/socket timeouts.
 - **`BackendKind` + `createBackend`** is the single place that knows the
   concrete implementations, replacing the Flutter `backend_factory.dart`.
+- **Parallel I/O and caching.** Independent reads run together instead of in a
+  row: Home loads watch progress, the library and the catalog list concurrently;
+  Library loads the library and its progress together; the watched-badge
+  resolver reads the two progress sources in parallel and its metadata lookups
+  are bounded but concurrent; `watched_items` chunks are queried together;
+  catalog manifests are fetched in parallel and cached per addon (a manifest is
+  immutable). The addon list is cached per profile uuid, so the watched-badge
+  sync does not re-query it for every series. Account-scoped ViewModels (Home,
+  Library, Discover, Calendar) wait for a profile before loading rather than
+  loading without one and failing.
 
 ## UI (`:app:shared`)
 

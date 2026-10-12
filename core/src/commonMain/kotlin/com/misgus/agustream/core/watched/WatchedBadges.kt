@@ -47,8 +47,19 @@ class WatchedBadgeResolver(
         if (candidates.isEmpty()) return emptySet()
         val now = today ?: Clock.System.now()
 
-        val entries = progress.watchedEntries(candidates.map { it.id }.toSet())
-        val allProgress = progressEntries ?: progress.all()
+        val ids = candidates.map { it.id }.toSet()
+        // Both progress reads are independent; when the caller already has the
+        // full progress list, only the watched markers are fetched.
+        val (entries, allProgress) =
+            if (progressEntries != null) {
+                progress.watchedEntries(ids) to progressEntries
+            } else {
+                coroutineScope {
+                    val entriesDeferred = async { progress.watchedEntries(ids) }
+                    val allDeferred = async { progress.all() }
+                    entriesDeferred.await() to allDeferred.await()
+                }
+            }
 
         val watchedKeys =
             entries.mapTo(mutableSetOf()) {
@@ -165,7 +176,7 @@ class WatchedBadgeResolver(
 
     private companion object {
         const val COMPLETION_THRESHOLD = 0.9
-        const val MAX_CONCURRENT_LOOKUPS = 4
+        const val MAX_CONCURRENT_LOOKUPS = 6
         val SERIES_TYPES = setOf("series", "show", "tv", "tvshow", "anime")
     }
 }

@@ -12,6 +12,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.readRawBytes
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonObject
 
 /** Thrown when an addon request fails or returns something unexpected. */
@@ -38,7 +40,21 @@ class StremioAddonClient(
     /** Addon base URL, without a trailing slash. */
     val baseUrl: String = normalizeAddonBaseUrl(baseUrl)
 
-    suspend fun fetchManifest(): AddonManifest = addonManifestFromJson(getJson("$baseUrl/manifest.json"))
+    /**
+     * Manifest cache. A manifest is immutable for an addon's lifetime, so it is
+     * fetched at most once per client and shared by every caller (Home,
+     * Discover, Search all reuse the same catalog repository).
+     */
+    private val manifestMutex = Mutex()
+    private var cachedManifest: AddonManifest? = null
+
+    suspend fun fetchManifest(): AddonManifest {
+        cachedManifest?.let { return it }
+        return manifestMutex.withLock {
+            cachedManifest
+                ?: addonManifestFromJson(getJson("$baseUrl/manifest.json")).also { cachedManifest = it }
+        }
+    }
 
     /** Fetches a catalog page. [extra] holds protocol params such as `skip`. */
     suspend fun fetchCatalog(

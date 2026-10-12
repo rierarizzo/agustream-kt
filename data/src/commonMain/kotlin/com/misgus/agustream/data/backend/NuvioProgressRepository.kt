@@ -5,6 +5,9 @@ import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.model.WatchedEntry
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.ProgressRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,16 +64,26 @@ class NuvioProgressRepository(
         val ids = candidateIds.filter { it.isNotEmpty() }.distinct()
         if (ids.isEmpty()) return emptyList()
         val profileId = requireProfileId()
-        val entries = mutableListOf<WatchedEntry>()
-        for (chunk in ids.chunked(CHUNK_SIZE)) {
-            val rows =
-                client.select(
-                    "watched_items",
-                    filter = "profile_id=eq.$profileId&content_id=in.(${chunk.joinToString(",") { postgrestLiteral(it) }})",
-                )
-            entries += rows.map(::watchedEntryFromRow)
+        // Chunks are independent, so they go out together instead of one query
+        // per 40 ids.
+        return coroutineScope {
+            ids
+                .chunked(CHUNK_SIZE)
+                .map { chunk ->
+                    async {
+                        val rows =
+                            client.select(
+                                "watched_items",
+                                filter =
+                                    "profile_id=eq.$profileId&content_id=in.(${
+                                        chunk.joinToString(",") { postgrestLiteral(it) }
+                                    })",
+                            )
+                        rows.map(::watchedEntryFromRow)
+                    }
+                }.awaitAll()
+                .flatten()
         }
-        return entries
     }
 
     override suspend fun markWatched(

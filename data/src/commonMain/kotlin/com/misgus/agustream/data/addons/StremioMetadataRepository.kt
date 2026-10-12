@@ -1,12 +1,16 @@
 package com.misgus.agustream.data.addons
 
 import com.misgus.agustream.core.model.AddonCatalog
+import com.misgus.agustream.core.model.AddonManifest
 import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.AddonRepository
 import com.misgus.agustream.core.repository.MetadataRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 /**
  * [MetadataRepository] backed by Stremio addons.
@@ -36,8 +40,17 @@ class StremioMetadataRepository(
         id: String,
         genre: String?,
     ): List<MetaPreview> {
-        for (baseUrl in candidates()) {
-            val items = tryCatalog(baseUrl, type, id, genre)
+        val urls = candidates()
+        if (urls.isEmpty()) return emptyList()
+        // The manifests are independent, so they are fetched together; the
+        // catalogs are then tried in the account's order, first hit wins.
+        val manifests =
+            coroutineScope {
+                urls.map { url -> async { manifestFor(url) } }.awaitAll()
+            }
+        for ((url, manifest) in manifests) {
+            if (manifest == null) continue
+            val items = tryCatalog(url, manifest, type, id, genre)
             if (items != null) return items
         }
         return emptyList()
@@ -54,16 +67,20 @@ class StremioMetadataRepository(
         return urls
     }
 
+    /** One addon's manifest, or `null` when it is unreachable. */
+    private suspend fun manifestFor(url: String): Pair<String, AddonManifest?> =
+        url to runCatchingCancellable { clientFor(url).fetchManifest() }.getOrNull()
+
     /** Returns the similar titles, or `null` when this addon cannot provide them. */
     private suspend fun tryCatalog(
         baseUrl: String,
+        manifest: AddonManifest,
         type: String,
         id: String,
         genre: String?,
     ): List<MetaPreview>? {
         val addonClient = clientFor(baseUrl)
         return try {
-            val manifest = addonClient.fetchManifest()
             val catalog = pickCatalog(manifest.catalogs, type) ?: return null
 
             val supportsGenre = catalog.extra.any { it.name == "genre" }

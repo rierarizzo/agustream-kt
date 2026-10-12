@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 /** In-memory [AccountRepository] for tests. */
 class FakeAccountRepository(
-    initial: AccountState = AccountState(isSignedIn = true),
+    initial: AccountState = AccountState(isSignedIn = true, requiresProfile = false),
 ) : AccountRepository {
     private val _state = MutableStateFlow(initial)
     override val state: StateFlow<AccountState> = _state

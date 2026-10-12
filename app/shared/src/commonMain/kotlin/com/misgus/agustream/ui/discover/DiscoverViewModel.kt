@@ -65,7 +65,12 @@ class DiscoverViewModel(
     init {
         viewModelScope.launch {
             account.state.collect { accountState ->
-                if (accountState.isSignedIn) load(force = true) else clear()
+                when {
+                    !accountState.isSignedIn -> clear()
+                    // The addons belong to a profile, so wait for one.
+                    accountState.requiresProfile && accountState.activeProfile == null -> Unit
+                    else -> load(force = true)
+                }
             }
         }
     }

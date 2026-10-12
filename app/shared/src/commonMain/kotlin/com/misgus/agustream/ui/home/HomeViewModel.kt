@@ -72,7 +72,13 @@ class HomeViewModel(
     init {
         viewModelScope.launch {
             account.state.collect { accountState ->
-                if (accountState.isSignedIn) load(force = true) else clear()
+                when {
+                    !accountState.isSignedIn -> clear()
+                    // A backend with profiles has no safe default: wait until one
+                    // is chosen instead of loading (and failing) without it.
+                    accountState.requiresProfile && accountState.activeProfile == null -> Unit
+                    else -> load(force = true)
+                }
             }
         }
     }
@@ -92,8 +98,16 @@ class HomeViewModel(
         var progressEntries: List<WatchProgress> = emptyList()
         var loaded = false
         try {
-            progressEntries = progress.all()
-            val libraryItems = library.all()
+            // Watch progress, library and the catalog list are independent, so
+            // they all start at once instead of paying three round-trips in a row.
+            val (entries, libraryItems, refs) =
+                coroutineScope {
+                    val progressDeferred = async { progress.all() }
+                    val libraryDeferred = async { library.all() }
+                    val catalogsDeferred = async { catalogs.catalogs().take(MAX_ROWS) }
+                    Triple(progressDeferred.await(), libraryDeferred.await(), catalogsDeferred.await())
+                }
+            progressEntries = entries
             val byContent = libraryItems.associateBy { it.contentId }
             val continueWatching =
                 progressEntries
@@ -105,7 +119,7 @@ class HomeViewModel(
                     }.sortedByDescending { it.progress.lastWatched ?: Instant.fromEpochMilliseconds(0) }
                     .take(MAX_CONTINUE)
 
-            val rows = loadRows()
+            val rows = loadRows(refs)
             _state.update {
                 it.copy(
                     isLoading = false,
@@ -126,9 +140,8 @@ class HomeViewModel(
         if (loaded) syncWatched(progressEntries)
     }
 
-    private suspend fun loadRows(): List<HomeRow> {
-        val refs = catalogs.catalogs().take(MAX_ROWS)
-        return coroutineScope {
+    private suspend fun loadRows(refs: List<CatalogRef>): List<HomeRow> =
+        coroutineScope {
             refs
                 .map { ref ->
                     async {
@@ -144,7 +157,6 @@ class HomeViewModel(
                 }.awaitAll()
                 .filterNotNull()
         }
-    }
 
     private suspend fun syncWatched(progressEntries: List<WatchProgress>) {
         val request = ++watchedRequest

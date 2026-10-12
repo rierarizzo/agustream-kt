@@ -11,6 +11,8 @@ import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.core.watched.WatchedBadgeResolver
 import com.misgus.agustream.core.watched.WatchedCandidate
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,7 +52,13 @@ class LibraryViewModel(
     init {
         viewModelScope.launch {
             account.state.collect { accountState ->
-                if (accountState.isSignedIn) load(force = true) else clear()
+                when {
+                    !accountState.isSignedIn -> clear()
+                    // Wait for a profile before loading: the library is scoped to
+                    // one, so a load without it would just fail.
+                    accountState.requiresProfile && accountState.activeProfile == null -> Unit
+                    else -> load(force = true)
+                }
             }
         }
         // A write elsewhere (e.g. "add to favorites" from the detail screen)
@@ -74,8 +82,15 @@ class LibraryViewModel(
         var progressEntries: List<WatchProgress> = emptyList()
         var loaded = false
         try {
-            val items = library.all()
-            progressEntries = progress.all()
+            // The library and the progress that decorates it are independent; a
+            // single round-trip each, run together.
+            val (items, entries) =
+                coroutineScope {
+                    val libraryDeferred = async { library.all() }
+                    val progressDeferred = async { progress.all() }
+                    libraryDeferred.await() to progressDeferred.await()
+                }
+            progressEntries = entries
             _state.update {
                 it.copy(
                     isLoading = false,
