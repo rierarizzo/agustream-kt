@@ -20,6 +20,8 @@ class NoopPlayerService(
 
     override val videoOutput: Any? = null
 
+    override val canPlay: Boolean = false
+
     override fun open(target: PlaybackTarget) {
         _state.update { it.copy(error = message) }
     }

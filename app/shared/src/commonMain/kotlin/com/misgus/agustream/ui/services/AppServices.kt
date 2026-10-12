@@ -66,9 +66,10 @@ class AppServices(
      *
      * Android wires a [NoopPlayerService] until a native video surface exists,
      * so the UI can tell the user instead of opening a player that only reports
-     * an error.
+     * an error. The capability is declared by the engine itself, not inferred
+     * from its type.
      */
-    val playbackSupported: Boolean get() = player !is NoopPlayerService
+    val playbackSupported: Boolean get() = player.canPlay
 }
 
 val LocalAppServices =

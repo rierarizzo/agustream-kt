@@ -79,6 +79,8 @@ fun PlayerScreen(
     var addonSubtitles by remember { mutableStateOf<List<Subtitle>>(emptyList()) }
     var showSubtitleMenu by remember { mutableStateOf(false) }
     var showAudioMenu by remember { mutableStateOf(false) }
+    // Volume to restore when mute is toggled back on.
+    var volumeBeforeMute by remember { mutableStateOf(100.0) }
 
     DisposableEffect(target) {
         chrome.enterImmersive()
@@ -155,17 +157,44 @@ fun PlayerScreen(
                     }
                 }.onPreviewKeyEvent { event ->
                     if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                    SEEK_PERCENT_KEYS[event.key]?.let { fraction ->
+                        if (state.duration > Duration.ZERO) player.seek(state.duration * fraction)
+                        revealControls()
+                        return@onPreviewKeyEvent true
+                    }
                     when (event.key) {
                         Key.Spacebar, Key.K -> {
                             player.playOrPause()
                             true
                         }
-                        Key.DirectionLeft -> {
+                        Key.DirectionLeft, Key.J -> {
                             player.seekBy(Duration.parse("-10s"))
+                            revealControls()
                             true
                         }
-                        Key.DirectionRight -> {
+                        Key.DirectionRight, Key.L -> {
                             player.seekBy(Duration.parse("10s"))
+                            revealControls()
+                            true
+                        }
+                        Key.DirectionUp -> {
+                            player.setVolume((state.volume + VOLUME_STEP).coerceAtMost(100.0))
+                            revealControls()
+                            true
+                        }
+                        Key.DirectionDown -> {
+                            player.setVolume((state.volume - VOLUME_STEP).coerceAtLeast(0.0))
+                            revealControls()
+                            true
+                        }
+                        Key.M -> {
+                            if (state.volume > 0.0) {
+                                volumeBeforeMute = state.volume
+                                player.setVolume(0.0)
+                            } else {
+                                player.setVolume(volumeBeforeMute.coerceAtLeast(1.0))
+                            }
+                            revealControls()
                             true
                         }
                         Key.F -> {
@@ -387,3 +416,24 @@ private fun episodeOrder(video: MetaVideo): Int = (video.season ?: 0) * 1000 + (
 
 /** How long to wait for a parsed duration before resuming anyway. */
 private val RESUME_TIMEOUT = 5.seconds
+
+/** Volume change applied by the up/down arrow shortcuts, in percent. */
+private const val VOLUME_STEP = 5.0
+
+/**
+ * Number-key seek targets: `0`…`9` jump to 0 %…90 % of the media, the
+ * convention used by the major streaming players.
+ */
+private val SEEK_PERCENT_KEYS =
+    mapOf(
+        Key.Zero to 0.0,
+        Key.One to 0.1,
+        Key.Two to 0.2,
+        Key.Three to 0.3,
+        Key.Four to 0.4,
+        Key.Five to 0.5,
+        Key.Six to 0.6,
+        Key.Seven to 0.7,
+        Key.Eight to 0.8,
+        Key.Nine to 0.9,
+    )

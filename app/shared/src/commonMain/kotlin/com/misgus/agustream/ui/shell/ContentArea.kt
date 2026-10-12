@@ -30,11 +30,12 @@ class RouteViewModelStoreOwner : ViewModelStoreOwner {
 fun ContentArea(
     selected: AppSection,
     navigator: ContentNavigator,
+    onSelectSection: (AppSection) -> Unit,
     onOpenStreams: (StreamsRequest) -> Unit,
 ) {
     val current = navigator.current
     if (current == null) {
-        SectionHost(selected, navigator, onOpenStreams)
+        SectionHost(selected, navigator, onSelectSection, onOpenStreams)
         return
     }
 

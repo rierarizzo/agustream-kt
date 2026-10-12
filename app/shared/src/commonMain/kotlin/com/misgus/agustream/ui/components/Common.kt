@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -73,9 +74,11 @@ fun SyncingIndicator() {
 /** Centered icon + title + message used for empty, loading and error states. */
 @Composable
 fun Message(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     message: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -94,6 +97,10 @@ fun Message(
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium,
             )
+            if (actionLabel != null && onAction != null) {
+                Spacer(Modifier.size(AppSpacing.md))
+                PillButton(text = actionLabel, onClick = onAction)
+            }
         }
     }
 }

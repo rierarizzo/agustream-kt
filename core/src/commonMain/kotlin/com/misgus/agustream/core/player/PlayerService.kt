@@ -49,6 +49,15 @@ interface PlayerService {
      */
     val videoOutput: Any?
 
+    /**
+     * Whether this engine can actually play media on the current target.
+     *
+     * The UI reads this flag instead of type-checking the implementation (for
+     * example a `NoopPlayerService` on a target without an engine), so the
+     * capability lives in the contract and survives new engines.
+     */
+    val canPlay: Boolean
+
     /** Opens [target]. */
     fun open(target: PlaybackTarget)
 

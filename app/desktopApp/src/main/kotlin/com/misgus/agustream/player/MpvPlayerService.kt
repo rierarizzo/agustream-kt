@@ -44,6 +44,8 @@ class MpvPlayerService internal constructor(
 
     override val videoOutput: Any get() = renderer
 
+    override val canPlay: Boolean = true
+
     private val pendingLock = Any()
     private var pendingTarget: PlaybackTarget? = null
 

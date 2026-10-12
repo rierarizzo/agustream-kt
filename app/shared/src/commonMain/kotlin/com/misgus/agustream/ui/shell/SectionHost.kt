@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 fun SectionHost(
     selected: AppSection,
     navigator: ContentNavigator,
+    onSelectSection: (AppSection) -> Unit,
     onOpenStreams: (StreamsRequest) -> Unit,
 ) {
     val services = LocalAppServices.current
@@ -39,7 +40,7 @@ fun SectionHost(
                         badges = services.watchedBadges,
                     )
                 }
-            HomeScreen(viewModel, navigator, onOpenStreams)
+            HomeScreen(viewModel, navigator, onOpenStreams, onOpenSettings = { onSelectSection(AppSection.SETTINGS) })
         }
         AppSection.LIBRARY -> {
             val viewModel: LibraryViewModel =
@@ -51,7 +52,7 @@ fun SectionHost(
                         badges = services.watchedBadges,
                     )
                 }
-            LibraryScreen(viewModel, navigator)
+            LibraryScreen(viewModel, navigator, onOpenSettings = { onSelectSection(AppSection.SETTINGS) })
         }
         AppSection.SETTINGS -> {
             val snackbar = LocalSnackbarHost.current

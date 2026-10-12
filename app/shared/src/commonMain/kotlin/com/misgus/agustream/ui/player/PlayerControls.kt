@@ -182,7 +182,7 @@ private fun BottomBar(
             Spacer(Modifier.weight(1f))
             Icon(
                 Icons.AutoMirrored.Filled.VolumeUp,
-                contentDescription = null,
+                contentDescription = "Volume",
                 tint = Color.White,
                 modifier = Modifier.size(AppIconSize.md),
             )

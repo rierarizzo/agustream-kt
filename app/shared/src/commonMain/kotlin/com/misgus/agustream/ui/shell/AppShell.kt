@@ -46,6 +46,10 @@ fun AppShell() {
 
     var selected by remember { mutableStateOf(AppSection.HOME) }
     val navigator = remember { ContentNavigator() }
+    val selectSection: (AppSection) -> Unit = {
+        selected = it
+        navigator.clear()
+    }
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var streamsRequest by remember { mutableStateOf<StreamsRequest?>(null) }
@@ -67,10 +71,7 @@ fun AppShell() {
                     if (showNav) {
                         TopNav(
                             selected = selected,
-                            onSelected = {
-                                selected = it
-                                navigator.clear()
-                            },
+                            onSelected = selectSection,
                             activeProfile = account.activeProfile,
                         )
                     }
@@ -102,6 +103,7 @@ fun AppShell() {
                             ContentArea(
                                 selected = selected,
                                 navigator = navigator,
+                                onSelectSection = selectSection,
                                 onOpenStreams = { request ->
                                     if (services.playbackSupported) {
                                         streamsRequest = request

@@ -48,6 +48,7 @@ import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.SyncingIndicator
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.rememberInteraction
+import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.streams.StreamsRequest
@@ -63,6 +64,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     navigator: ContentNavigator,
     onOpenStreams: (StreamsRequest) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -70,6 +72,7 @@ fun HomeScreen(
     Box(Modifier.fillMaxSize()) {
         HomeContent(
             state = state,
+            onOpenSettings = onOpenSettings,
             onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
             onOpenPreview = { navigator.push(ContentRoute.Detail(LibraryItem.fromPreview(it))) },
             onOpenCatalog = { navigator.push(ContentRoute.Catalog(it)) },
@@ -96,6 +99,7 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: HomeUiState,
+    onOpenSettings: () -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
     onOpenPreview: (MetaPreview) -> Unit,
     onOpenCatalog: (com.misgus.agustream.core.repository.CatalogRef) -> Unit,
@@ -106,7 +110,9 @@ private fun HomeContent(
             Message(
                 icon = Icons.Outlined.Lock,
                 title = "Not signed in",
-                message = "Sign in from Settings to see your Home.",
+                message = "Sign in to see your Home.",
+                actionLabel = "Sign in",
+                onAction = onOpenSettings,
             )
         state.isLoading && !state.hasLoaded ->
             Box(Modifier.fillMaxSize(), Alignment.Center) {
@@ -116,7 +122,7 @@ private fun HomeContent(
             Message(
                 icon = Icons.Outlined.ErrorOutline,
                 title = "Could not load Home",
-                message = state.error.toString(),
+                message = state.error.toUserMessage(),
             )
         state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(

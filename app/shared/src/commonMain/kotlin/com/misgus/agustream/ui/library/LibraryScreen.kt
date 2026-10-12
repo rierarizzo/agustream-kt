@@ -36,6 +36,7 @@ import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.PosterTile
 import com.misgus.agustream.ui.components.SyncingIndicator
+import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -45,6 +46,7 @@ import com.misgus.agustream.ui.theme.AppSpacing
 fun LibraryScreen(
     viewModel: LibraryViewModel,
     navigator: ContentNavigator,
+    onOpenSettings: () -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -81,6 +83,7 @@ fun LibraryScreen(
         Spacer(Modifier.height(AppSpacing.lg))
         LibraryContent(
             state = state,
+            onOpenSettings = onOpenSettings,
             onOpen = { navigator.push(ContentRoute.Detail(it)) },
         )
     }
@@ -89,6 +92,7 @@ fun LibraryScreen(
 @Composable
 private fun LibraryContent(
     state: LibraryUiState,
+    onOpenSettings: () -> Unit,
     onOpen: (LibraryItem) -> Unit,
 ) {
     when {
@@ -96,7 +100,9 @@ private fun LibraryContent(
             Message(
                 icon = Icons.Outlined.Lock,
                 title = "Not signed in",
-                message = "Sign in from Settings to load your library.",
+                message = "Sign in to load your library.",
+                actionLabel = "Sign in",
+                onAction = onOpenSettings,
             )
         state.isLoading && !state.hasLoaded ->
             Box(Modifier.fillMaxSize(), Alignment.Center) {
@@ -106,7 +112,7 @@ private fun LibraryContent(
             Message(
                 icon = Icons.Outlined.ErrorOutline,
                 title = "Could not load the library",
-                message = state.error.toString(),
+                message = state.error.toUserMessage(),
             )
         state.visibleItems.isEmpty() ->
             Message(

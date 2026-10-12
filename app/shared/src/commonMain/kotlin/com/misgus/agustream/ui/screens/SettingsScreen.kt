@@ -30,9 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.misgus.agustream.core.BackendException
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.ui.components.PillButton
+import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.platform.pickVideoFile
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
@@ -49,7 +49,6 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
-    val account = LocalAppServices.current.account
     Column(
         modifier =
             Modifier
@@ -131,10 +130,8 @@ private fun AccountCard() {
                                 password = ""
                             } catch (e: CancellationException) {
                                 throw e
-                            } catch (e: BackendException) {
-                                error = e.message
                             } catch (e: Throwable) {
-                                error = e.toString()
+                                error = e.toUserMessage()
                             } finally {
                                 busy = false
                             }
