@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.WatchProgress
@@ -83,11 +82,10 @@ fun PosterTile(
             }
         }
         Spacer(Modifier.height(AppSpacing.sm))
-        Text(
+        MarqueeText(
             text = item.name,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
             style = PosterCaption.title(),
+            active = interaction.active,
         )
         item.year?.let { year ->
             Text(

@@ -65,11 +65,10 @@ fun MetaPosterCard(
             }
         }
         Spacer(Modifier.height(AppSpacing.sm))
-        Text(
+        MarqueeText(
             text = preview.name,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
             style = PosterCaption.title(),
+            active = interaction.active,
         )
         val releaseInfo = preview.releaseInfo
         if (!releaseInfo.isNullOrEmpty()) {
