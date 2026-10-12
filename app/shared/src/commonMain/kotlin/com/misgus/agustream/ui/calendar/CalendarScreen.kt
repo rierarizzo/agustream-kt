@@ -10,13 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -37,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -59,8 +57,8 @@ import kotlinx.datetime.todayIn
 import kotlin.time.Clock
 
 /**
- * Calendar section: a month grid where each day shows the episodes of the
- * Library's series that air on it.
+ * Calendar section: a full-screen month grid where each day shows the episodes
+ * of the Library's series that air on it.
  */
 @Composable
 fun CalendarScreen(
@@ -93,50 +91,60 @@ private fun CalendarContent(
                 actionLabel = "Sign in",
                 onAction = onOpenSettings,
             )
-        state.isLoading && !state.hasLoaded ->
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator()
-            }
         state.error != null && state.entries.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
                 title = "Could not load the calendar",
                 message = state.error.toUserMessage(),
             )
-        state.entries.isEmpty() ->
+        state.hasLoaded && state.entries.isEmpty() ->
             Message(
                 icon = Icons.Outlined.CalendarMonth,
                 title = "No upcoming episodes",
                 message = "The series in your library have no announced episodes in the coming months.",
             )
-        else -> MonthCalendar(entries = state.entries, onOpenDetail = onOpenDetail)
+        // The grid paints immediately and fills in as series resolve.
+        else ->
+            MonthCalendar(
+                entries = state.entries,
+                isLoading = state.isLoading,
+                onOpenDetail = onOpenDetail,
+            )
     }
 }
 
 @Composable
 private fun MonthCalendar(
     entries: List<CalendarEntry>,
+    isLoading: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     val byDate = remember(entries) { entries.groupBy { it.date } }
     var month by remember { mutableStateOf(LocalDate(today.year, today.month, 1)) }
 
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+    Column(Modifier.fillMaxSize()) {
         MonthHeader(
             month = month,
+            isLoading = isLoading,
             onPrevious = { month = month.plus(-1, DateTimeUnit.MONTH) },
             onNext = { month = month.plus(1, DateTimeUnit.MONTH) },
         )
         WeekdayHeader()
-        MonthGrid(month = month, today = today, byDate = byDate, onOpenDetail = onOpenDetail)
-        Spacer(Modifier.height(AppSpacing.xl))
+        MonthGrid(
+            month = month,
+            today = today,
+            byDate = byDate,
+            onOpenDetail = onOpenDetail,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
 @Composable
 private fun MonthHeader(
     month: LocalDate,
+    isLoading: Boolean,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
 ) {
@@ -147,12 +155,21 @@ private fun MonthHeader(
         IconButton(onClick = onPrevious) {
             Icon(Icons.Default.ChevronLeft, contentDescription = "Previous month")
         }
-        Text(
-            text = formatMonth(month),
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center,
+        Row(
             modifier = Modifier.weight(1f),
-        )
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = formatMonth(month),
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+            )
+            if (isLoading) {
+                Spacer(Modifier.width(AppSpacing.sm))
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+            }
+        }
         IconButton(onClick = onNext) {
             Icon(Icons.Default.ChevronRight, contentDescription = "Next month")
         }
@@ -180,6 +197,7 @@ private fun MonthGrid(
     today: LocalDate,
     byDate: Map<LocalDate, List<CalendarEntry>>,
     onOpenDetail: (LibraryItem) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val daysInMonth = month.daysUntil(month.plus(1, DateTimeUnit.MONTH))
     val leading = month.dayOfWeek.ordinal
@@ -190,9 +208,16 @@ private fun MonthGrid(
             while (size % DAYS_PER_WEEK != 0) add(null)
         }
 
-    Column(Modifier.fillMaxWidth().padding(horizontal = AppSpacing.xl)) {
+    // Each week takes an equal share of the available height, so the grid fills
+    // the window instead of being a fixed-height block that leaves a gap.
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(start = AppSpacing.xl, end = AppSpacing.xl, bottom = AppSpacing.lg),
+    ) {
         cells.chunked(DAYS_PER_WEEK).forEach { week ->
-            Row(Modifier.fillMaxWidth().height(DAY_CELL_HEIGHT)) {
+            Row(Modifier.fillMaxWidth().weight(1f)) {
                 week.forEach { date ->
                     DayCell(
                         date = date,
@@ -219,6 +244,7 @@ private fun DayCell(
     Column(
         modifier =
             modifier
+                .clipToBounds()
                 .border(1.dp, borderColor)
                 .background(if (entries.isEmpty()) AppColors.background else AppColors.surface)
                 .padding(AppSpacing.xs),
@@ -264,7 +290,7 @@ private fun EpisodeChip(
         Box(
             modifier =
                 Modifier
-                    .size(width = 20.dp, height = 28.dp)
+                    .size(width = 18.dp, height = 24.dp)
                     .clip(RoundedCornerShape(AppRadii.sm)),
         ) {
             PosterImage(entry.item.poster, Modifier.fillMaxSize())
@@ -299,5 +325,4 @@ private fun formatMonth(month: LocalDate): String {
 
 private const val DAYS_PER_WEEK = 7
 private const val MAX_ENTRIES_PER_DAY = 2
-private val DAY_CELL_HEIGHT = 116.dp
 private val WEEKDAY_LABELS = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")

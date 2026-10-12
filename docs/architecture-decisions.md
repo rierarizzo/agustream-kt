@@ -188,7 +188,10 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
 - **Calendar has no protocol source.** Stremio exposes no calendar resource, so
   the section is derived from the Library: each saved series is resolved through
   the metadata addons and its episodes inside a rolling 180-day window are
-  painted on a month grid. Episodes without a release date are skipped.
+  painted on a month grid. Episodes without a release date are skipped. The
+  lookups run behind a semaphore and the grid paints as each series resolves, so
+  the first episodes appear without waiting for the slowest addon, and the grid
+  fills the window instead of scrolling.
 
 ## Improvement backlog
 

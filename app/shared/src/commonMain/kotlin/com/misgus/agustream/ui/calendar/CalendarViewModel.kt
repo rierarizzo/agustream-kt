@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -85,7 +87,9 @@ class CalendarViewModel(
     }
 
     private suspend fun doLoad() {
-        _state.update { it.copy(isSignedIn = true, isLoading = true, error = null) }
+        _state.update {
+            it.copy(isSignedIn = true, isLoading = true, hasLoaded = false, error = null, entries = emptyList())
+        }
         try {
             val start = today()
             val end = start.plus(WINDOW_DAYS, DateTimeUnit.DAY)
@@ -95,41 +99,48 @@ class CalendarViewModel(
                     .filter { it.contentType == "series" }
                     .distinctBy { it.contentId }
                     .take(MAX_SERIES)
-            val entries = mutableListOf<CalendarEntry>()
-            for (chunk in series.chunked(CONCURRENCY)) {
-                val batch =
-                    coroutineScope {
-                        chunk
-                            .map { item ->
-                                async {
-                                    runCatchingCancellable {
-                                        val videos = metadata.detail(item.contentType, item.contentId)?.videos.orEmpty()
-                                        videos.mapNotNull { video ->
-                                            val date = releaseDateOrNull(video.released) ?: return@mapNotNull null
-                                            if ((video.season ?: 0) <= 0) return@mapNotNull null
-                                            if (date < start || date > end) return@mapNotNull null
-                                            CalendarEntry(item, video, date)
-                                        }
-                                    }.getOrDefault(emptyList())
+            // A semaphore instead of fixed batches: the next series starts as
+            // soon as one finishes, with no waiting for the slowest of a batch.
+            val semaphore = Semaphore(CONCURRENCY)
+            coroutineScope {
+                series
+                    .map { item ->
+                        async {
+                            semaphore.withPermit {
+                                val found =
+                                    runCatchingCancellable { upcoming(item, start, end) }
+                                        .getOrDefault(emptyList())
+                                if (found.isNotEmpty()) {
+                                    // Publish as each series resolves, so the grid
+                                    // fills in instead of waiting for all of them.
+                                    _state.update {
+                                        it.copy(entries = (it.entries + found).sortedWith(ENTRY_ORDER))
+                                    }
                                 }
-                            }.awaitAll()
-                    }
-                entries += batch.flatten()
+                            }
+                        }
+                    }.awaitAll()
             }
-            val sorted =
-                entries.sortedWith(
-                    compareBy(
-                        { it.date },
-                        { it.item.name },
-                        { it.video.season ?: 0 },
-                        { it.video.episode ?: 0 },
-                    ),
-                )
-            _state.update { it.copy(isLoading = false, hasLoaded = true, entries = sorted) }
+            _state.update { it.copy(isLoading = false, hasLoaded = true) }
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Throwable) {
             _state.update { it.copy(isLoading = false, hasLoaded = true, error = error) }
+        }
+    }
+
+    /** The episodes of [item] that air inside `[start, end]`. */
+    private suspend fun upcoming(
+        item: LibraryItem,
+        start: LocalDate,
+        end: LocalDate,
+    ): List<CalendarEntry> {
+        val videos = metadata.detail(item.contentType, item.contentId)?.videos.orEmpty()
+        return videos.mapNotNull { video ->
+            val date = releaseDateOrNull(video.released) ?: return@mapNotNull null
+            if ((video.season ?: 0) <= 0) return@mapNotNull null
+            if (date < start || date > end) return@mapNotNull null
+            CalendarEntry(item, video, date)
         }
     }
 
@@ -148,6 +159,14 @@ class CalendarViewModel(
     private companion object {
         const val WINDOW_DAYS = 180
         const val MAX_SERIES = 60
-        const val CONCURRENCY = 6
+        const val CONCURRENCY = 8
+
+        val ENTRY_ORDER =
+            compareBy<CalendarEntry>(
+                { it.date },
+                { it.item.name },
+                { it.video.season ?: 0 },
+                { it.video.episode ?: 0 },
+            )
     }
 }
