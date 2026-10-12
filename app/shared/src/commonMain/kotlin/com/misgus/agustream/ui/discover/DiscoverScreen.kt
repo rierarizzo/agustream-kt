@@ -82,7 +82,7 @@ private fun DiscoverContent(
                 actionLabel = "Sign in",
                 onAction = onOpenSettings,
             )
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid()
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && state.items.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,

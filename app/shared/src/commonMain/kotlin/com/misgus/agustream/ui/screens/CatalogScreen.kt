@@ -118,7 +118,7 @@ private fun CatalogContent(
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     when {
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid()
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,

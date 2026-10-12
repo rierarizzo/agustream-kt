@@ -75,7 +75,7 @@ private fun LibraryContent(
                 actionLabel = "Sign in",
                 onAction = onOpenSettings,
             )
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid()
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,

@@ -165,8 +165,11 @@ engine, the filesystem and the player touch platform source sets through
   the content viewport and clamp the section scroll; sections reserve its height
   with a constant padding, so the viewport never changes. The size animation is
   disabled (`.using(null)`) because it relayouts every frame. Posters scale on
-  hover, loading grids share a single shimmer, and dialogs fade/scale in. The
-  detail hero does not paint the library fallback as if it were the final
+  hover and dialogs fade/scale in. Loading screens are skeletons driven by a
+  single shimmer read in the draw phase: the poster grid derives its cell count
+  from the viewport, so it never stops halfway down a wide window, Home mirrors
+  its billboard and rails, and the static gradient stops are built once instead
+  of on every frame. The detail hero does not paint the library fallback as if it were the final
   artwork: it reserves the logo's space without drawing a placeholder, and the
   logo and backdrop fade in when the image itself is ready (`RemoteImage(fadeIn)`),
   so a slow load never pops. The player is deliberately outside the route

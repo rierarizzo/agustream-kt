@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -118,9 +117,7 @@ private fun HomeContent(
                 onAction = onOpenSettings,
             )
         state.isLoading && !state.hasLoaded ->
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            HomeSkeleton(posterSize = posterSize)
         state.error != null && state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,

@@ -44,7 +44,7 @@ import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 
 /** Billboard crop ratio (Netflix-style wide banner). */
-private const val HERO_ASPECT_RATIO = 1920f / 823f
+internal const val HERO_ASPECT_RATIO = 1920f / 823f
 
 /** Featured billboard carousel. */
 @Composable
