@@ -40,6 +40,7 @@ import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.LocalWindowWidth
 import com.misgus.agustream.ui.theme.WindowSize
 import kotlinx.coroutines.launch
 
@@ -80,6 +81,7 @@ fun AppShell() {
         CompositionLocalProvider(
             LocalSnackbarHost provides snackbarHost,
             LocalWindowSize provides windowSize,
+            LocalWindowWidth provides maxWidth,
         ) {
             if (gate) {
                 // Profile gate: the library and every write belong to a profile, so

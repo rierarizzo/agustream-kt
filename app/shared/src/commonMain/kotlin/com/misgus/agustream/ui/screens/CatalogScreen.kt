@@ -44,7 +44,10 @@ import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.cellWidth
+import com.misgus.agustream.ui.theme.gridSpacing
+import com.misgus.agustream.ui.theme.screenPadding
 
 /**
  * Full catalog grid, opened from a Home row's "See all".
@@ -67,6 +70,7 @@ fun CatalogScreen(
     val settingsRepository = services.settings
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
+    val windowSize = LocalWindowSize.current
 
     // Keep the count current inside the derived state, or it freezes at the
     // first composition and every page loads at once.
@@ -86,7 +90,7 @@ fun CatalogScreen(
 
     Column(Modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier.padding(start = AppSpacing.xl, top = AppSpacing.xl, end = AppSpacing.xl),
+            modifier = Modifier.padding(start = windowSize.screenPadding, top = windowSize.screenPadding, end = windowSize.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
@@ -117,6 +121,7 @@ private fun CatalogContent(
     gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
+    val windowSize = LocalWindowSize.current
     when {
         state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && !state.hasLoaded ->
@@ -134,11 +139,16 @@ private fun CatalogContent(
         else ->
             LazyVerticalGrid(
                 state = gridState,
-                columns = GridCells.Adaptive(posterSize.cellWidth),
+                columns = GridCells.Adaptive(posterSize.cellWidth(windowSize)),
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = AppSpacing.xl, end = AppSpacing.xl, bottom = AppSpacing.xl),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
-                horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                contentPadding =
+                    PaddingValues(
+                        start = windowSize.screenPadding,
+                        end = windowSize.screenPadding,
+                        bottom = windowSize.screenPadding,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
+                horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
             ) {
                 items(state.items, key = { it.id }) { item ->
                     Box(Modifier.aspectRatio(0.58f)) {

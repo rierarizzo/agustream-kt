@@ -35,7 +35,10 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.cellWidth
+import com.misgus.agustream.ui.theme.gridSpacing
+import com.misgus.agustream.ui.theme.screenPadding
 
 /**
  * Discover section: everything the addon catalogs return, in one infinite grid.
@@ -96,6 +99,7 @@ private fun DiscoverGrid(
     onLoadMore: () -> Unit,
 ) {
     val gridState = rememberLazyGridState()
+    val windowSize = LocalWindowSize.current
     // `rememberUpdatedState` keeps the count current inside the derived state;
     // capturing `state` directly would freeze it at the first composition and
     // make `shouldLoadMore` permanently true, loading every page at once.
@@ -115,11 +119,11 @@ private fun DiscoverGrid(
 
     LazyVerticalGrid(
         state = gridState,
-        columns = GridCells.Adaptive(posterSize.cellWidth),
+        columns = GridCells.Adaptive(posterSize.cellWidth(windowSize)),
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(AppSpacing.xl),
-        verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
-        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        contentPadding = PaddingValues(windowSize.screenPadding),
+        verticalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
+        horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
     ) {
         items(state.items, key = { "${it.type}:${it.id}" }) { item ->
             Box(Modifier.aspectRatio(0.58f)) {

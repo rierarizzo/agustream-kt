@@ -137,12 +137,25 @@ engine, the filesystem and the player touch platform source sets through
   request, applied only when there is no stored session.
 - **Adaptive layout.** `AppShell` measures the window once with
   `BoxWithConstraints` and publishes a `WindowSize` (compact / medium /
-  expanded, at Material's 600 and 840 dp breakpoints) through
-  `LocalWindowSize`, so a screen picks a layout without measuring anything.
-  Compact windows (phones) get an icon-only bottom navigation bar and reserve
-  its height instead of the top bar's; wider windows keep the floating top bar
-  with labels. The breakpoint lives in one place so the remaining surfaces
-  (rails, grids, heroes) can clamp against it.
+  expanded, at Material's 600 and 840 dp breakpoints) plus the window width,
+  through `LocalWindowSize` / `LocalWindowWidth`, so a surface picks a layout
+  without measuring anything itself. Compact windows (phones) get an icon-only
+  bottom bar and reserve its height; wider windows keep the floating top bar.
+  The poster grids and rails scale their cell width down on compact windows
+  (the user's small / default / large choice still applies), the Home hero swaps
+  the wide billboard for the poster crop without the title logo, the detail
+  billboard is capped on an expanded window so the content stays close, and the
+  streams dialog clamps to the app window because it opens its own. Compact
+  windows also use a tighter screen padding (16dp) and grid gap, and the detail
+  actions are icon-only (with a `contentDescription`) at the call-to-action's
+  height, so the row lines up.
+- **Typography.** Inter is bundled through Compose Resources, so every target
+  renders the same typeface, and text is written in `sp` so Android's system
+  font size keeps working. `LocalDensity` is deliberately never overridden: that
+  is the common hack, and it lies to every component about the font scale.
+  Material's `display*` roles are sized for a big screen, so `AppType` steps
+  them down one role on a compact window (hero title, screen titles, hero
+  synopsis); desktop and tablet keep the full scale.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
   rendered inside the shell content area. Sections keep the top navigation
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such
@@ -278,15 +291,15 @@ not a one-file change. They are grouped by the axis they change, not by effort.
 
 ### Product / UX
 
+- **Mobile polish and release hardening.** The compact layout works, but it is
+  not tuned surface by surface yet: spacing and proportions still need a pass on
+  real phones. Separately, the Android release build is unoptimised —
+  `isMinifyEnabled` is `false` and there is no baseline profile — so it reads as
+  much slower than it needs to.
 - **Internationalisation.** Every user-facing string is a Kotlin literal inside
   a composable; there are no Compose Resources string resources. The migration
   is mechanical but touches every screen in `ui/`, so it should happen before
   the string count grows.
-- **Adaptive layouts.** The `WindowSize` breakpoints and the compact bottom bar
-  exist, but rails, poster grids and the heroes still use fixed sizes, and the
-  wide dialogs (`StreamsDialog`) can exceed a narrow window. They need to clamp
-  their card widths, grid cell width and hero crop against
-  `LocalWindowSize`.
 - **Keyboard / D-pad navigation.** `Interaction.kt` covers hover, focus and
   pressed states, and the player has shortcuts, but there is no focus traversal
   across the Home rails and no spatial navigation model. A TV target makes this

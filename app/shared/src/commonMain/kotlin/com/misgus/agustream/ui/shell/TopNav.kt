@@ -34,6 +34,8 @@ import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.screenPadding
 
 /** Horizontal top navigation, with the profile and section items centered. */
 @Composable
@@ -47,7 +49,7 @@ fun TopNav(
         contentAlignment = Alignment.Center,
     ) {
         Row(
-            modifier = Modifier.height(AppSizes.topBarHeight).padding(horizontal = AppSpacing.xl),
+            modifier = Modifier.height(AppSizes.topBarHeight).padding(horizontal = LocalWindowSize.current.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             ProfileAvatar(

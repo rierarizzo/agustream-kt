@@ -60,8 +60,13 @@ import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowWidth
 import com.misgus.agustream.ui.theme.motionLayer
 import com.misgus.agustream.ui.theme.motionTween
+
+/** Widest the dialog gets, and a floor so it stays usable on a small window. */
+private val StreamsDialogMaxWidth = 900.dp
+private val StreamsDialogMinWidth = 280.dp
 
 /**
  * Modal that lists the available streams.
@@ -105,10 +110,15 @@ fun StreamsDialog(
                     animationSpec = motionTween(durationMillis = AppMotion.MEDIUM),
                     label = "dialogScale",
                 )
+            // A dialog opens its own window, so cap the width to the app window
+            // instead of trusting the fixed size.
+            val dialogWidth =
+                minOf(StreamsDialogMaxWidth, LocalWindowWidth.current - AppSpacing.xl * 2)
+                    .coerceAtLeast(StreamsDialogMinWidth)
             Box(
                 modifier =
                     Modifier
-                        .width(900.dp)
+                        .width(dialogWidth)
                         .fillMaxHeight(0.82f)
                         .motionLayer(scale = { enterScale.value }, alpha = { enterAlpha.value })
                         .clip(RoundedCornerShape(AppRadii.lg))

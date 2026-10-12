@@ -70,8 +70,13 @@ import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
+import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -142,6 +147,14 @@ fun DetailScreen(
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val viewportHeight = maxHeight
+        // A full-height billboard pushes everything else out of view on a tall,
+        // wide window, so it is capped there; narrower windows keep it immersive.
+        val heroHeight =
+            if (LocalWindowSize.current == WindowSize.EXPANDED) {
+                minOf(viewportHeight, DETAIL_HERO_MAX_HEIGHT)
+            } else {
+                viewportHeight
+            }
         val scrollState = rememberScrollState()
         // The artwork is a fixed layer, so its darkening spans the whole page:
         // bright at the top, near-black at the end, never fully black.
@@ -160,7 +173,7 @@ fun DetailScreen(
             Column(Modifier.fillMaxSize().verticalScroll(scrollState)) {
                 HeroContent(
                     state = state,
-                    height = viewportHeight,
+                    height = heroHeight,
                     onPlay = {
                         // Prefer a regular episode: season 0 is specials.
                         val first =
@@ -352,7 +365,7 @@ private fun HeroContent(
             modifier =
                 Modifier
                     .align(Alignment.BottomStart)
-                    .padding(AppSpacing.xl)
+                    .padding(LocalWindowSize.current.screenPadding)
                     .widthIn(max = 720.dp),
         ) {
             MediaTitle(state.name, state.logo, loading = !state.hasLoaded)
@@ -360,7 +373,7 @@ private fun HeroContent(
             Spacer(Modifier.height(AppSpacing.lg))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(AppSpacing.xl),
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg),
             ) {
                 PillButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
                 ActionRow(
@@ -386,7 +399,7 @@ private fun HeroContent(
                 minLines = 3,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyLarge,
+                style = AppType.heroBody(),
                 color = AppColors.textPrimary.copy(alpha = 0.92f),
             )
             if (state.genres.isNotEmpty()) {
@@ -424,7 +437,7 @@ private fun ActionRow(
     ratingLoading: Boolean,
     onRate: () -> Unit,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xl)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         ActionItem(
             icon = if (saved) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             label = "My List",
@@ -469,27 +482,21 @@ private fun ActionItem(
         animationSpec = motionTween(),
         label = "actionAlpha",
     )
-    Column(
+    Box(
         modifier =
             Modifier
+                .size(AppSizes.controlHeight)
                 .clip(RoundedCornerShape(AppRadii.sm))
                 .background(interactionHighlight(interaction))
                 .clickableSurface(interaction, onClick, enabled = enabled && !loading)
-                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
                 .graphicsLayer { alpha = contentAlpha },
-        horizontalAlignment = Alignment.CenterHorizontally,
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             icon,
             contentDescription = label,
             tint = if (active) AppColors.accent else AppColors.textPrimary,
             modifier = Modifier.size(AppIconSize.lg),
-        )
-        Spacer(Modifier.height(AppSpacing.xs))
-        Text(
-            label,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (active) AppColors.accent else AppColors.textPrimary,
         )
     }
 }
@@ -512,6 +519,9 @@ private fun com.misgus.agustream.core.model.MetaPreview.toLibraryItem(from: Libr
 
 /** Height of the fixed top scrim, in dp. */
 private val TOP_SCRIM_HEIGHT = 96.dp
+
+/** Taller hero is capped here on an expanded window, so the content stays close. */
+private val DETAIL_HERO_MAX_HEIGHT = 560.dp
 
 /** Blur applied to the artwork at the end of the page, in dp. */
 private val MAX_BLUR = 14.dp

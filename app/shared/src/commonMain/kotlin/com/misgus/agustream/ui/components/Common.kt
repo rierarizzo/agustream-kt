@@ -41,7 +41,9 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.motionTween
+import com.misgus.agustream.ui.theme.screenPadding
 
 /** Check badge shown on a title the account marked as watched. */
 @Composable
@@ -130,8 +132,8 @@ fun SectionHeader(
     Row(
         modifier =
             Modifier.fillMaxWidth().padding(
-                start = AppSpacing.xl,
-                end = AppSpacing.xl,
+                start = LocalWindowSize.current.screenPadding,
+                end = LocalWindowSize.current.screenPadding,
                 top = AppSpacing.lg,
                 bottom = AppSpacing.md,
             ),

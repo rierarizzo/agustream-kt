@@ -23,8 +23,11 @@ import com.misgus.agustream.ui.components.SkeletonBox
 import com.misgus.agustream.ui.components.rememberShimmerProgress
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.cellWidth
+import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.railHeight
+import com.misgus.agustream.ui.theme.screenPadding
 
 /** Width of a "Continue watching" card, mirrored from the real rail. */
 private val CONTINUE_CARD_WIDTH = 336.dp
@@ -39,11 +42,12 @@ internal fun HomeSkeleton(
     modifier: Modifier = Modifier,
 ) {
     val progress = rememberShimmerProgress()
+    val windowSize = LocalWindowSize.current
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Box(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = AppSpacing.xl, vertical = AppSpacing.md)
+                .padding(horizontal = LocalWindowSize.current.screenPadding, vertical = AppSpacing.md)
                 .aspectRatio(HERO_ASPECT_RATIO),
         ) {
             SkeletonBox(progress, Modifier.fillMaxSize(), AppRadii.xlShape)
@@ -52,7 +56,7 @@ internal fun HomeSkeleton(
         SkeletonRail(progress, CONTINUE_CARD_WIDTH, CONTINUE_CARD_WIDTH / (16f / 9f))
         repeat(2) {
             SkeletonRailHeader(progress)
-            SkeletonRail(progress, posterSize.cellWidth, posterSize.railHeight)
+            SkeletonRail(progress, posterSize.cellWidth(windowSize), posterSize.railHeight(windowSize))
         }
     }
 }
@@ -62,7 +66,7 @@ private fun SkeletonRailHeader(progress: State<Float>) {
     SkeletonBox(
         progress,
         Modifier
-            .padding(start = AppSpacing.xl, top = AppSpacing.lg, bottom = AppSpacing.md)
+            .padding(start = LocalWindowSize.current.screenPadding, top = AppSpacing.lg, bottom = AppSpacing.md)
             .width(160.dp)
             .height(24.dp),
     )
@@ -76,8 +80,8 @@ private fun SkeletonRail(
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth().height(cardHeight),
-        contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        contentPadding = PaddingValues(horizontal = LocalWindowSize.current.screenPadding),
+        horizontalArrangement = Arrangement.spacedBy(LocalWindowSize.current.gridSpacing),
         userScrollEnabled = false,
     ) {
         items(8) {

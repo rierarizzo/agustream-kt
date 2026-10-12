@@ -87,6 +87,9 @@ object AppSizes {
     /** Height of the icon-only bottom navigation bar, used on compact windows. */
     val bottomBarHeight: Dp = 64.dp
 
+    /** Height of a primary control (call-to-action button, action icon box). */
+    val controlHeight: Dp = 44.dp
+
     /** Height of the shadow the top bar casts onto the content below. */
     val topBarShadow: Dp = 14.dp
 }

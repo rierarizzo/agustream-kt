@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
@@ -50,10 +51,14 @@ import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.PosterCaption
+import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.cellWidth
+import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.railHeight
+import com.misgus.agustream.ui.theme.screenPadding
 
 /** Home section: a featured carousel, "Continue watching" and catalog rows. */
 @Composable
@@ -103,6 +108,7 @@ private fun HomeContent(
     onOpenCatalog: (com.misgus.agustream.core.repository.CatalogRef) -> Unit,
     onPlayPreview: (MetaPreview) -> Unit,
 ) {
+    val windowSize = LocalWindowSize.current
     when {
         state.isLoading && !state.hasLoaded ->
             HomeSkeleton(posterSize = posterSize)
@@ -126,28 +132,30 @@ private fun HomeContent(
                     Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
                 }
                 if (state.continueWatching.isNotEmpty()) {
+                    val compact = windowSize == WindowSize.COMPACT
                     SectionHeader(title = "Continue watching")
                     LazyRow(
-                        modifier = Modifier.height(248.dp),
-                        contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                        modifier = Modifier.height(if (compact) CompactContinueHeight else ContinueHeight),
+                        contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
+                        horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
                     ) {
                         items(state.continueWatching) { entry ->
-                            ContinueCard(entry) { onOpenDetail(entry.item) }
+                            val cardWidth = if (compact) CompactContinueWidth else ContinueWidth
+                            ContinueCard(entry, cardWidth) { onOpenDetail(entry.item) }
                         }
                     }
                 }
                 state.rows.forEach { row ->
                     SectionHeader(title = row.title, onSeeAll = { onOpenCatalog(row.ref) })
                     LazyRow(
-                        modifier = Modifier.height(posterSize.railHeight),
-                        contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                        modifier = Modifier.height(posterSize.railHeight(windowSize)),
+                        contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
+                        horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
                     ) {
                         items(row.items) { item ->
                             MetaPosterCard(
                                 preview = item,
-                                width = posterSize.cellWidth,
+                                width = posterSize.cellWidth(windowSize),
                                 watched = item.id in state.watchedIds,
                                 onTap = { onOpenPreview(item) },
                             )
@@ -162,6 +170,7 @@ private fun HomeContent(
 @Composable
 private fun ContinueCard(
     entry: ContinueEntry,
+    width: Dp,
     onTap: () -> Unit,
 ) {
     val item = entry.item
@@ -183,7 +192,7 @@ private fun ContinueCard(
         )
 
     Column(
-        modifier = Modifier.width(336.dp).clickableSurface(interaction, onTap),
+        modifier = Modifier.width(width).clickableSurface(interaction, onTap),
     ) {
         Box(
             modifier =
@@ -213,6 +222,12 @@ private fun ContinueCard(
         episode?.let { Text(it, style = PosterCaption.meta()) }
     }
 }
+
+/** Width and rail height of a 16:9 "Continue watching" card, smaller on a phone. */
+private val ContinueWidth = 336.dp
+private val CompactContinueWidth = 224.dp
+private val ContinueHeight = 248.dp
+private val CompactContinueHeight = 184.dp
 
 /** Extracts the four-digit year from a Stremio `releaseInfo` string. */
 internal fun yearOf(releaseInfo: String?): String? = Regex("(?:1[89]\\d\\d|20\\d\\d)").find(releaseInfo ?: "")?.value

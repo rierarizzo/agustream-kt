@@ -18,6 +18,9 @@ import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.screenPadding
 
 /** Max width of the onboarding column, so it stays readable on a wide window. */
 private val ONBOARDING_MAX_WIDTH = 420.dp
@@ -35,10 +38,10 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
 
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.widthIn(max = ONBOARDING_MAX_WIDTH).padding(AppSpacing.xl),
+            modifier = Modifier.widthIn(max = ONBOARDING_MAX_WIDTH).padding(LocalWindowSize.current.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Agustream", style = MaterialTheme.typography.displaySmall)
+            Text("Agustream", style = AppType.screenTitle())
             Spacer(Modifier.height(AppSpacing.sm))
             Text(
                 "Your library, addons and watch progress, together in one place.",

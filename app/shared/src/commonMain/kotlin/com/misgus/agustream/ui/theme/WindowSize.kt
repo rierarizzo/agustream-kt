@@ -45,3 +45,20 @@ enum class WindowSize {
  * gets the desktop layout.
  */
 val LocalWindowSize = staticCompositionLocalOf { WindowSize.EXPANDED }
+
+/**
+ * Width of the app window in dp.
+ *
+ * A surface that lives outside the shell's constraints needs it: a `Dialog`
+ * opens its own window, so a fixed width there can exceed the app window.
+ * Defaults to [Dp.Infinity], which leaves such a caller unconstrained.
+ */
+val LocalWindowWidth = staticCompositionLocalOf { Dp.Infinity }
+
+/** Side padding for grids, rails, headers and form fields; smaller on a phone. */
+val WindowSize.screenPadding: Dp
+    get() = if (this == WindowSize.COMPACT) AppSpacing.md else AppSpacing.xl
+
+/** Gap between grid cells and rail cards; tighter on a phone. */
+val WindowSize.gridSpacing: Dp
+    get() = if (this == WindowSize.COMPACT) AppSpacing.sm else AppSpacing.md

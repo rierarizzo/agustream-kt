@@ -40,6 +40,9 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.launch
 
 /**
@@ -56,10 +59,10 @@ fun ProfilePicker(modifier: Modifier = Modifier) {
 
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.width(720.dp).padding(AppSpacing.xl),
+            modifier = Modifier.width(720.dp).padding(LocalWindowSize.current.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Who is watching?", style = MaterialTheme.typography.headlineLarge)
+            Text("Who is watching?", style = AppType.screenTitle())
             Spacer(Modifier.height(AppSpacing.xs))
             Text(
                 "The library and the watch progress belong to a profile.",

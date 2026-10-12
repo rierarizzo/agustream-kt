@@ -14,6 +14,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.WindowSize
 
 /** Title logo when the metadata provides one, otherwise the name as a headline. */
 @Composable
@@ -23,11 +26,15 @@ fun MediaTitle(
     /** While the metadata loads, reserve the logo's space without drawing anything. */
     loading: Boolean = false,
 ) {
+    // The logo is a fixed-height asset; it is smaller on a phone so the hero
+    // does not turn into a wall of artwork.
+    val logoHeight =
+        if (LocalWindowSize.current == WindowSize.COMPACT) COMPACT_LOGO_HEIGHT else LOGO_HEIGHT
     when {
         loading ->
             // Reserve the space so the title does not jump when it arrives, but
             // draw nothing: a skeleton here reads as a stray block.
-            Spacer(Modifier.height(LOGO_HEIGHT))
+            Spacer(Modifier.height(logoHeight))
         !logo.isNullOrEmpty() ->
             // A fixed height keeps every logo the same visual weight; the width
             // follows the asset's aspect ratio and the hero column bounds it.
@@ -37,14 +44,14 @@ fun MediaTitle(
                 contentScale = ContentScale.Fit,
                 filterQuality = LogoFilterQuality,
                 fadeIn = true,
-                modifier = Modifier.height(LOGO_HEIGHT),
+                modifier = Modifier.height(logoHeight),
             )
         else ->
             Text(
                 name,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.displayMedium,
+                style = AppType.heroTitle(),
             )
     }
 }
@@ -72,5 +79,8 @@ fun MetadataRow(parts: List<String>) {
 /** Formats a rating to one decimal place. */
 fun ratingText(value: Double): String = (kotlin.math.round(value * 10) / 10.0).toString()
 
-/** Height every title logo is painted at. */
+/** Height every title logo is painted at on a wide window. */
 private val LOGO_HEIGHT = 96.dp
+
+/** Height of the title logo on a phone. */
+private val COMPACT_LOGO_HEIGHT = 56.dp

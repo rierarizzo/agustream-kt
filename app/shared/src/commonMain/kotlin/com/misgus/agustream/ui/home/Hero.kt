@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,9 +41,16 @@ import com.misgus.agustream.ui.theme.AppElevation
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.WindowSize
+import com.misgus.agustream.ui.theme.screenPadding
 
 /** Billboard crop ratio (Netflix-style wide banner). */
 internal const val HERO_ASPECT_RATIO = 1920f / 823f
+
+/** Portrait crop used on a compact window, where the poster carries the hero. */
+private const val COMPACT_HERO_ASPECT_RATIO = 2f / 3f
 
 /** Featured billboard carousel. */
 @Composable
@@ -54,17 +60,23 @@ internal fun Hero(
     onPlay: (MetaPreview) -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { items.size })
+    // A phone cannot show the wide billboard, so it gets a taller crop of the
+    // poster instead, with the name as text rather than the title logo.
+    val compact = LocalWindowSize.current == WindowSize.COMPACT
 
     Box(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = AppSpacing.xl, vertical = AppSpacing.md),
+            .padding(
+                horizontal = if (compact) AppSpacing.md else AppSpacing.xl,
+                vertical = AppSpacing.md,
+            ),
     ) {
         Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(HERO_ASPECT_RATIO)
+                    .aspectRatio(if (compact) COMPACT_HERO_ASPECT_RATIO else HERO_ASPECT_RATIO)
                     .shadow(elevation = AppElevation.hero, shape = AppRadii.xlShape, clip = false)
                     .clip(AppRadii.xlShape)
                     .border(1.dp, Color.White.copy(alpha = AppAlpha.HERO_RIM), AppRadii.xlShape),
@@ -75,6 +87,7 @@ internal fun Hero(
             ) { page ->
                 HeroSlide(
                     item = items[page],
+                    compact = compact,
                     onOpen = { onOpen(items[page]) },
                     onPlay = { onPlay(items[page]) },
                 )
@@ -111,10 +124,11 @@ internal fun Hero(
 @Composable
 private fun HeroSlide(
     item: MetaPreview,
+    compact: Boolean,
     onOpen: () -> Unit,
     onPlay: () -> Unit,
 ) {
-    val backdrop = item.background ?: item.poster
+    val backdrop = if (compact) item.poster ?: item.background else item.background ?: item.poster
     Box(Modifier.fillMaxSize().background(AppColors.surface)) {
         if (!backdrop.isNullOrEmpty()) {
             RemoteImage(
@@ -131,10 +145,10 @@ private fun HeroSlide(
             modifier =
                 Modifier
                     .align(Alignment.BottomStart)
-                    .padding(AppSpacing.xl)
+                    .padding(LocalWindowSize.current.screenPadding)
                     .widthIn(max = 620.dp),
         ) {
-            MediaTitle(item.name, item.logo)
+            MediaTitle(item.name, if (compact) null else item.logo)
             MetadataRow(heroMetadataParts(item))
             item.description?.takeIf { it.isNotEmpty() }?.let {
                 Spacer(Modifier.height(AppSpacing.md))
@@ -142,7 +156,7 @@ private fun HeroSlide(
                     it,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = AppType.heroBody(),
                     color = AppColors.textPrimary.copy(alpha = 0.92f),
                 )
             }

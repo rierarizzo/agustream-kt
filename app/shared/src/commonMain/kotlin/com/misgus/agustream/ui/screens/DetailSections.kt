@@ -49,10 +49,13 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.PosterCaption
 import com.misgus.agustream.ui.theme.cellWidth
+import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.railHeight
+import com.misgus.agustream.ui.theme.screenPadding
 
 /** Cast or crew carousel of the detail screen. */
 @Composable
@@ -60,16 +63,17 @@ internal fun PeopleRow(
     title: String,
     people: List<MetaPerson>,
 ) {
+    val windowSize = LocalWindowSize.current
     Column {
         Text(
             title,
-            modifier = Modifier.padding(horizontal = AppSpacing.xl),
+            modifier = Modifier.padding(horizontal = windowSize.screenPadding),
             style = MaterialTheme.typography.titleLarge,
         )
         Spacer(Modifier.height(AppSpacing.md))
         LazyRow(
             modifier = Modifier.height(200.dp),
-            contentPadding = PaddingValues(horizontal = AppSpacing.xl),
+            contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
         ) {
             items(people) { person -> PersonCard(person) }
@@ -123,9 +127,10 @@ private fun PersonCard(person: MetaPerson) {
 /** Label/value block with release data (released date, country, ...). */
 @Composable
 internal fun DetailsSection(entries: List<Pair<String, String>>) {
+    val windowSize = LocalWindowSize.current
     Column {
         Row(
-            modifier = Modifier.padding(horizontal = AppSpacing.xl),
+            modifier = Modifier.padding(horizontal = windowSize.screenPadding),
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.xl * 2),
         ) {
             entries.forEach { (label, value) ->
@@ -153,6 +158,7 @@ internal fun SimilarRow(
     val settingsRepository = LocalAppServices.current.settings
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
     val posterSize = settings.posterSize
+    val windowSize = LocalWindowSize.current
     Column {
         Text(
             "You May Also Like",
@@ -161,9 +167,9 @@ internal fun SimilarRow(
         )
         Spacer(Modifier.height(AppSpacing.sm))
         LazyRow(
-            modifier = Modifier.height(posterSize.railHeight),
-            contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+            modifier = Modifier.height(posterSize.railHeight(windowSize)),
+            contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
+            horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
         ) {
             items(items) { item ->
                 val interaction = rememberInteraction()
@@ -174,7 +180,7 @@ internal fun SimilarRow(
                         label = "borderColor",
                     )
                 Column(
-                    modifier = Modifier.width(posterSize.cellWidth).clickableSurface(interaction, onClick = { onOpen(item) }),
+                    modifier = Modifier.width(posterSize.cellWidth(windowSize)).clickableSurface(interaction, onClick = { onOpen(item) }),
                 ) {
                     Box(
                         Modifier
@@ -213,6 +219,7 @@ internal fun EpisodesSection(
 ) {
     val seasons = remember(videos) { orderSeasons(videos.mapNotNull { it.season }.distinct()) }
     if (seasons.isEmpty()) return
+    val windowSize = LocalWindowSize.current
     var season by remember(seasons) { mutableStateOf(defaultSeason(seasons)) }
     val episodes =
         remember(videos, season) {
@@ -221,7 +228,7 @@ internal fun EpisodesSection(
 
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = AppSpacing.xl),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = windowSize.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("Episodes", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
@@ -241,8 +248,8 @@ internal fun EpisodesSection(
         Spacer(Modifier.height(AppSpacing.md))
         LazyRow(
             modifier = Modifier.height(190.dp),
-            contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+            contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
+            horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
         ) {
             items(episodes) { video -> EpisodeCard(video) { onPlayEpisode(video) } }
         }

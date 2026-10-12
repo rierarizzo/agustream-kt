@@ -39,8 +39,11 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.cellWidth
+import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.railHeight
+import com.misgus.agustream.ui.theme.screenPadding
 
 /** Search section: free-text search across every searchable addon catalog. */
 @Composable
@@ -85,7 +88,11 @@ private fun SearchField(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(start = AppSpacing.xl, end = AppSpacing.xl, top = AppSpacing.lg),
+                .padding(
+                    start = LocalWindowSize.current.screenPadding,
+                    end = LocalWindowSize.current.screenPadding,
+                    top = AppSpacing.lg,
+                ),
     )
 }
 
@@ -147,15 +154,16 @@ private fun ResultsRail(
     posterSize: PosterSize,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
+    val windowSize = LocalWindowSize.current
     LazyRow(
-        modifier = Modifier.height(posterSize.railHeight),
-        contentPadding = PaddingValues(horizontal = AppSpacing.xl),
-        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        modifier = Modifier.height(posterSize.railHeight(windowSize)),
+        contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
+        horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
     ) {
         items(previews, key = { "${it.type}:${it.id}" }) { item ->
             MetaPosterCard(
                 preview = item,
-                width = posterSize.cellWidth,
+                width = posterSize.cellWidth(windowSize),
                 onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },
             )
         }

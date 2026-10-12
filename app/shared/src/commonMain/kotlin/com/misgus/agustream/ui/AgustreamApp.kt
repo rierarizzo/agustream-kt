@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +33,7 @@ import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
 import com.misgus.agustream.ui.theme.AgustreamTheme
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
 
 /**
@@ -97,7 +97,7 @@ fun AgustreamApp(
 private fun BootSplash() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Agustream", style = MaterialTheme.typography.headlineLarge)
+            Text("Agustream", style = AppType.screenTitle())
             Spacer(Modifier.height(AppSpacing.lg))
             CircularProgressIndicator()
         }

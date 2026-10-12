@@ -47,6 +47,8 @@ import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -137,7 +139,7 @@ private fun MonthHeader(
     onNext: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = AppSpacing.xl, vertical = AppSpacing.sm),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = LocalWindowSize.current.screenPadding, vertical = AppSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onPrevious) {
@@ -166,7 +168,7 @@ private fun MonthHeader(
 
 @Composable
 private fun WeekdayHeader() {
-    Row(Modifier.fillMaxWidth().padding(horizontal = AppSpacing.xl)) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = LocalWindowSize.current.screenPadding)) {
         for (day in WEEKDAY_LABELS) {
             Text(
                 text = day,
@@ -202,7 +204,11 @@ private fun MonthGrid(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(start = AppSpacing.xl, end = AppSpacing.xl, bottom = AppSpacing.lg),
+                .padding(
+                    start = LocalWindowSize.current.screenPadding,
+                    end = LocalWindowSize.current.screenPadding,
+                    bottom = AppSpacing.lg,
+                ),
     ) {
         cells.chunked(DAYS_PER_WEEK).forEach { week ->
             Row(Modifier.fillMaxWidth().weight(1f)) {

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppRadii
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 
 /**
@@ -46,7 +47,7 @@ fun PillButton(
         shape = RoundedCornerShape(AppRadii.md),
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
         contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.sm),
-        modifier = modifier.height(44.dp),
+        modifier = modifier.height(AppSizes.controlHeight),
     ) {
         when {
             loading ->

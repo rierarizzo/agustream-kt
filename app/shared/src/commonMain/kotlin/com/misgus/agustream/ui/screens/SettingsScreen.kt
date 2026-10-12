@@ -46,6 +46,8 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.launch
 
 /**
@@ -72,7 +74,7 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
     ) {
         // A readable column instead of a card stretched across a wide window.
         Column(
-            modifier = Modifier.widthIn(max = SETTINGS_MAX_WIDTH).fillMaxWidth().padding(AppSpacing.xl),
+            modifier = Modifier.widthIn(max = SETTINGS_MAX_WIDTH).fillMaxWidth().padding(LocalWindowSize.current.screenPadding),
         ) {
             Text("Settings", style = MaterialTheme.typography.headlineLarge)
             Spacer(Modifier.height(AppSpacing.lg))

@@ -7,14 +7,11 @@ import com.misgus.agustream.core.repository.PosterSize
 /** Card ratio shared by the poster grids, so a card looks the same everywhere. */
 private const val POSTER_CARD_ASPECT = 0.58f
 
-/**
- * Nominal poster width for each [PosterSize].
- *
- * It is the minimum cell width of a poster grid and the card width of a poster
- * row, so the catalog grids, Discover, Home and "More like this" stay in sync.
- * The steps are deliberately small.
- */
-val PosterSize.cellWidth: Dp
+/** How much a poster shrinks on a compact window (phone). */
+private const val COMPACT_SCALE = 0.45f
+
+/** The width the user chose, before the window is taken into account. */
+private val PosterSize.nominalCellWidth: Dp
     get() =
         when (this) {
             PosterSize.SMALL -> 210.dp
@@ -22,6 +19,16 @@ val PosterSize.cellWidth: Dp
             PosterSize.LARGE -> 250.dp
         }
 
-/** Height of a poster card (art plus caption) for a horizontal rail. */
-val PosterSize.railHeight: Dp
-    get() = cellWidth / POSTER_CARD_ASPECT
+/**
+ * Poster width for [windowSize].
+ *
+ * It is the minimum cell width of a poster grid and the card width of a poster
+ * row, so the catalog grids, Discover, Home and "More like this" stay in sync.
+ * Compact windows scale it down, so a phone shows more than one card while the
+ * user's small / default / large choice still makes a difference.
+ */
+fun PosterSize.cellWidth(windowSize: WindowSize): Dp =
+    if (windowSize == WindowSize.COMPACT) nominalCellWidth * COMPACT_SCALE else nominalCellWidth
+
+/** Height of a poster card (art plus caption) for [windowSize]. */
+fun PosterSize.railHeight(windowSize: WindowSize): Dp = cellWidth(windowSize) / POSTER_CARD_ASPECT
