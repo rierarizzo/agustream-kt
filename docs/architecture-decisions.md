@@ -106,6 +106,14 @@ engine, the filesystem and the player touch platform source sets through
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such
   as the detail one fills the whole window — the same behaviour as the Flutter
   nested `Navigator`, without adding a navigation library.
+- **Discover** flattens every catalog the enabled addons declare into a single
+  mixed grid, like the Library, so the addon catalog boundaries stay invisible;
+  it pages with `skip` as the grid is scrolled, so it keeps growing instead of
+  stopping at the first page. **Search** aggregates the catalogs that declare
+  the `search` extra in parallel, debounced and deduped across addons, and
+  splits the results into a Movies rail and a Series rail. **Calendar** paints a
+  month grid with the upcoming episodes of the Library's series; see the
+  limitation below.
 - **Theme** centralises the design tokens (`AppColors`, `AppSpacing`,
   `AppRadii`, `AppSizes`, `PosterCaption`) and the Inter typeface loaded
   from Compose Resources. Material3 `visualDensity` stays at the platform default.
@@ -153,8 +161,12 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
   and a persisted session. `AppServices.playbackSupported` is `false` for the
   no-op player, so the UI reports that playback is unavailable instead of
   opening a player that only errors.
-- The Nuvio addon metadata/edit screens and the Discover/Search/Calendar
-  sections are still placeholders, as they were in the Flutter app.
+- The Nuvio addon metadata/edit screens are still placeholders, as they were
+  in the Flutter app.
+- **Calendar has no protocol source.** Stremio exposes no calendar resource, so
+  the section is derived from the Library: each saved series is resolved through
+  the metadata addons and its episodes inside a rolling 180-day window are
+  painted on a month grid. Episodes without a release date are skipped.
 
 ## Improvement backlog
 

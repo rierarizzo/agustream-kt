@@ -3,12 +3,17 @@ package com.misgus.agustream.ui.shell
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.misgus.agustream.ui.calendar.CalendarScreen
+import com.misgus.agustream.ui.calendar.CalendarViewModel
+import com.misgus.agustream.ui.discover.DiscoverScreen
+import com.misgus.agustream.ui.discover.DiscoverViewModel
 import com.misgus.agustream.ui.home.HomeScreen
 import com.misgus.agustream.ui.home.HomeViewModel
 import com.misgus.agustream.ui.library.LibraryScreen
 import com.misgus.agustream.ui.library.LibraryViewModel
-import com.misgus.agustream.ui.screens.PlaceholderScreen
 import com.misgus.agustream.ui.screens.SettingsScreen
+import com.misgus.agustream.ui.search.SearchScreen
+import com.misgus.agustream.ui.search.SearchViewModel
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.streams.StreamsRequest
 import kotlinx.coroutines.launch
@@ -54,6 +59,49 @@ fun SectionHost(
                 }
             LibraryScreen(viewModel, navigator, onOpenSettings = { onSelectSection(AppSection.SETTINGS) })
         }
+        AppSection.DISCOVER -> {
+            val viewModel: DiscoverViewModel =
+                viewModel {
+                    DiscoverViewModel(
+                        account = services.account,
+                        catalogs = services.catalogs,
+                    )
+                }
+            DiscoverScreen(
+                viewModel = viewModel,
+                navigator = navigator,
+                onOpenSettings = { onSelectSection(AppSection.SETTINGS) },
+            )
+        }
+        AppSection.SEARCH -> {
+            val viewModel: SearchViewModel =
+                viewModel {
+                    SearchViewModel(
+                        account = services.account,
+                        catalogs = services.catalogs,
+                    )
+                }
+            SearchScreen(
+                viewModel = viewModel,
+                navigator = navigator,
+                onOpenSettings = { onSelectSection(AppSection.SETTINGS) },
+            )
+        }
+        AppSection.CALENDAR -> {
+            val viewModel: CalendarViewModel =
+                viewModel {
+                    CalendarViewModel(
+                        account = services.account,
+                        library = services.library,
+                        metadata = services.metadata,
+                    )
+                }
+            CalendarScreen(
+                viewModel = viewModel,
+                navigator = navigator,
+                onOpenSettings = { onSelectSection(AppSection.SETTINGS) },
+            )
+        }
         AppSection.SETTINGS -> {
             val snackbar = LocalSnackbarHost.current
             val scope = rememberCoroutineScope()
@@ -69,6 +117,5 @@ fun SectionHost(
                 },
             )
         }
-        else -> PlaceholderScreen(selected)
     }
 }

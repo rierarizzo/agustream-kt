@@ -1,5 +1,6 @@
 package com.misgus.agustream.core.repository
 
+import com.misgus.agustream.core.model.AddonCatalogExtra
 import com.misgus.agustream.core.model.MetaPreview
 
 /**
@@ -17,9 +18,19 @@ data class CatalogRef(
     /** Catalog id inside the addon manifest. */
     val id: String,
     val name: String,
+    /**
+     * `extra` parameters the catalog declares (e.g. `search`, `genre`, `skip`).
+     *
+     * The UI reads it to know which catalogs accept a search query without
+     * fetching every manifest itself.
+     */
+    val extras: List<AddonCatalogExtra> = emptyList(),
 ) {
     /** Stable key for dedupe and identity. */
     val key: String get() = "$addonBaseUrl|$type|$id"
+
+    /** Whether the catalog accepts a free-text `search` parameter. */
+    val searches: Boolean get() = extras.any { it.name == "search" }
 }
 
 /**

@@ -1,0 +1,70 @@
+package com.misgus.agustream.ui.calendar
+
+import com.misgus.agustream.core.model.LibraryItem
+import com.misgus.agustream.core.model.MetaDetail
+import com.misgus.agustream.core.model.MetaVideo
+import com.misgus.agustream.ui.support.FakeAccountRepository
+import com.misgus.agustream.ui.support.FakeLibraryRepository
+import com.misgus.agustream.ui.support.FakeMetadataRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlinx.datetime.LocalDate
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class CalendarViewModelTest {
+    private val dispatcher = StandardTestDispatcher()
+
+    @BeforeTest
+    fun setUp() = Dispatchers.setMain(dispatcher)
+
+    @AfterTest
+    fun tearDown() = Dispatchers.resetMain()
+
+    @Test
+    fun keepsOnlyAiredSeasonEpisodesInsideTheWindow() =
+        runTest(dispatcher) {
+            val series =
+                LibraryItem(id = "s1", contentId = "tt1", contentType = "series", name = "Show")
+            val detail =
+                MetaDetail(
+                    id = "tt1",
+                    type = "series",
+                    name = "Show",
+                    videos =
+                        listOf(
+                            MetaVideo(id = "e1", title = "Soon", season = 1, episode = 1, released = "2025-06-01"),
+                            MetaVideo(id = "e2", title = "Past", season = 1, episode = 2, released = "2025-05-01"),
+                            MetaVideo(id = "e3", title = "Unknown", season = 1, episode = 3, released = null),
+                            MetaVideo(id = "s0", title = "Special", season = 0, episode = 1, released = "2025-06-02"),
+                            MetaVideo(id = "e4", title = "Too far", season = 2, episode = 1, released = "2026-01-01"),
+                        ),
+                )
+            val viewModel =
+                CalendarViewModel(
+                    account = FakeAccountRepository(),
+                    library = FakeLibraryRepository(listOf(series)),
+                    metadata = FakeMetadataRepository(details = mapOf("tt1" to detail)),
+                    today = { LocalDate(2025, 5, 12) },
+                )
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf("e1"),
+                viewModel.state.value.entries
+                    .map { it.video.id },
+            )
+            assertEquals(
+                LocalDate(2025, 6, 1),
+                viewModel.state.value.entries
+                    .first()
+                    .date,
+            )
+        }
+}

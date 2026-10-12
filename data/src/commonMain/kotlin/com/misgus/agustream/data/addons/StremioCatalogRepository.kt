@@ -37,6 +37,7 @@ class StremioCatalogRepository(
                             type = catalog.type,
                             id = catalog.id,
                             name = catalog.name,
+                            extras = catalog.extra,
                         )
                 }
             }

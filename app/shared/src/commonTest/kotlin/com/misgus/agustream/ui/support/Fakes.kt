@@ -102,11 +102,12 @@ class FakeProgressRepository(
 /** In-memory [MetadataRepository] for tests. */
 class FakeMetadataRepository(
     private val detail: MetaDetail? = null,
+    private val details: Map<String, MetaDetail> = emptyMap(),
 ) : MetadataRepository {
     override suspend fun detail(
         type: String,
         id: String,
-    ): MetaDetail? = detail
+    ): MetaDetail? = details[id] ?: detail
 
     override suspend fun similar(
         type: String,
