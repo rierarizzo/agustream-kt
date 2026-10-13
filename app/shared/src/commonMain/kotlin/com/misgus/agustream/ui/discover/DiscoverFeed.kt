@@ -36,6 +36,7 @@ import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * The discover feed: every catalog item in one infinite grid.
@@ -62,7 +63,7 @@ fun DiscoverFeed(
                 Message(
                     icon = Icons.Outlined.ErrorOutline,
                     title = "Could not load Discover",
-                    message = state.error.toUserMessage(),
+                    message = stringResource(state.error.toUserMessage()),
                 )
             }
         state.items.isEmpty() ->

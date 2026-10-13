@@ -60,6 +60,7 @@ import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.railHeight
 import com.misgus.agustream.ui.theme.safeTopInset
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /** Home section: a featured carousel, "Continue watching" and catalog rows. */
 @Composable
@@ -123,7 +124,7 @@ private fun HomeContent(
             Message(
                 icon = Icons.Outlined.ErrorOutline,
                 title = "Could not load Home",
-                message = state.error.toUserMessage(),
+                message = stringResource(state.error.toUserMessage()),
             )
         state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(

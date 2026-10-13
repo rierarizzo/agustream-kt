@@ -1,5 +1,7 @@
 package com.misgus.agustream.ui.screens
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.error_open_file
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +48,8 @@ import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Settings section.
@@ -58,7 +62,7 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
     val settings = LocalAppServices.current.settings
     val state by settings.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var error by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<StringResource?>(null) }
     val save: (suspend () -> Unit) -> Unit = { action ->
         scope.launch {
             runCatching { action() }.onFailure { error = it.toUserMessage() }
@@ -98,7 +102,7 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
                 onOpen = {
                     save {
                         if (!openInDefaultApp(settings.filePath)) {
-                            error = "Could not open the file with the default app."
+                            error = Res.string.error_open_file
                         }
                     }
                 },
@@ -106,7 +110,7 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
             )
             error?.let {
                 Spacer(Modifier.height(AppSpacing.sm))
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                Text(stringResource(it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
             }
             Spacer(Modifier.height(AppSpacing.lg))
             PlaybackCard(onOpenPlayer)

@@ -1,5 +1,7 @@
 package com.misgus.agustream.ui.components
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.label_profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -17,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.core.model.BackendProfile
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Circular profile avatar, shared by the navigation and the profile picker.
@@ -55,7 +58,7 @@ fun ProfileAvatar(
             else ->
                 Icon(
                     Icons.Outlined.Person,
-                    contentDescription = "Profile",
+                    contentDescription = stringResource(Res.string.label_profile),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(size * 0.56f),
                 )

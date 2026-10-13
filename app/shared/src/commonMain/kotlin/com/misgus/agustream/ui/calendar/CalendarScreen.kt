@@ -52,6 +52,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 
 /**
@@ -82,7 +83,7 @@ private fun CalendarContent(
             Message(
                 icon = Icons.Outlined.ErrorOutline,
                 title = "Could not load the calendar",
-                message = state.error.toUserMessage(),
+                message = stringResource(state.error.toUserMessage()),
             )
         state.hasLoaded && state.entries.isEmpty() ->
             Message(

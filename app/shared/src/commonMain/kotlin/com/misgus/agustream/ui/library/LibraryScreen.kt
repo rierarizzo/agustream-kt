@@ -33,6 +33,7 @@ import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /** Library section: the grid of saved titles. */
 @Composable
@@ -72,7 +73,7 @@ private fun LibraryContent(
             Message(
                 icon = Icons.Outlined.ErrorOutline,
                 title = "Could not load the library",
-                message = state.error.toUserMessage(),
+                message = stringResource(state.error.toUserMessage()),
             )
         state.items.isEmpty() ->
             Message(

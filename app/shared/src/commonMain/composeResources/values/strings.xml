@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Agustream</string>
+
+    <!-- Common actions and status -->
+    <string name="action_see_all">See all</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_back">Back</string>
+    <string name="action_play">Play</string>
+    <string name="action_more_info">More info</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="status_syncing">Syncing…</string>
+    <string name="status_watched">Watched</string>
+    <string name="label_profile">Profile</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Something went wrong. Check your connection and try again.</string>
+    <string name="error_session_expired">Your session has expired. Please sign in again.</string>
+    <string name="error_not_found">The requested content could not be found.</string>
+    <string name="error_server">The server reported a problem. Please try again in a moment.</string>
+    <string name="error_open_file">Could not open the file with the default app.</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_tagline">Your library, addons and watch progress, together in one place.</string>
+    <string name="onboarding_no_sign_in">This backend does not support signing in from the app.</string>
+    <string name="field_email">Email</string>
+    <string name="field_password">Password</string>
+
+    <!-- Profiles -->
+    <string name="profiles_title">Who is watching?</string>
+    <string name="profiles_subtitle">The library and the watch progress belong to a profile.</string>
+    <string name="profiles_empty">This account has no profiles.</string>
+    <string name="profiles_pin">PIN</string>
+
+    <!-- Home -->
+    <string name="home_continue_watching">Continue watching</string>
+    <string name="home_error_title">Could not load Home</string>
+    <string name="home_empty_message">Install a metadata addon with catalogs to fill this Home.</string>
+
+    <!-- Shared empty / error states -->
+    <string name="empty_nothing_to_show">Nothing to show</string>
+    <string name="error_try_again_later">Try again later.</string>
+
+    <!-- Library -->
+    <string name="library_error_title">Could not load the library</string>
+    <string name="library_empty_message">Your library is empty.</string>
+
+    <!-- Discover -->
+    <string name="discover_error_title">Could not load Discover</string>
+    <string name="discover_empty_title">Nothing to discover</string>
+    <string name="discover_empty_message">Install a metadata addon with catalogs to fill this section.</string>
+
+    <!-- Catalog -->
+    <string name="catalog_error_title">Could not load this catalog</string>
+    <string name="catalog_empty_message">This catalog is empty.</string>
+
+    <!-- Search -->
+    <string name="search_discover">Discover</string>
+    <string name="search_placeholder">Search movies and series</string>
+    <string name="search_all_genres">All genres</string>
+    <string name="search_failed_title">Search failed</string>
+    <string name="search_no_results_title">No results</string>
+    <string name="search_nothing_matched">Nothing matched &quot;%1$s&quot;.</string>
+    <string name="search_nothing_matched_typed">No %1$s%2$s matched &quot;%3$s&quot;.</string>
+    <string name="search_in_genre"> in %1$s</string>
+    <string name="search_type_all">All Types</string>
+    <string name="search_type_movies">Movies</string>
+    <string name="search_type_series">Series</string>
+    <string name="search_type_other">Other</string>
+    <string name="search_type_titles">titles</string>
+    <string name="search_type_movies_lower">movies</string>
+    <string name="search_type_series_lower">series</string>
+</resources>

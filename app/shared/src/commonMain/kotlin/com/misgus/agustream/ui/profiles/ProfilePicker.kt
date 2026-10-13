@@ -1,5 +1,11 @@
 package com.misgus.agustream.ui.profiles
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_try_again
+import agustream.app.shared.generated.resources.profiles_empty
+import agustream.app.shared.generated.resources.profiles_pin
+import agustream.app.shared.generated.resources.profiles_subtitle
+import agustream.app.shared.generated.resources.profiles_title
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +48,7 @@ import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Asks which profile to work with.
@@ -60,10 +67,10 @@ fun ProfilePicker(modifier: Modifier = Modifier) {
             modifier = Modifier.width(720.dp).padding(LocalWindowSize.current.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Who is watching?", style = AppType.screenTitle())
+            Text(stringResource(Res.string.profiles_title), style = AppType.screenTitle())
             Spacer(Modifier.height(AppSpacing.xs))
             Text(
-                "The library and the watch progress belong to a profile.",
+                stringResource(Res.string.profiles_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
@@ -79,7 +86,7 @@ fun ProfilePicker(modifier: Modifier = Modifier) {
                     )
                 state.profiles.isEmpty() ->
                     Problem(
-                        message = "This account has no profiles.",
+                        message = stringResource(Res.string.profiles_empty),
                         onRetry = { scope.launch { account.loadProfiles() } },
                     )
                 else ->
@@ -128,7 +135,7 @@ private fun ProfileTile(
         Spacer(Modifier.height(AppSpacing.sm))
         Text(profile.name, style = MaterialTheme.typography.bodyLarge)
         if (profile.pinEnabled) {
-            Text("PIN", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(Res.string.profiles_pin), style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -149,7 +156,7 @@ private fun Problem(
         Text(message, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(AppSpacing.md))
         ActionButton(
-            text = "Try again",
+            text = stringResource(Res.string.action_try_again),
             onClick = onRetry,
             icon = Icons.Default.Refresh,
             primary = false,

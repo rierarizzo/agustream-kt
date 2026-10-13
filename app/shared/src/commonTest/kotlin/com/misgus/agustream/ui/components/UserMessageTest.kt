@@ -1,15 +1,18 @@
 package com.misgus.agustream.ui.components
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.error_generic
+import agustream.app.shared.generated.resources.error_server
+import agustream.app.shared.generated.resources.error_session_expired
 import com.misgus.agustream.core.BackendException
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 
 class UserMessageTest {
     @Test
     fun `expired session has a dedicated message`() {
         assertEquals(
-            "Your session has expired. Please sign in again.",
+            Res.string.error_session_expired,
             BackendException("Unauthorized", statusCode = 401).toUserMessage(),
         )
     }
@@ -17,7 +20,7 @@ class UserMessageTest {
     @Test
     fun `server failure has a dedicated message`() {
         assertEquals(
-            "The server reported a problem. Please try again in a moment.",
+            Res.string.error_server,
             BackendException("Boom", statusCode = 503).toUserMessage(),
         )
     }
@@ -28,7 +31,6 @@ class UserMessageTest {
             IllegalStateException(
                 "io.ktor.client.network.ConnectException: connection refused",
             ).toUserMessage()
-        assertFalse(message.contains("Exception"))
-        assertEquals("Something went wrong. Check your connection and try again.", message)
+        assertEquals(Res.string.error_generic, message)
     }
 }

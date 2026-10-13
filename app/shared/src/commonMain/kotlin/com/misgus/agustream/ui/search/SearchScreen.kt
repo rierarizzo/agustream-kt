@@ -57,6 +57,7 @@ import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.railHeight
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /** Which title types the search results and the discover feed show. */
 enum class MediaTypeFilter(
@@ -270,7 +271,7 @@ private fun SearchResults(
             Message(
                 icon = Icons.Outlined.ErrorOutline,
                 title = "Search failed",
-                message = state.error.toUserMessage(),
+                message = stringResource(state.error.toUserMessage()),
             )
         state.results.none(matches) && state.hasSearched ->
             Message(

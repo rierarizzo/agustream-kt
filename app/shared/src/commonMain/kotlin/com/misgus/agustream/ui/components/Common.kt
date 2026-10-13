@@ -1,5 +1,9 @@
 package com.misgus.agustream.ui.components
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_see_all
+import agustream.app.shared.generated.resources.status_syncing
+import agustream.app.shared.generated.resources.status_watched
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -42,6 +46,7 @@ import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /** Check badge shown on a title the account marked as watched. */
 @Composable
@@ -56,7 +61,7 @@ fun WatchedBadge(iconSize: Int = 14) {
     ) {
         Icon(
             imageVector = Icons.Default.Check,
-            contentDescription = "Watched",
+            contentDescription = stringResource(Res.string.status_watched),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(iconSize.dp),
         )
@@ -79,7 +84,7 @@ fun SyncingIndicator() {
     ) {
         CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
         Spacer(Modifier.width(AppSpacing.sm))
-        Text("Syncing…", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(Res.string.status_syncing), style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -140,7 +145,7 @@ fun SectionHeader(
         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
         onSeeAll?.let {
             TextButton(onClick = it) {
-                Text("See all")
+                Text(stringResource(Res.string.action_see_all))
                 Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(AppIconSize.sm))
             }
         }

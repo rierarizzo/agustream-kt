@@ -1,5 +1,7 @@
 package com.misgus.agustream.ui
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.app_name
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -40,6 +42,7 @@ import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.LocalWindowWidth
 import com.misgus.agustream.ui.theme.WindowSize
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Root composable.
@@ -117,7 +120,7 @@ fun AgustreamApp(
 private fun BootSplash() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Agustream", style = AppType.screenTitle())
+            Text(stringResource(Res.string.app_name), style = AppType.screenTitle())
             Spacer(Modifier.height(AppSpacing.lg))
             CircularProgressIndicator()
         }

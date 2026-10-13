@@ -1,5 +1,9 @@
 package com.misgus.agustream.ui.onboarding
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_sign_in
+import agustream.app.shared.generated.resources.field_email
+import agustream.app.shared.generated.resources.field_password
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +31,8 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Email + password form, shared by the onboarding screen and the Settings card.
@@ -42,7 +48,7 @@ fun SignInForm(modifier: Modifier = Modifier) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<StringResource?>(null) }
 
     val submit: () -> Unit = {
         if (!busy && email.isNotBlank() && password.isNotEmpty()) {
@@ -67,7 +73,7 @@ fun SignInForm(modifier: Modifier = Modifier) {
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text(stringResource(Res.string.field_email)) },
             singleLine = true,
             enabled = !busy,
             modifier = Modifier.fillMaxWidth(),
@@ -76,7 +82,7 @@ fun SignInForm(modifier: Modifier = Modifier) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text(stringResource(Res.string.field_password)) },
             singleLine = true,
             enabled = !busy,
             visualTransformation = PasswordVisualTransformation(),
@@ -87,14 +93,14 @@ fun SignInForm(modifier: Modifier = Modifier) {
         error?.let {
             Spacer(Modifier.height(AppSpacing.sm))
             Text(
-                it,
+                stringResource(it),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
             )
         }
         Spacer(Modifier.height(AppSpacing.md))
         ActionButton(
-            text = "Sign in",
+            text = stringResource(Res.string.action_sign_in),
             onClick = submit,
             icon = Icons.AutoMirrored.Outlined.Login,
             enabled = email.isNotBlank() && password.isNotEmpty(),

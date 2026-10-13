@@ -1,5 +1,9 @@
 package com.misgus.agustream.ui.onboarding
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.app_name
+import agustream.app.shared.generated.resources.onboarding_no_sign_in
+import agustream.app.shared.generated.resources.onboarding_tagline
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +25,7 @@ import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /** Max width of the onboarding column, so it stays readable on a wide window. */
 private val ONBOARDING_MAX_WIDTH = 420.dp
@@ -41,10 +46,10 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.widthIn(max = ONBOARDING_MAX_WIDTH).padding(LocalWindowSize.current.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text("Agustream", style = AppType.screenTitle())
+            Text(stringResource(Res.string.app_name), style = AppType.screenTitle())
             Spacer(Modifier.height(AppSpacing.sm))
             Text(
-                "Your library, addons and watch progress, together in one place.",
+                stringResource(Res.string.onboarding_tagline),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -54,7 +59,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                 SignInForm()
             } else {
                 Text(
-                    "This backend does not support signing in from the app.",
+                    stringResource(Res.string.onboarding_no_sign_in),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                 )
