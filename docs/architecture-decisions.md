@@ -173,7 +173,8 @@ engine, the filesystem and the player touch platform source sets through
   "Continue watching" without a seam, a subtle top fade, and a right-edge
   vignette. On a phone the billboard spans the full width, sized to the
   artwork's aspect ratio. The copy column is
-  bottom-anchored 100dp above the hero edge, up to 840dp wide, and shares the
+  bottom-anchored 100dp above the hero edge, up to 840dp wide (the synopsis is
+  capped tighter, at 630dp, so it wraps into four short lines), and shares the
   sections' left padding. On a wide window the top bar floats over the content,
   which reserves its height, so the navigation never overlaps it.
 - **Typography.** Inter is bundled through Compose Resources, so every target
