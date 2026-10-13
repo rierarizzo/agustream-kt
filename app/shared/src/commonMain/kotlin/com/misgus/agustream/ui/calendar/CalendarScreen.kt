@@ -1,5 +1,31 @@
 package com.misgus.agustream.ui.calendar
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.calendar_error_title
+import agustream.app.shared.generated.resources.calendar_more
+import agustream.app.shared.generated.resources.calendar_next_month
+import agustream.app.shared.generated.resources.calendar_no_upcoming
+import agustream.app.shared.generated.resources.calendar_no_upcoming_message
+import agustream.app.shared.generated.resources.calendar_prev_month
+import agustream.app.shared.generated.resources.month_april
+import agustream.app.shared.generated.resources.month_august
+import agustream.app.shared.generated.resources.month_december
+import agustream.app.shared.generated.resources.month_february
+import agustream.app.shared.generated.resources.month_january
+import agustream.app.shared.generated.resources.month_july
+import agustream.app.shared.generated.resources.month_june
+import agustream.app.shared.generated.resources.month_march
+import agustream.app.shared.generated.resources.month_may
+import agustream.app.shared.generated.resources.month_november
+import agustream.app.shared.generated.resources.month_october
+import agustream.app.shared.generated.resources.month_september
+import agustream.app.shared.generated.resources.weekday_fri
+import agustream.app.shared.generated.resources.weekday_mon
+import agustream.app.shared.generated.resources.weekday_sat
+import agustream.app.shared.generated.resources.weekday_sun
+import agustream.app.shared.generated.resources.weekday_thu
+import agustream.app.shared.generated.resources.weekday_tue
+import agustream.app.shared.generated.resources.weekday_wed
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -82,14 +108,14 @@ private fun CalendarContent(
         state.error != null && state.entries.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
-                title = "Could not load the calendar",
+                title = stringResource(Res.string.calendar_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.hasLoaded && state.entries.isEmpty() ->
             Message(
                 icon = Icons.Outlined.CalendarMonth,
-                title = "No upcoming episodes",
-                message = "The series in your library have no announced episodes in the coming months.",
+                title = stringResource(Res.string.calendar_no_upcoming),
+                message = stringResource(Res.string.calendar_no_upcoming_message),
             )
         // The grid paints immediately and fills in as series resolve.
         else ->
@@ -141,7 +167,7 @@ private fun MonthHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onPrevious) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = "Previous month")
+            Icon(Icons.Default.ChevronLeft, contentDescription = stringResource(Res.string.calendar_prev_month))
         }
         Row(
             modifier = Modifier.weight(1f),
@@ -159,15 +185,25 @@ private fun MonthHeader(
             }
         }
         IconButton(onClick = onNext) {
-            Icon(Icons.Default.ChevronRight, contentDescription = "Next month")
+            Icon(Icons.Default.ChevronRight, contentDescription = stringResource(Res.string.calendar_next_month))
         }
     }
 }
 
 @Composable
 private fun WeekdayHeader() {
+    val labels =
+        listOf(
+            stringResource(Res.string.weekday_mon),
+            stringResource(Res.string.weekday_tue),
+            stringResource(Res.string.weekday_wed),
+            stringResource(Res.string.weekday_thu),
+            stringResource(Res.string.weekday_fri),
+            stringResource(Res.string.weekday_sat),
+            stringResource(Res.string.weekday_sun),
+        )
     Row(Modifier.fillMaxWidth().padding(horizontal = LocalWindowSize.current.screenPadding)) {
-        for (day in WEEKDAY_LABELS) {
+        for (day in labels) {
             Text(
                 text = day,
                 textAlign = TextAlign.Center,
@@ -255,7 +291,7 @@ private fun DayCell(
                 }
                 if (entries.size > MAX_ENTRIES_PER_DAY) {
                     Text(
-                        text = "+${entries.size - MAX_ENTRIES_PER_DAY} more",
+                        text = stringResource(Res.string.calendar_more, entries.size - MAX_ENTRIES_PER_DAY),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -326,16 +362,27 @@ private fun episodeLabel(entry: CalendarEntry): String {
 }
 
 /** Formats a month as `May 2025`. */
+@Composable
 private fun formatMonth(month: LocalDate): String {
-    val name =
-        month.month.name
-            .lowercase()
-            .replaceFirstChar { it.uppercase() }
-    return "$name ${month.year}"
+    val months =
+        listOf(
+            stringResource(Res.string.month_january),
+            stringResource(Res.string.month_february),
+            stringResource(Res.string.month_march),
+            stringResource(Res.string.month_april),
+            stringResource(Res.string.month_may),
+            stringResource(Res.string.month_june),
+            stringResource(Res.string.month_july),
+            stringResource(Res.string.month_august),
+            stringResource(Res.string.month_september),
+            stringResource(Res.string.month_october),
+            stringResource(Res.string.month_november),
+            stringResource(Res.string.month_december),
+        )
+    return "${months[month.month.ordinal]} ${month.year}"
 }
 
 private const val DAYS_PER_WEEK = 7
 
 /** One entry per day: the richer chip (poster, series, episode) needs the room. */
 private const val MAX_ENTRIES_PER_DAY = 1
-private val WEEKDAY_LABELS = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")

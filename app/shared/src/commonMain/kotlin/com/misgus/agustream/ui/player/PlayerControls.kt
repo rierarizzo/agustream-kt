@@ -1,5 +1,15 @@
 package com.misgus.agustream.ui.player
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_back
+import agustream.app.shared.generated.resources.action_play
+import agustream.app.shared.generated.resources.player_audio
+import agustream.app.shared.generated.resources.player_back_10
+import agustream.app.shared.generated.resources.player_forward_10
+import agustream.app.shared.generated.resources.player_fullscreen
+import agustream.app.shared.generated.resources.player_pause
+import agustream.app.shared.generated.resources.player_subtitles
+import agustream.app.shared.generated.resources.player_volume
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -41,6 +51,7 @@ import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.motionTween
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration
 
 /**
@@ -79,7 +90,7 @@ fun PlayerControls(
                         .size(64.dp)
                         .background(Color.Black.copy(alpha = AppAlpha.PLAYER_BUTTON), androidx.compose.foundation.shape.CircleShape),
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = "Play", modifier = Modifier.size(40.dp))
+                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.action_play), modifier = Modifier.size(40.dp))
             }
         }
         BottomBar(
@@ -116,7 +127,7 @@ private fun TopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.action_back), tint = Color.White)
         }
         Spacer(Modifier.width(4.dp))
         Text(
@@ -168,15 +179,15 @@ private fun BottomBar(
             IconButton(onClick = onPlayPause) {
                 Icon(
                     if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (playing) "Pause" else "Play",
+                    contentDescription = if (playing) stringResource(Res.string.player_pause) else stringResource(Res.string.action_play),
                     tint = Color.White,
                 )
             }
             IconButton(onClick = { onSeekBy(Duration.parse("-10s")) }) {
-                Icon(Icons.Default.Replay10, contentDescription = "Back 10 seconds", tint = Color.White)
+                Icon(Icons.Default.Replay10, contentDescription = stringResource(Res.string.player_back_10), tint = Color.White)
             }
             IconButton(onClick = { onSeekBy(Duration.parse("10s")) }) {
-                Icon(Icons.Default.Forward10, contentDescription = "Forward 10 seconds", tint = Color.White)
+                Icon(Icons.Default.Forward10, contentDescription = stringResource(Res.string.player_forward_10), tint = Color.White)
             }
             Spacer(Modifier.width(8.dp))
             Text(
@@ -187,7 +198,7 @@ private fun BottomBar(
             Spacer(Modifier.weight(1f))
             Icon(
                 Icons.AutoMirrored.Filled.VolumeUp,
-                contentDescription = "Volume",
+                contentDescription = stringResource(Res.string.player_volume),
                 tint = Color.White,
                 modifier = Modifier.size(AppIconSize.md),
             )
@@ -200,13 +211,13 @@ private fun BottomBar(
                 )
             }
             IconButton(onClick = onSubtitles) {
-                Icon(Icons.Outlined.Subtitles, contentDescription = "Subtitles", tint = Color.White)
+                Icon(Icons.Outlined.Subtitles, contentDescription = stringResource(Res.string.player_subtitles), tint = Color.White)
             }
             IconButton(onClick = onAudio) {
-                Icon(Icons.Outlined.Audiotrack, contentDescription = "Audio", tint = Color.White)
+                Icon(Icons.Outlined.Audiotrack, contentDescription = stringResource(Res.string.player_audio), tint = Color.White)
             }
             IconButton(onClick = onToggleFullscreen) {
-                Icon(Icons.Default.Fullscreen, contentDescription = "Fullscreen", tint = Color.White)
+                Icon(Icons.Default.Fullscreen, contentDescription = stringResource(Res.string.player_fullscreen), tint = Color.White)
             }
         }
     }

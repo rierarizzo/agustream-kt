@@ -72,4 +72,53 @@
     <string name="search_type_titles">titles</string>
     <string name="search_type_movies_lower">movies</string>
     <string name="search_type_series_lower">series</string>
+
+    <!-- Calendar -->
+    <string name="calendar_error_title">Could not load the calendar</string>
+    <string name="calendar_no_upcoming">No upcoming episodes</string>
+    <string name="calendar_no_upcoming_message">The series in your library have no announced episodes in the coming months.</string>
+    <string name="calendar_prev_month">Previous month</string>
+    <string name="calendar_next_month">Next month</string>
+    <string name="calendar_more">+%1$d more</string>
+    <string name="weekday_mon">Mon</string>
+    <string name="weekday_tue">Tue</string>
+    <string name="weekday_wed">Wed</string>
+    <string name="weekday_thu">Thu</string>
+    <string name="weekday_fri">Fri</string>
+    <string name="weekday_sat">Sat</string>
+    <string name="weekday_sun">Sun</string>
+    <string name="month_january">January</string>
+    <string name="month_february">February</string>
+    <string name="month_march">March</string>
+    <string name="month_april">April</string>
+    <string name="month_may">May</string>
+    <string name="month_june">June</string>
+    <string name="month_july">July</string>
+    <string name="month_august">August</string>
+    <string name="month_september">September</string>
+    <string name="month_october">October</string>
+    <string name="month_november">November</string>
+    <string name="month_december">December</string>
+
+    <!-- Player -->
+    <string name="player_pause">Pause</string>
+    <string name="player_back_10">Back 10 seconds</string>
+    <string name="player_forward_10">Forward 10 seconds</string>
+    <string name="player_volume">Volume</string>
+    <string name="player_subtitles">Subtitles</string>
+    <string name="player_audio">Audio</string>
+    <string name="player_fullscreen">Fullscreen</string>
+
+    <!-- Streams -->
+    <string name="streams_filter">Filter versions</string>
+    <string name="streams_refresh">Refresh</string>
+    <string name="streams_close">Close</string>
+    <string name="streams_copy_link">Copy link</string>
+    <string name="streams_error">Could not load sources from your addons.</string>
+    <string name="streams_empty">No sources found for this title.</string>
+    <string name="streams_no_match">No versions match the filter.</string>
+    <string name="streams_loading">Loading…</string>
+    <string name="streams_error_short">Could not load sources</string>
+    <string name="streams_count_one">1 version</string>
+    <string name="streams_count_many">%1$d versions</string>
 </resources>

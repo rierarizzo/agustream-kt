@@ -1,5 +1,18 @@
 package com.misgus.agustream.ui.streams
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_play
+import agustream.app.shared.generated.resources.streams_close
+import agustream.app.shared.generated.resources.streams_copy_link
+import agustream.app.shared.generated.resources.streams_count_many
+import agustream.app.shared.generated.resources.streams_count_one
+import agustream.app.shared.generated.resources.streams_empty
+import agustream.app.shared.generated.resources.streams_error
+import agustream.app.shared.generated.resources.streams_error_short
+import agustream.app.shared.generated.resources.streams_filter
+import agustream.app.shared.generated.resources.streams_loading
+import agustream.app.shared.generated.resources.streams_no_match
+import agustream.app.shared.generated.resources.streams_refresh
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -60,6 +73,7 @@ import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowWidth
 import com.misgus.agustream.ui.theme.motionLayer
 import com.misgus.agustream.ui.theme.motionTween
+import org.jetbrains.compose.resources.stringResource
 
 /** Widest the dialog gets, and a floor so it stays usable on a small window. */
 private val StreamsDialogMaxWidth = 900.dp
@@ -132,7 +146,7 @@ fun StreamsDialog(
                         value = state.query,
                         onValueChange = viewModel::setQuery,
                         leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                        placeholder = { Text("Filter versions") },
+                        placeholder = { Text(stringResource(Res.string.streams_filter)) },
                         singleLine = true,
                         modifier =
                             Modifier
@@ -161,10 +175,10 @@ private fun Header(
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
         ) {
             IconButton(onClick = onRefresh) {
-                Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.streams_refresh))
             }
             IconButton(onClick = onClose) {
-                Icon(Icons.Default.Close, contentDescription = "Close")
+                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.streams_close))
             }
         }
         Column(
@@ -200,16 +214,16 @@ private fun Content(
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
-                text = "Could not load sources from your addons.",
+                text = stringResource(Res.string.streams_error),
             )
         state.entries.isEmpty() ->
             Message(
                 icon = Icons.Outlined.SearchOff,
                 text =
                     if (state.groups.isEmpty()) {
-                        "No sources found for this title."
+                        stringResource(Res.string.streams_empty)
                     } else {
-                        "No versions match the filter."
+                        stringResource(Res.string.streams_no_match)
                     },
             )
         else ->
@@ -252,7 +266,7 @@ private fun StreamCard(
             onClick = onPlay,
             modifier = Modifier.size(40.dp),
         ) {
-            Icon(Icons.Default.PlayArrow, contentDescription = "Play")
+            Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.action_play))
         }
         Spacer(Modifier.width(AppSpacing.md))
         Column(Modifier.weight(1f)) {
@@ -272,7 +286,7 @@ private fun StreamCard(
         IconButton(onClick = {
             (stream.url ?: stream.externalUrl)?.let { clipboard.setText(AnnotatedString(it)) }
         }) {
-            Icon(Icons.Outlined.ContentCopy, contentDescription = "Copy link")
+            Icon(Icons.Outlined.ContentCopy, contentDescription = stringResource(Res.string.streams_copy_link))
         }
     }
 }
@@ -291,12 +305,13 @@ private fun Message(
     }
 }
 
+@Composable
 private fun subtitle(state: StreamsUiState): String =
     when {
-        state.isLoading && !state.hasLoaded -> "Loading…"
-        state.error != null && !state.hasLoaded -> "Could not load sources"
-        state.totalCount == 1 -> "1 version"
-        else -> "${state.totalCount} versions"
+        state.isLoading && !state.hasLoaded -> stringResource(Res.string.streams_loading)
+        state.error != null && !state.hasLoaded -> stringResource(Res.string.streams_error_short)
+        state.totalCount == 1 -> stringResource(Res.string.streams_count_one)
+        else -> stringResource(Res.string.streams_count_many, state.totalCount)
     }
 
 private fun formatSize(bytes: Long?): String? {
