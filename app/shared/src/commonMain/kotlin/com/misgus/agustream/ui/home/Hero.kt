@@ -63,7 +63,14 @@ import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
 
 /** Share of the window width the desktop artwork occupies. */
-private const val HERO_IMAGE_WIDTH_FRACTION = 0.7f
+private const val HERO_IMAGE_WIDTH_FRACTION = 0.75f
+
+/**
+ * Height of the desktop frame, as a share of the window width: the frame is
+ * sized as if the artwork spanned this much width, so the wider artwork above
+ * is cropped at the bottom instead of growing the billboard taller.
+ */
+private const val HERO_DESKTOP_HEIGHT_FRACTION = 0.7f
 
 /** Aspect ratio used until the artwork has decoded, so the frame has a height. */
 private const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
@@ -100,13 +107,15 @@ private fun heroHeight(
 ): Dp = maxWidth / aspectRatio
 
 /**
- * Height of the desktop billboard, whose artwork spans [HERO_IMAGE_WIDTH_FRACTION]
- * of [maxWidth] and is pinned to the top-right of the frame.
+ * Height of the desktop billboard. The artwork spans [HERO_IMAGE_WIDTH_FRACTION]
+ * of [maxWidth] and is pinned to the top-right of the frame; the frame is sized
+ * from [HERO_DESKTOP_HEIGHT_FRACTION], a touch shorter than the artwork, so the
+ * bottom is cropped instead of stretching the billboard taller.
  */
 private fun desktopHeroHeight(
     maxWidth: Dp,
     aspectRatio: Float,
-): Dp = (maxWidth * HERO_IMAGE_WIDTH_FRACTION) / aspectRatio
+): Dp = (maxWidth * HERO_DESKTOP_HEIGHT_FRACTION) / aspectRatio
 
 /**
  * Compact / Android billboard: in the scroll flow, full-bleed, complete artwork.
@@ -145,8 +154,9 @@ internal fun Hero(
 }
 
 /**
- * Desktop billboard: in the scroll flow, with the complete artwork scaled to
- * [HERO_IMAGE_WIDTH_FRACTION] of the window and pinned to the top-right.
+ * Desktop billboard: in the scroll flow, with the artwork scaled to
+ * [HERO_IMAGE_WIDTH_FRACTION] of the window, pinned to the top-right and
+ * cropped at the bottom so the billboard does not grow taller.
  *
  * A single aspect keeps the frame (and the sections below it) stable while the
  * pages swipe; the first decoded artwork sets it.
@@ -164,13 +174,16 @@ internal fun WideHero(
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val height = desktopHeroHeight(maxWidth, aspect)
+        // Decode the full artwork at its display width, so `Crop` has the whole
+        // bitmap to trim from and not just the shorter frame.
+        val artworkHeight = (maxWidth * HERO_IMAGE_WIDTH_FRACTION) / aspect
         HeroCarousel(
             items = items,
             pagerState = pagerState,
             height = height,
             wide = true,
             backdropWidthPx = with(density) { (maxWidth * HERO_IMAGE_WIDTH_FRACTION).roundToPx().coerceAtLeast(1) },
-            backdropHeightPx = with(density) { height.roundToPx().coerceAtLeast(1) },
+            backdropHeightPx = with(density) { artworkHeight.roundToPx().coerceAtLeast(1) },
             onBackdropAspect = { page, ratio -> if (page == 0) aspect = ratio },
             onOpen = onOpen,
             onPlay = onPlay,
@@ -252,9 +265,11 @@ private fun HeroSlide(
             AsyncImage(
                 model = backdrop,
                 contentDescription = null,
-                // The frame tracks the artwork's aspect ratio, so `Fit` shows the
-                // whole image edge to edge: no crop and no bars.
-                contentScale = ContentScale.Fit,
+                // A phone frame tracks the artwork's aspect ratio, so `Fit` shows
+                // it whole; the desktop frame is a touch shorter, so `Crop` trims
+                // the bottom and keeps the top edge pinned.
+                contentScale = if (wide) ContentScale.Crop else ContentScale.Fit,
+                alignment = if (wide) Alignment.TopCenter else Alignment.Center,
                 filterQuality = ArtworkFilterQuality,
                 onSuccess = { state ->
                     val image = state.result.image

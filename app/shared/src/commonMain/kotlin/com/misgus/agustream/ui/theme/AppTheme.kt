@@ -241,13 +241,14 @@ object AppScrim {
     /**
      * Wide desktop billboard, left-to-right: opaque over the left column and
      * the copy, then a short fade that dissolves the artwork's left edge into
-     * the page background.
+     * the page background. The fade sits further left than it used to, so more
+     * of the image reads.
      */
     val heroWideLeft: Brush =
         Brush.horizontalGradient(
             0f to BrandPalette.background,
-            0.3f to BrandPalette.background,
-            0.5f to Color.Transparent,
+            0.25f to BrandPalette.background,
+            0.45f to Color.Transparent,
         )
 
     /**

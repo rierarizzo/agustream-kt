@@ -165,11 +165,13 @@ engine, the filesystem and the player touch platform source sets through
   window); the navigation bars carry their own inset; the detail backdrop, the
   player and the onboarding/profile gates paint behind the bars while their
   controls sit below them; and the Home billboard scrolls with the content (it
-  is never pinned). On desktop the complete artwork is drawn `Fit` (no crop, no
-  letterbox bars) at 70% of the window width, pinned to the top-right corner of
-  the frame, so the sections below start higher without losing image detail. It
-  is washed by `BrandPalette.background` gradients: a left fade that dissolves
-  the artwork's left edge under the copy, a bottom fade that melts into
+  is never pinned). On desktop the artwork spans 75% of the window width,
+  pinned to the top-right corner of the frame, and is cropped at the bottom
+  (`Crop`, top-aligned) because the frame is sized a touch shorter, so widening
+  the artwork does not stretch the billboard taller and the sections below keep
+  their place. It is washed by `BrandPalette.background` gradients: a left fade
+  that dissolves the artwork's left edge under the copy, a bottom fade that
+  melts into
   "Continue watching" without a seam, a subtle top fade, and a right-edge
   vignette. On a phone the billboard spans the full width, sized to the
   artwork's aspect ratio. The copy column is
