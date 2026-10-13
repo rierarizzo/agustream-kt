@@ -126,6 +126,27 @@ object AppSizes {
     val minTouchTarget: Dp = 48.dp
 }
 
+/**
+ * Sizing for the title artwork (logo) on a billboard.
+ *
+ * A logo is contained in a box: a fixed optical height plus a [maxWidth] guard,
+ * so a square logo cannot tower over the copy while a very wide one cannot
+ * overflow its column. Both billboards read these values, so they stay in sync.
+ */
+object AppLogoSize {
+    /** Optical height of the title logo on the wide home billboard. */
+    val homeHeight: Dp = 150.dp
+
+    /** Optical height of the title logo on the wide detail billboard. */
+    val detailHeight: Dp = 96.dp
+
+    /** Optical height of the title logo on a phone's detail billboard. */
+    val compactHeight: Dp = 56.dp
+
+    /** Widest a logo may grow; a wider logo scales down to fit. */
+    val maxWidth: Dp = 520.dp
+}
+
 /** Shared icon sizes. */
 object AppIconSize {
     val sm: Dp = 18.dp

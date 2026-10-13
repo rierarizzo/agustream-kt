@@ -52,6 +52,7 @@ import com.misgus.agustream.ui.components.LogoFilterQuality
 import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.ratingText
 import com.misgus.agustream.ui.theme.AppAlpha
+import com.misgus.agustream.ui.theme.AppLogoSize
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
@@ -65,9 +66,6 @@ private const val HERO_IMAGE_WIDTH_FRACTION = 0.7f
 
 /** Aspect ratio used until the artwork has decoded, so the frame has a height. */
 private const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
-
-/** Height of the title logo on the billboard. */
-private val HERO_LOGO_HEIGHT = 150.dp
 
 /** Widest the copy column ever grows, so the synopsis keeps a comfortable measure. */
 private val HERO_CONTENT_MAX_WIDTH = 840.dp
@@ -236,7 +234,8 @@ private fun HeroCarousel(
         compact = compact,
         backdropWidthPx = backdropWidthPx,
         backdropHeightPx = backdropHeightPx,
-        logoHeightPx = with(density) { HERO_LOGO_HEIGHT.roundToPx().coerceAtLeast(1) },
+        logoHeightPx = with(density) { AppLogoSize.homeHeight.roundToPx().coerceAtLeast(1) },
+        logoMaxWidthPx = with(density) { AppLogoSize.maxWidth.roundToPx().coerceAtLeast(1) },
     )
 }
 
@@ -343,7 +342,7 @@ private fun HeroTitle(
             contentScale = ContentScale.Fit,
             filterQuality = LogoFilterQuality,
             fadeIn = true,
-            modifier = Modifier.height(HERO_LOGO_HEIGHT),
+            modifier = Modifier.height(AppLogoSize.homeHeight).widthIn(max = AppLogoSize.maxWidth),
         )
     } else {
         Text(
@@ -450,9 +449,10 @@ private fun HeroArtworkPreloader(
     backdropWidthPx: Int,
     backdropHeightPx: Int,
     logoHeightPx: Int,
+    logoMaxWidthPx: Int,
 ) {
     val context = LocalPlatformContext.current
-    LaunchedEffect(items, compact, backdropWidthPx, backdropHeightPx, logoHeightPx) {
+    LaunchedEffect(items, compact, backdropWidthPx, backdropHeightPx, logoHeightPx, logoMaxWidthPx) {
         if (items.isEmpty()) return@LaunchedEffect
         val loader = SingletonImageLoader.get(context)
         items.forEach { item ->
@@ -472,7 +472,7 @@ private fun HeroArtworkPreloader(
                     ImageRequest
                         .Builder(context)
                         .data(url)
-                        .size(backdropWidthPx, logoHeightPx)
+                        .size(logoMaxWidthPx, logoHeightPx)
                         .build(),
                 )
             }

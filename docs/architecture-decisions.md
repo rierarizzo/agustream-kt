@@ -253,9 +253,12 @@ engine, the filesystem and the player touch platform source sets through
   defines as nearest-neighbour, so `app/desktopApp` installs
   `MitchellImageDecoder`, a cubic decoder that keeps Coil's size math and
   reduces once at decode time. Together they both sharpen the artwork and cut
-  the bitmap memory the renderer has to scale every frame. The Home hero
-  preloads every featured backdrop and logo through the singleton loader, sized
-  to the billboard, so swiping the carousel paints from cache instead of
+  the bitmap memory the renderer has to scale every frame. Title logos are
+  contained in a box — a fixed optical height plus a `maxWidth` guard
+  (`AppLogoSize`), drawn with `ContentScale.Fit` — so a square logo cannot
+  tower over the copy and a very wide one cannot overflow its column. The Home
+  hero preloads every featured backdrop and logo through the singleton loader,
+  sized to the billboard, so swiping the carousel paints from cache instead of
   starting a network round-trip mid-gesture.
 - **Motion** is centralised in `ui/theme/Motion.kt`: `AppMotion` holds the
   durations and both the utility and the Material emphasized easings (entering
