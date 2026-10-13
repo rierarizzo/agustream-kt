@@ -83,11 +83,16 @@ fun HomeScreen(
     val settingsRepository = LocalAppServices.current.settings
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
     val windowSize = LocalWindowSize.current
+    // The hero only fits one full row when the window is maximized; a floating
+    // window can afford to clip it.
+    val window = LocalAppServices.current.window
+    val isMaximized by window.isMaximized.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize()) {
         HomeContent(
             state = state,
             posterSize = settings.posterSize,
+            isMaximized = isMaximized,
             onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
             onOpenPreview = { navigator.push(ContentRoute.Detail(LibraryItem.fromPreview(it))) },
             onOpenCatalog = { navigator.push(ContentRoute.Catalog(it)) },
@@ -119,6 +124,7 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeUiState,
     posterSize: PosterSize,
+    isMaximized: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
     onOpenPreview: (MetaPreview) -> Unit,
     onOpenCatalog: (com.misgus.agustream.core.repository.CatalogRef) -> Unit,
@@ -145,11 +151,12 @@ private fun HomeContent(
             val compact = windowSize == WindowSize.COMPACT
             // Size the hero so exactly one full row of content lands at the bottom
             // of the viewport: a taller row shrinks it, a shorter one grows it (so
-            // the second row never peeks). Wide windows only; the phone keeps the
-            // default flow.
+            // the second row never peeks). Only for a plain catalog row on a wide,
+            // maximized window; Continue watching and the phone keep the natural
+            // height and let the rows flow.
             val viewportHeight = LocalWindowHeight.current
             val heroHeight =
-                if (compact) {
+                if (compact || !isMaximized || state.continueWatching.isNotEmpty()) {
                     null
                 } else {
                     val firstRowHeight = posterSize.railHeight(windowSize)

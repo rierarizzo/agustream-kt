@@ -14,6 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 interface WindowController {
     val isFullScreen: StateFlow<Boolean>
 
+    /**
+     * Whether the OS window is maximized. Always `true` where the concept does
+     * not exist (a phone window fills the screen).
+     */
+    val isMaximized: StateFlow<Boolean>
+
     fun setFullScreen(value: Boolean)
 }
 
@@ -21,6 +27,9 @@ interface WindowController {
 class NoopWindowController : WindowController {
     private val _isFullScreen = MutableStateFlow(false)
     override val isFullScreen: StateFlow<Boolean> = _isFullScreen.asStateFlow()
+
+    private val _isMaximized = MutableStateFlow(true)
+    override val isMaximized: StateFlow<Boolean> = _isMaximized.asStateFlow()
 
     override fun setFullScreen(value: Boolean) {
         _isFullScreen.value = value
