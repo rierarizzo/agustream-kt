@@ -1,5 +1,6 @@
 package com.misgus.agustream.ui.theme
 
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.TweenSpec
@@ -36,7 +37,20 @@ object AppMotion {
     /** Screen-level transitions and larger surfaces. */
     const val SLOW = 340
 
+    /** Utility motion, for feedback and small components. */
     val standard: Easing = FastOutSlowInEasing
+
+    /**
+     * Material's emphasized curve, for transitions that begin and end on screen,
+     * such as a navigation bar or a route entering.
+     */
+    val emphasized: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+
+    /** Emphasized decelerate, for elements entering the screen. */
+    val emphasizedDecelerate: Easing = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
+
+    /** Emphasized accelerate, for elements leaving the screen. */
+    val emphasizedAccelerate: Easing = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
 
     /** A tween that snaps to the target when [enabled] is `false`. */
     fun <T> spec(

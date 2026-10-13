@@ -2,40 +2,39 @@ package com.misgus.agustream.ui.shell
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
-import com.misgus.agustream.ui.theme.AppAlpha
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -46,6 +45,10 @@ import com.misgus.agustream.ui.theme.screenPadding
  * Horizontal navigation bar for wide windows, with the profile and section items
  * centered. It floats over the content, which reserves its height, so showing or
  * hiding it never resizes the content viewport.
+ *
+ * Material 3 has no multi-destination top bar, so the items are custom; they
+ * still use the Material navigation colours, so a selected item reads the same
+ * as on the bar and the rail.
  */
 @Composable
 fun TopNav(
@@ -75,7 +78,7 @@ fun TopNav(
             )
             Spacer(Modifier.width(AppSpacing.lg))
             AppSection.entries.forEach { section ->
-                NavItem(section, section == selected) { onSelected(section) }
+                TopNavItem(section, section == selected) { onSelected(section) }
             }
         }
     }
@@ -84,9 +87,9 @@ fun TopNav(
 /**
  * Vertical navigation rail for wide windows.
  *
- * Opaque and left-aligned, with the profile and the section items centered in
- * the rail. It floats over the content, which reserves the rail's width, so
- * showing or hiding it never resizes the content viewport.
+ * Opaque and left-aligned, with the profile as the rail header. It floats over
+ * the content, which reserves the rail's width, so showing or hiding it never
+ * resizes the content viewport.
  */
 @Composable
 fun LeftNav(
@@ -94,28 +97,47 @@ fun LeftNav(
     onSelected: (AppSection) -> Unit,
     activeProfile: BackendProfile? = null,
 ) {
-    // Same background as the shell, so the rail reads as part of the page
-    // instead of a raised panel with its own edge.
-    Box(Modifier.fillMaxHeight().width(AppSizes.railWidth).background(AppColors.background)) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-                    .padding(vertical = AppSpacing.md),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+    // The container carries the surface and the system insets, so the rail
+    // itself adds neither and the background reaches the window edges.
+    Box(
+        Modifier
+            .fillMaxHeight()
+            .width(AppSizes.railWidth)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .statusBarsPadding()
+            .navigationBarsPadding(),
+    ) {
+        NavigationRail(
+            modifier = Modifier.fillMaxHeight(),
+            containerColor = Color.Transparent,
+            // The container above already handles the system bars.
+            windowInsets = WindowInsets(0, 0, 0, 0),
+            header = {
+                ProfileAvatar(
+                    profile = activeProfile,
+                    size = 32.dp,
+                    initialStyle = MaterialTheme.typography.titleMedium,
+                )
+            },
         ) {
-            ProfileAvatar(
-                profile = activeProfile,
-                size = 32.dp,
-                initialStyle = MaterialTheme.typography.titleMedium,
-            )
-            Spacer(Modifier.height(AppSpacing.lg))
             AppSection.entries.forEach { section ->
-                RailNavItem(section, section == selected) { onSelected(section) }
+                NavigationRailItem(
+                    selected = section == selected,
+                    onClick = { onSelected(section) },
+                    icon = {
+                        Icon(
+                            imageVector = if (section == selected) section.selectedIcon else section.icon,
+                            contentDescription = section.label,
+                            modifier = Modifier.size(AppIconSize.lg),
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = section.label,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    },
+                )
             }
         }
     }
@@ -132,46 +154,41 @@ fun BottomNav(
     selected: AppSection,
     onSelected: (AppSection) -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().background(AppColors.background).navigationBarsPadding()) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(AppColors.divider))
-        Row(
-            modifier = Modifier.fillMaxWidth().height(AppSizes.bottomBarHeight),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
+    // The container carries the surface and the navigation-bar inset, so the bar
+    // itself adds neither and the background reaches the window edge.
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .navigationBarsPadding(),
+    ) {
+        NavigationBar(
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+            // The container above already handles the system bars.
+            windowInsets = WindowInsets(0, 0, 0, 0),
         ) {
             AppSection.entries.forEach { section ->
-                BottomNavItem(section, section == selected) { onSelected(section) }
+                NavigationBarItem(
+                    selected = section == selected,
+                    onClick = { onSelected(section) },
+                    icon = {
+                        Icon(
+                            imageVector = if (section == selected) section.selectedIcon else section.icon,
+                            contentDescription = section.label,
+                            modifier = Modifier.size(AppIconSize.lg),
+                        )
+                    },
+                )
             }
         }
     }
 }
 
+/** One section in the custom top bar, styled with the Material navigation colours. */
 @Composable
-private fun BottomNavItem(
-    section: AppSection,
-    selected: Boolean,
-    onTap: () -> Unit,
-) {
-    val interaction = rememberInteraction()
-    Box(
-        modifier =
-            Modifier
-                .clip(RoundedCornerShape(AppRadii.md))
-                .background(interactionHighlight(interaction))
-                .clickableSurface(interaction, onTap)
-                .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
-    ) {
-        Icon(
-            imageVector = if (selected) section.selectedIcon else section.icon,
-            contentDescription = section.label,
-            tint = if (selected) AppColors.textPrimary else AppColors.textSecondary,
-            modifier = Modifier.size(AppIconSize.lg),
-        )
-    }
-}
-
-@Composable
-private fun RailNavItem(
+private fun TopNavItem(
     section: AppSection,
     selected: Boolean,
     onTap: () -> Unit,
@@ -180,52 +197,16 @@ private fun RailNavItem(
     val background =
         interactionHighlight(
             interaction,
-            base = if (selected) Color.White.copy(alpha = AppAlpha.NAV_SELECTED) else Color.Transparent,
+            base = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
         )
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
-                .clip(RoundedCornerShape(AppRadii.md))
-                .background(background)
-                .clickableSurface(interaction, onTap)
-                .padding(vertical = AppSpacing.sm),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            imageVector = if (selected) section.selectedIcon else section.icon,
-            contentDescription = section.label,
-            tint = if (selected) AppColors.textPrimary else AppColors.textSecondary,
-            modifier = Modifier.size(AppIconSize.lg),
-        )
-        Spacer(Modifier.height(AppSpacing.xs))
-        Text(
-            text = section.label,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (selected) AppColors.textPrimary else AppColors.textSecondary,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-private fun NavItem(
-    section: AppSection,
-    selected: Boolean,
-    onTap: () -> Unit,
-) {
-    val interaction = rememberInteraction()
-    val background =
-        interactionHighlight(
-            interaction,
-            base = if (selected) Color.White.copy(alpha = AppAlpha.NAV_SELECTED) else Color.Transparent,
-        )
+    val contentColor =
+        if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
     Row(
         modifier =
             Modifier
+                .sizeIn(minWidth = AppSizes.minTouchTarget, minHeight = AppSizes.minTouchTarget)
                 .padding(horizontal = AppSpacing.xs)
-                .clip(RoundedCornerShape(AppRadii.md))
+                .clip(MaterialTheme.shapes.small)
                 .background(background)
                 .clickableSurface(interaction, onTap)
                 .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
@@ -234,14 +215,14 @@ private fun NavItem(
         Icon(
             imageVector = if (selected) section.selectedIcon else section.icon,
             contentDescription = section.label,
-            tint = if (selected) AppColors.textPrimary else AppColors.textSecondary,
+            tint = contentColor,
             modifier = Modifier.size(AppIconSize.sm),
         )
         Spacer(Modifier.width(AppSpacing.sm))
         Text(
             text = section.label,
             style = MaterialTheme.typography.labelLarge,
-            color = if (selected) AppColors.textPrimary else AppColors.textSecondary,
+            color = contentColor,
         )
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -24,11 +25,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.core.repository.PosterSize
-import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppRadii
+import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -40,8 +41,18 @@ import kotlin.math.ceil
 /** Poster card ratio, mirrored by the real grids. */
 private const val POSTER_ASPECT = 0.58f
 
-/** Static stops of the shimmer sweep, built once instead of on every frame. */
-private val ShimmerColors = listOf(AppColors.surface, AppColors.surfaceHigh, AppColors.surface)
+/**
+ * Shimmer colours from the theme, so the sweep matches the surface it sits on.
+ *
+ * Built once per theme change instead of on every frame.
+ */
+@Composable
+private fun shimmerColors(): List<Color> {
+    val scheme = MaterialTheme.colorScheme
+    return remember(scheme.surface, scheme.surfaceContainerHigh) {
+        listOf(scheme.surface, scheme.surfaceContainerHigh, scheme.surface)
+    }
+}
 
 /**
  * Full-screen grid of poster skeletons for a loading library or catalog.
@@ -105,8 +116,9 @@ private fun rowsThatFit(
 fun SkeletonBox(
     progress: State<Float>,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(AppRadii.md),
+    shape: Shape = RoundedCornerShape(AppCorner.small),
 ) {
+    val shimmer = shimmerColors()
     if (LocalMotionEnabled.current) {
         Box(
             modifier.clip(shape).drawBehind {
@@ -114,7 +126,7 @@ fun SkeletonBox(
                 val width = size.width
                 val brush =
                     Brush.linearGradient(
-                        colors = ShimmerColors,
+                        colors = shimmer,
                         start = Offset(p * width, 0f),
                         end = Offset((p + 0.6f) * width, 0f),
                     )
@@ -122,7 +134,7 @@ fun SkeletonBox(
             },
         )
     } else {
-        Box(modifier.clip(shape).background(AppColors.surface))
+        Box(modifier.clip(shape).background(MaterialTheme.colorScheme.surface))
     }
 }
 

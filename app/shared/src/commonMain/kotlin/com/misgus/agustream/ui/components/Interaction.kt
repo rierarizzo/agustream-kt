@@ -5,6 +5,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -13,6 +15,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.ui.theme.AppAlpha
 
@@ -42,31 +45,46 @@ fun rememberInteraction(): InteractionState {
     return InteractionState(source, hovered, focused, pressed)
 }
 
-/** Click handling for a custom surface, without the default ripple. */
+/**
+ * Click handling for a custom surface, with the Material ripple state layer.
+ *
+ * [role] defaults to [Role.Button], so a custom clickable surface is announced as
+ * a button by accessibility services instead of an unlabelled node.
+ */
 @Composable
 fun Modifier.clickableSurface(
     state: InteractionState,
     onClick: () -> Unit,
     enabled: Boolean = true,
+    role: Role? = Role.Button,
 ): Modifier =
     clickable(
         interactionSource = state.source,
-        indication = null,
+        indication = ripple(),
         enabled = enabled,
+        role = role,
         onClick = onClick,
     )
 
-/** Background tint for [state], falling back to [base] when idle. */
+/**
+ * Background tint for [state], falling back to [base] when idle.
+ *
+ * The state layer uses the `onSurface` role, per Material's state-layer spec, so
+ * it adapts to the theme instead of a hard-coded white.
+ */
+@Composable
 fun interactionHighlight(
     state: InteractionState,
     base: Color = Color.Transparent,
-): Color =
-    when {
-        state.pressed -> Color.White.copy(alpha = AppAlpha.INTERACT_PRESSED)
-        state.focused -> Color.White.copy(alpha = AppAlpha.INTERACT_FOCUS)
-        state.hovered -> Color.White.copy(alpha = AppAlpha.INTERACT_HOVER)
+): Color {
+    val layer = MaterialTheme.colorScheme.onSurface
+    return when {
+        state.pressed -> layer.copy(alpha = AppAlpha.INTERACT_PRESSED)
+        state.focused -> layer.copy(alpha = AppAlpha.INTERACT_FOCUS)
+        state.hovered -> layer.copy(alpha = AppAlpha.INTERACT_HOVER)
         else -> base
     }
+}
 
 /**
  * Rounded border drawn in the draw phase.

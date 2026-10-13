@@ -64,10 +64,11 @@ fun ContentArea(
         AnimatedContent(
             targetState = selected,
             transitionSpec = {
-                val fade = AppMotion.spec<Float>(enabled, AppMotion.MEDIUM)
+                val enter = AppMotion.spec<Float>(enabled, AppMotion.MEDIUM, easing = AppMotion.emphasizedDecelerate)
+                val exit = AppMotion.spec<Float>(enabled, AppMotion.MEDIUM, easing = AppMotion.emphasizedAccelerate)
                 // `using(null)` disables the size animation, so the crossfade
                 // stays on the draw phase.
-                (fadeIn(fade) togetherWith fadeOut(fade)).using(null)
+                (fadeIn(enter) togetherWith fadeOut(exit)).using(null)
             },
             label = "section",
         ) { section ->
@@ -113,9 +114,9 @@ fun ContentArea(
         AnimatedContent(
             targetState = route,
             transitionSpec = {
-                val fade = AppMotion.spec<Float>(enabled, AppMotion.MEDIUM)
+                val enter = AppMotion.spec<Float>(enabled, AppMotion.MEDIUM, easing = AppMotion.emphasizedDecelerate)
                 // Only the route animates; the section underneath is left alone.
-                (fadeIn(fade) togetherWith ExitTransition.None).using(null)
+                (fadeIn(enter) togetherWith ExitTransition.None).using(null)
             },
             label = "route",
         ) { target ->

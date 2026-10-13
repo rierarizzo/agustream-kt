@@ -1,6 +1,5 @@
 package com.misgus.agustream.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,12 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -31,7 +31,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
@@ -44,8 +43,6 @@ import com.misgus.agustream.ui.onboarding.SignInForm
 import com.misgus.agustream.ui.platform.openInDefaultApp
 import com.misgus.agustream.ui.platform.pickVideoFile
 import com.misgus.agustream.ui.services.LocalAppServices
-import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
@@ -262,7 +259,7 @@ private fun ConfigFileCard(
             Text(
                 filePath,
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(AppSpacing.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
@@ -286,7 +283,7 @@ private fun SettingsToggle(
     ) {
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = AppColors.textSecondary)
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Spacer(Modifier.width(AppSpacing.md))
         Switch(checked = checked, onCheckedChange = onCheckedChange)
@@ -344,7 +341,7 @@ private fun <T> SettingsChoice(
 ) {
     Column(Modifier.fillMaxWidth().padding(vertical = AppSpacing.sm)) {
         Text(title, style = MaterialTheme.typography.bodyLarge)
-        Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = AppColors.textSecondary)
+        Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(AppSpacing.sm))
         Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             options.forEach { option ->
@@ -377,19 +374,17 @@ private fun SettingsCard(
     subtitle: String,
     content: @Composable () -> Unit,
 ) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(AppRadii.lg))
-                .background(AppColors.surface)
-                .padding(AppSpacing.lg),
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(AppSpacing.xs))
-        Text(subtitle, style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.height(AppSpacing.md))
-        content()
+        Column(modifier = Modifier.padding(AppSpacing.lg)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(AppSpacing.xs))
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(AppSpacing.md))
+            content()
+        }
     }
 }
 

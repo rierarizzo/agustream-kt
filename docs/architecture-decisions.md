@@ -182,12 +182,21 @@ engine, the filesystem and the player touch platform source sets through
   is the common hack, and it lies to every component about the font scale.
   Material's `display*` roles are sized for a big screen, so `AppType` steps
   them down one role on a compact window (hero title, screen titles, hero
-  synopsis); desktop and tablet keep the full scale.
+  synopsis); desktop and tablet keep the full scale. No type slot carries a
+  colour: text colour comes from the colour scheme at the call site, as Material
+  intends, and `PosterCaption` is just the `titleSmall` / `bodySmall` roles.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
   rendered inside the shell content area. Sections keep the top navigation
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such
   as the detail one fills the whole window — the same behaviour as the Flutter
-  nested `Navigator`, without adding a navigation library.
+  nested `Navigator`, without adding a navigation library. The chrome itself is
+  Material 3: a compact window gets a `NavigationBar` with icon-only
+  `NavigationBarItem`s, a wide window a `NavigationRail` with the profile as its
+  header and `NavigationRailItem`s, and the top bar keeps custom items styled
+  with the Material navigation colours (a secondary-container selection
+  indicator), since Material has no multi-destination top bar. The container
+  still owns the surface colour and the system insets, so the rail and the bar
+  add neither and their backgrounds reach the window edges.
 - **Discover** flattens every catalog the enabled addons declare into a single
   mixed grid, like the Library, so the addon catalog boundaries stay invisible.
   Only browsable catalogs are used: one whose extras are required (a search
@@ -202,9 +211,24 @@ engine, the filesystem and the player touch platform source sets through
   splits the results into a Movies rail and a Series rail. **Calendar** paints a
   month grid with the upcoming episodes of the Library's series; see the
   limitation below.
-- **Theme** centralises the design tokens (`AppColors`, `AppSpacing`,
-  `AppRadii`, `AppSizes`, `PosterCaption`) and the Inter typeface loaded
-  from Compose Resources. Material3 `visualDensity` stays at the platform default.
+- **Theme** follows Material 3. `AgustreamTheme` supplies the full
+  `darkColorScheme` (every role, including the surface-container tiers,
+  `outline`/`outlineVariant`, `inverse*`, `tertiary` and the error containers),
+  the Inter typeface loaded from Compose Resources, and a Material 3 shape scale
+  (`AppCorner` feeds `MaterialTheme.shapes`: 4/8/12/16/28dp). The UI reads
+  semantic colours from `MaterialTheme.colorScheme`; the raw brand palette is
+  private and only fills the scheme, so stock Material3 components and custom
+  surfaces stay on the same colours. `AppColors` keeps only `mediaScrim`, a
+  media overlay with no scheme role, and `AppSizes.controlHeight` /
+  `minTouchTarget` keep interactive targets at Material's 48dp minimum. Custom
+  clickable surfaces draw the Material ripple state layer (`clickableSurface`),
+  so focus and press feedback stays visible, and carry a button role so a custom
+  surface is announced correctly. Settings panels use the Material `Card`, and
+  the primary call to action uses the inverse surface / on-surface roles. The
+  app is deliberately **dark-only** — no light scheme and no dynamic colour —
+  because the UI is built around dark artwork and scrims; the player keeps a
+  fixed white-on-black control palette over video. Material3 `visualDensity`
+  stays at the platform default.
 - **Images with Coil 3**, the multiplatform image loader. Remote artwork goes
   through two shared composables in `ui/components`: `PosterImage` for posters
   and thumbnails, and `RemoteImage` for the rest (backdrops, hero art, cast
@@ -219,7 +243,9 @@ engine, the filesystem and the player touch platform source sets through
   reduces once at decode time. Together they both sharpen the artwork and cut
   the bitmap memory the renderer has to scale every frame.
 - **Motion** is centralised in `ui/theme/Motion.kt`: `AppMotion` holds the
-  durations and easings, and `LocalMotionEnabled` gates every animation. Specs
+  durations and both the utility and the Material emphasized easings (entering
+  screens use emphasized decelerate, exiting ones emphasized accelerate), and
+  `LocalMotionEnabled` gates every animation. Specs
   built through `AppMotion.spec`/`motionTween` collapse to zero duration when it
   is off, and `Modifier.motionLayer` applies scale and alpha in the draw phase,
   so motion never relayouts or recomposes per frame. Tabs crossfade; the section
@@ -331,6 +357,13 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   pressed states, and the player has shortcuts, but there is no focus traversal
   across the Home rails and no spatial navigation model. A TV target makes this
   mandatory rather than nice to have.
+- **Android predictive back.** There is no back handling at all: the custom
+  route stack (`ContentNavigator`) has no `BackHandler`, so the system back
+  gesture closes the activity instead of popping a pushed route. It needs a
+  `@Composable expect fun` back handler (no-op on desktop) whose Android actual
+  delegates to `androidx.activity.compose.BackHandler`, plus the
+  `activity-compose` dependency in `app/shared`. Do it before the Android target
+  is treated as shippable.
 
 ### Player performance
 

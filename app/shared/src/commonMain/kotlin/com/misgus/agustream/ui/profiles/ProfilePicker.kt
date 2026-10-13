@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -38,8 +37,6 @@ import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.services.LocalAppServices
-import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -108,7 +105,7 @@ private fun ProfileTile(
     Column(
         modifier =
             Modifier
-                .clip(RoundedCornerShape(AppRadii.md))
+                .clip(MaterialTheme.shapes.small)
                 .background(interactionHighlight(interaction))
                 .clickableSurface(interaction, onTap)
                 .padding(AppSpacing.sm),
@@ -145,7 +142,7 @@ private fun Problem(
         Icon(
             Icons.Outlined.ErrorOutline,
             contentDescription = null,
-            tint = AppColors.textSecondary,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(36.dp),
         )
         Spacer(Modifier.height(AppSpacing.md))

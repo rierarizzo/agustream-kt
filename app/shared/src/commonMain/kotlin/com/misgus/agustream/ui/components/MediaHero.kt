@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -67,11 +66,11 @@ fun MetadataRow(parts: List<String>) {
                 Text(
                     "•",
                     style = MaterialTheme.typography.labelLarge,
-                    color = AppColors.textSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = AppSpacing.sm),
                 )
             }
-            Text(part, style = MaterialTheme.typography.labelLarge, color = AppColors.textPrimary)
+            Text(part, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }

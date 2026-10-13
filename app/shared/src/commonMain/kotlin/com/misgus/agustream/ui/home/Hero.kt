@@ -15,17 +15,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,7 +35,6 @@ import com.misgus.agustream.ui.components.PillButton
 import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.ratingText
 import com.misgus.agustream.ui.theme.AppAlpha
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
@@ -104,12 +102,12 @@ internal fun Hero(
                                 Modifier
                                     .width(if (selected) 20.dp else 6.dp)
                                     .height(6.dp)
-                                    .clip(RoundedCornerShape(3.dp))
+                                    .clip(MaterialTheme.shapes.extraSmall)
                                     .background(
                                         if (selected) {
-                                            Color.White
+                                            MaterialTheme.colorScheme.onSurface
                                         } else {
-                                            Color.White.copy(alpha = AppAlpha.HERO_INDICATOR)
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.HERO_INDICATOR)
                                         },
                                     ),
                         )
@@ -140,7 +138,7 @@ private fun HeroSlide(
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize().blur(HERO_FILL_BLUR),
             )
-            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = HERO_FILL_DIM)))
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = HERO_FILL_DIM)))
             // ...and the complete artwork sits on top, never cropped.
             RemoteImage(
                 url = backdrop,
@@ -180,7 +178,7 @@ private fun HeroSlide(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     style = AppType.heroBody(),
-                    color = AppColors.textPrimary.copy(alpha = 0.92f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
                 )
             }
             Spacer(Modifier.height(AppSpacing.lg))

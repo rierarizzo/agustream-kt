@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
@@ -39,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.motionTween
@@ -59,7 +57,7 @@ fun WatchedBadge(iconSize: Int = 14) {
         Icon(
             imageVector = Icons.Default.Check,
             contentDescription = "Watched",
-            tint = AppColors.accent,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(iconSize.dp),
         )
     }
@@ -74,8 +72,8 @@ fun SyncingIndicator() {
     Row(
         modifier =
             Modifier
-                .clip(RoundedCornerShape(AppRadii.lg))
-                .background(AppColors.surfaceHigh)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -102,7 +100,7 @@ fun Message(
             modifier = Modifier.width(360.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(icon, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(40.dp))
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
             Spacer(Modifier.size(AppSpacing.md))
             Text(title, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.size(AppSpacing.xs))
@@ -209,7 +207,7 @@ fun PosterImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
 ) {
-    Box(modifier.background(AppColors.surface)) {
+    Box(modifier.background(MaterialTheme.colorScheme.surface)) {
         if (url.isNullOrEmpty()) {
             PosterFallback()
         } else {
@@ -229,7 +227,7 @@ private fun PosterFallback() {
         Icon(
             imageVector = Icons.Outlined.Movie,
             contentDescription = null,
-            tint = AppColors.textSecondary,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

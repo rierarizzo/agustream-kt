@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.core.model.BackendProfile
-import com.misgus.agustream.ui.theme.AppColors
 
 /**
  * Circular profile avatar, shared by the top bar and the profile picker.
@@ -32,7 +32,7 @@ fun ProfileAvatar(
     initialStyle: TextStyle,
     modifier: Modifier = Modifier,
 ) {
-    val color = profile?.avatarColorHex?.let(::parseHexColor) ?: AppColors.surfaceHigh
+    val color = profile?.avatarColorHex?.let(::parseHexColor) ?: MaterialTheme.colorScheme.surfaceContainerHigh
     Box(
         modifier = modifier.size(size).clip(CircleShape).background(color),
         contentAlignment = Alignment.Center,
@@ -50,13 +50,13 @@ fun ProfileAvatar(
                         .trim()
                         .firstOrNull()
                         ?.uppercase() ?: "?"
-                Text(text = initial, style = initialStyle, color = AppColors.textPrimary)
+                Text(text = initial, style = initialStyle, color = MaterialTheme.colorScheme.onSurface)
             }
             else ->
                 Icon(
                     Icons.Outlined.Person,
                     contentDescription = "Profile",
-                    tint = AppColors.textSecondary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(size * 0.56f),
                 )
         }

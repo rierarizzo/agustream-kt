@@ -15,12 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +49,7 @@ import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppRadii
+import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.PosterCaption
@@ -195,7 +195,7 @@ private fun ContinueCard(
     val interaction = rememberInteraction()
     val borderColor =
         animateColorAsState(
-            targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+            targetValue = if (interaction.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
             animationSpec = motionTween(),
             label = "borderColor",
         )
@@ -208,14 +208,14 @@ private fun ContinueCard(
                 Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
-                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
-                    .clip(RoundedCornerShape(AppRadii.md)),
+                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
+                    .clip(MaterialTheme.shapes.small),
         ) {
             PosterImage(backdrop, Modifier.fillMaxSize())
             progress.fraction?.let { fraction ->
                 LinearProgressIndicator(
                     progress = { fraction.toFloat() },
-                    color = AppColors.accent,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = AppColors.mediaScrim,
                     modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(3.dp),
                 )

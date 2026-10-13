@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppMotion
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
 import com.misgus.agustream.ui.theme.motionLayer
@@ -49,11 +49,11 @@ fun PosterTile(
     val interaction = rememberInteraction()
     val borderColor =
         animateColorAsState(
-            targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+            targetValue = if (interaction.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
             animationSpec = motionTween(),
             label = "borderColor",
         )
-    val shape = RoundedCornerShape(AppRadii.md)
+    val shape = MaterialTheme.shapes.small
     val fraction = progress?.fraction
     val inProgress = !watched && fraction != null && fraction > 0.02 && fraction < 0.95
     val scale =
@@ -76,7 +76,7 @@ fun PosterTile(
                     .fillMaxWidth()
                     .weight(1f)
                     .motionLayer(scale = { scale.value })
-                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
+                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
                     .clip(shape),
         ) {
             PosterImage(item.poster, Modifier.fillMaxSize())
@@ -86,7 +86,7 @@ fun PosterTile(
             if (inProgress) {
                 LinearProgressIndicator(
                     progress = { fraction.toFloat() },
-                    color = AppColors.accent,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = AppColors.mediaScrim,
                     modifier =
                         Modifier
@@ -106,6 +106,7 @@ fun PosterTile(
             Text(
                 text = year.toString(),
                 style = PosterCaption.meta(),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

@@ -44,7 +44,6 @@ import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.video.VideoSurface
 import kotlinx.coroutines.delay
@@ -345,7 +344,7 @@ private fun TrackMenu(
                             style = MaterialTheme.typography.bodyLarge,
                         )
                         row.detail?.let {
-                            Text(it, style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
+                            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }

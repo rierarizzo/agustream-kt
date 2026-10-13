@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -35,7 +36,6 @@ import com.misgus.agustream.ui.profiles.ProfilePicker
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.streams.StreamsDialog
 import com.misgus.agustream.ui.streams.StreamsRequest
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowHeight
@@ -78,7 +78,7 @@ fun AppShell() {
     val showNav = !isFullScreen && !immersive && navigator.current == null
     val gate = account.isSignedIn && account.requiresProfile && account.activeProfile == null
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(AppColors.background)) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val windowSize = WindowSize.of(maxWidth)
         CompositionLocalProvider(
             LocalSnackbarHost provides snackbarHost,
@@ -122,8 +122,8 @@ fun AppShell() {
                         // fades in over the space the sections reserve. Compact
                         // windows (phones) always get the icon-only bottom bar;
                         // wider windows pick the rail or the top bar in settings.
-                        val navFade = AppMotion.spec<Float>(motionEnabled, AppMotion.MEDIUM)
-                        val navSlide = AppMotion.spec<IntOffset>(motionEnabled, AppMotion.MEDIUM)
+                        val navFade = AppMotion.spec<Float>(motionEnabled, AppMotion.SLOW, easing = AppMotion.emphasized)
+                        val navSlide = AppMotion.spec<IntOffset>(motionEnabled, AppMotion.SLOW, easing = AppMotion.emphasized)
                         if (windowSize == WindowSize.COMPACT) {
                             AnimatedVisibility(
                                 visible = showNav,

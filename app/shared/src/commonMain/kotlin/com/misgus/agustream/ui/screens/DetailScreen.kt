@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -43,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,10 +64,8 @@ import com.misgus.agustream.ui.detail.DetailViewModel
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.streams.StreamsRequest
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppMotion
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -255,7 +251,7 @@ fun DetailScreen(
                 onClick = onBack,
                 modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(AppSpacing.md),
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
@@ -341,7 +337,7 @@ private fun DetailBackdrop(
         // Scroll-linked darkening and a light blur. It covers the whole
         // viewport, so the artwork stays behind the content all the way down,
         // never fully black.
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = HERO_FADE_MAX * fade)))
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = HERO_FADE_MAX * fade)))
     }
 }
 
@@ -402,14 +398,14 @@ private fun HeroContent(
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 style = AppType.heroBody(),
-                color = AppColors.textPrimary.copy(alpha = 0.92f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
             )
             if (state.genres.isNotEmpty()) {
                 Spacer(Modifier.height(AppSpacing.sm))
                 Text(
                     state.genres.joinToString("  ·  "),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = AppColors.textSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -488,7 +484,7 @@ private fun ActionItem(
         modifier =
             Modifier
                 .size(AppSizes.controlHeight)
-                .clip(RoundedCornerShape(AppRadii.sm))
+                .clip(MaterialTheme.shapes.extraSmall)
                 .background(interactionHighlight(interaction))
                 .clickableSurface(interaction, onClick, enabled = enabled && !loading)
                 .graphicsLayer { alpha = contentAlpha },
@@ -497,7 +493,7 @@ private fun ActionItem(
         Icon(
             icon,
             contentDescription = label,
-            tint = if (active) AppColors.accent else AppColors.textPrimary,
+            tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(AppIconSize.lg),
         )
     }

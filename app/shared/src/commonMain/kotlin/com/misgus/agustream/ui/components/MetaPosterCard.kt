@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,9 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.MetaPreview
-import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppMotion
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
 import com.misgus.agustream.ui.theme.motionLayer
@@ -44,11 +43,11 @@ fun MetaPosterCard(
     width: Dp? = null,
     onTap: () -> Unit,
 ) {
-    val shape = RoundedCornerShape(AppRadii.md)
+    val shape = MaterialTheme.shapes.small
     val interaction = rememberInteraction()
     val borderColor =
         animateColorAsState(
-            targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+            targetValue = if (interaction.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
             animationSpec = motionTween(),
             label = "borderColor",
         )
@@ -71,7 +70,7 @@ fun MetaPosterCard(
                     .fillMaxWidth()
                     .weight(1f)
                     .motionLayer(scale = { scale.value })
-                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
+                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
                     .clip(shape),
         ) {
             PosterImage(preview.poster, Modifier.fillMaxWidth().fillMaxHeight())
@@ -92,6 +91,7 @@ fun MetaPosterCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = PosterCaption.meta(),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

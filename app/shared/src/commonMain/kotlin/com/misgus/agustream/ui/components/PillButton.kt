@@ -10,15 +10,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.ui.theme.AppAlpha
+import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppIconSize
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 
@@ -39,12 +39,15 @@ fun PillButton(
     enabled: Boolean = true,
     loading: Boolean = false,
 ) {
-    val container = if (primary) Color.White else Color.White.copy(alpha = AppAlpha.HERO_ACTION)
-    val content = if (primary) Color.Black else Color.White
+    val scheme = MaterialTheme.colorScheme
+    // The primary call to action is the one high-contrast (light) surface on the
+    // dark UI, which is exactly the Material inverse roles.
+    val container = if (primary) scheme.inverseSurface else scheme.onSurface.copy(alpha = AppAlpha.HERO_ACTION)
+    val content = if (primary) scheme.inverseOnSurface else scheme.onSurface
     Button(
         onClick = onClick,
         enabled = enabled && !loading,
-        shape = RoundedCornerShape(AppRadii.md),
+        shape = RoundedCornerShape(AppCorner.full),
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
         contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.sm),
         modifier = modifier.height(AppSizes.controlHeight),

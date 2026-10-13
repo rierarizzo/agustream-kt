@@ -17,7 +17,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.ui.services.LocalAppServices
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -47,7 +46,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
             Text(
                 "Your library, addons and watch progress, together in one place.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(AppSpacing.xl))

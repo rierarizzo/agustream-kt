@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -44,8 +43,6 @@ import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
-import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.screenPadding
@@ -174,7 +171,7 @@ private fun WeekdayHeader() {
                 text = day,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f).padding(vertical = AppSpacing.xs),
             )
         }
@@ -234,20 +231,20 @@ private fun DayCell(
     onOpenDetail: (LibraryItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor = if (isToday) AppColors.accent else AppColors.divider
+    val borderColor = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
     Column(
         modifier =
             modifier
                 .clipToBounds()
                 .border(1.dp, borderColor)
-                .background(if (entries.isEmpty()) AppColors.background else AppColors.surface)
+                .background(if (entries.isEmpty()) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surface)
                 .padding(AppSpacing.xs),
     ) {
         date?.let {
             Text(
                 text = it.day.toString(),
                 style = MaterialTheme.typography.labelMedium,
-                color = if (isToday) AppColors.accent else AppColors.textSecondary,
+                color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Box(Modifier.weight(1f)) {
@@ -259,7 +256,7 @@ private fun DayCell(
                     Text(
                         text = "+${entries.size - MAX_ENTRIES_PER_DAY} more",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.textSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -276,7 +273,7 @@ private fun EpisodeChip(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(AppRadii.sm))
+                .clip(MaterialTheme.shapes.extraSmall)
                 .clickable(onClick = onTap)
                 .padding(2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -285,7 +282,7 @@ private fun EpisodeChip(
             modifier =
                 Modifier
                     .size(width = 30.dp, height = 42.dp)
-                    .clip(RoundedCornerShape(AppRadii.sm)),
+                    .clip(MaterialTheme.shapes.extraSmall),
         ) {
             PosterImage(entry.item.poster, Modifier.fillMaxSize())
         }
@@ -296,14 +293,14 @@ private fun EpisodeChip(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.labelMedium,
-                color = AppColors.textPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = episodeLabel(entry),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.accent,
+                color = MaterialTheme.colorScheme.primary,
             )
             entry.video.title?.takeIf { it.isNotEmpty() }?.let {
                 Text(
@@ -311,7 +308,7 @@ private fun EpisodeChip(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.textSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

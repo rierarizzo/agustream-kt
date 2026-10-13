@@ -30,7 +30,7 @@ import com.misgus.agustream.imaging.configureImageLoader
 import com.misgus.agustream.player.MpvPlayerService
 import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
-import com.misgus.agustream.ui.theme.AppColors
+import com.misgus.agustream.ui.theme.AppWindowChrome
 import kotlinx.coroutines.delay
 import java.awt.Dimension
 
@@ -110,8 +110,8 @@ fun main(args: Array<String>) {
             // AWT does not follow the OS dark mode for the native title bar, so
             // ask DWM. The native peer may not exist on the first frame; retry.
             LaunchedEffect(window) {
-                val caption = AppColors.background.toAwtColor()
-                val title = AppColors.textPrimary.toAwtColor()
+                val caption = AppWindowChrome.background.toAwtColor()
+                val title = AppWindowChrome.foreground.toAwtColor()
                 repeat(DARK_TITLE_BAR_ATTEMPTS) {
                     if (applyDarkTitleBar(window, caption = caption, text = title)) return@LaunchedEffect
                     delay(TITLE_BAR_RETRY_DELAY_MS)
@@ -120,7 +120,7 @@ fun main(args: Array<String>) {
             // Paint the native window with the app background so resizing does
             // not flash the default white surface before Compose's next frame.
             SideEffect {
-                applyBackground(window, AppColors.background.toAwtColor())
+                applyBackground(window, AppWindowChrome.background.toAwtColor())
             }
             AgustreamApp(
                 services = services,

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -46,8 +45,7 @@ import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.motionBorder
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.services.LocalAppServices
-import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppRadii
+import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.PosterCaption
@@ -89,7 +87,7 @@ private fun PersonCard(person: MetaPerson) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.size(88.dp).clip(RoundedCornerShape(AppRadii.md)).background(AppColors.surfaceHigh),
+            modifier = Modifier.size(88.dp).clip(MaterialTheme.shapes.small).background(MaterialTheme.colorScheme.surfaceContainerHigh),
             contentAlignment = Alignment.Center,
         ) {
             val photo = person.photo
@@ -138,7 +136,7 @@ internal fun DetailsSection(entries: List<Pair<String, String>>) {
                     Text(
                         label.uppercase(),
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(AppSpacing.xs))
                     Text(value, style = MaterialTheme.typography.bodyLarge)
@@ -175,7 +173,12 @@ internal fun SimilarRow(
                 val interaction = rememberInteraction()
                 val borderColor =
                     animateColorAsState(
-                        targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+                        targetValue =
+                            if (interaction.active) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.outlineVariant
+                            },
                         animationSpec = motionTween(),
                         label = "borderColor",
                     )
@@ -186,8 +189,8 @@ internal fun SimilarRow(
                         Modifier
                             .fillMaxWidth()
                             .aspectRatio(2f / 3f)
-                            .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
-                            .clip(RoundedCornerShape(AppRadii.md)),
+                            .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
+                            .clip(MaterialTheme.shapes.small),
                     ) {
                         PosterImage(item.poster, Modifier.fillMaxSize())
                     }
@@ -238,7 +241,12 @@ internal fun EpisodesSection(
                         TextButton(onClick = { season = value }) {
                             Text(
                                 seasonLabel(value),
-                                color = if (value == season) AppColors.accent else AppColors.textSecondary,
+                                color =
+                                    if (value == season) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
                             )
                         }
                     }
@@ -312,7 +320,7 @@ private fun EpisodeCard(
     val interaction = rememberInteraction()
     val borderColor =
         animateColorAsState(
-            targetValue = if (interaction.active) AppColors.accent else AppColors.divider,
+            targetValue = if (interaction.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
             animationSpec = motionTween(),
             label = "borderColor",
         )
@@ -321,8 +329,8 @@ private fun EpisodeCard(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppRadii.md)
-                .clip(RoundedCornerShape(AppRadii.md)),
+                .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
+                .clip(MaterialTheme.shapes.small),
         ) {
             PosterImage(video.thumbnail, Modifier.fillMaxSize())
         }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
@@ -55,9 +54,7 @@ import com.misgus.agustream.core.model.Stream
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
-import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppMotion
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowWidth
@@ -121,8 +118,8 @@ fun StreamsDialog(
                         .width(dialogWidth)
                         .fillMaxHeight(0.82f)
                         .motionLayer(scale = { enterScale.value }, alpha = { enterAlpha.value })
-                        .clip(RoundedCornerShape(AppRadii.lg))
-                        .background(AppColors.background),
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .background(MaterialTheme.colorScheme.background),
             ) {
                 Column(Modifier.fillMaxSize()) {
                     Header(
@@ -246,8 +243,8 @@ private fun StreamCard(
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = AppSpacing.xl, vertical = AppSpacing.xs)
-                .clip(RoundedCornerShape(AppRadii.md))
-                .background(AppColors.surface)
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(AppSpacing.md),
         verticalAlignment = Alignment.Top,
     ) {
@@ -265,7 +262,7 @@ private fun StreamCard(
             )
             secondary?.let {
                 Spacer(Modifier.height(2.dp))
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = AppColors.textSecondary)
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         size?.let {
@@ -287,7 +284,7 @@ private fun Message(
 ) {
     Box(Modifier.fillMaxSize(), Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(40.dp))
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
             Spacer(Modifier.height(AppSpacing.md))
             Text(text, style = MaterialTheme.typography.bodyLarge)
         }
