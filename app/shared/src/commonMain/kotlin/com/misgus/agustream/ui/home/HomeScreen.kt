@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
@@ -154,7 +155,7 @@ private fun HomeContent(
                 if (state.continueWatching.isNotEmpty()) {
                     SectionHeader(title = stringResource(Res.string.home_continue_watching))
                     LazyRow(
-                        modifier = Modifier.height(if (compact) CompactContinueHeight else ContinueHeight),
+                        modifier = Modifier.heightIn(min = if (compact) CompactContinueHeight else ContinueHeight),
                         contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
                         horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
                     ) {

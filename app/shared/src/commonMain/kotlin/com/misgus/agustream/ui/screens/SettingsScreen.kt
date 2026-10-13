@@ -72,6 +72,7 @@ import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.onboarding.SignInForm
 import com.misgus.agustream.ui.platform.openInDefaultApp
@@ -110,7 +111,11 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
         Column(
             modifier = Modifier.widthIn(max = SETTINGS_MAX_WIDTH).fillMaxWidth().padding(LocalWindowSize.current.screenPadding),
         ) {
-            Text(stringResource(Res.string.settings_title), style = MaterialTheme.typography.headlineLarge)
+            Text(
+                stringResource(Res.string.settings_title),
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.sectionHeading(),
+            )
             Spacer(Modifier.height(AppSpacing.lg))
             AccountCard()
             Spacer(Modifier.height(AppSpacing.lg))
@@ -392,7 +397,7 @@ private fun SettingsCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(modifier = Modifier.padding(AppSpacing.lg)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.sectionHeading())
             Spacer(Modifier.height(AppSpacing.xs))
             Text(subtitle, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(AppSpacing.md))

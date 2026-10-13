@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -37,6 +38,10 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -47,6 +52,12 @@ import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
+
+/**
+ * Marks a text node as a heading, so accessibility services can jump between
+ * sections instead of reading the screen linearly.
+ */
+fun Modifier.sectionHeading(): Modifier = semantics { heading() }
 
 /** Check badge shown on a title the account marked as watched. */
 @Composable
@@ -79,7 +90,8 @@ fun SyncingIndicator() {
             Modifier
                 .clip(MaterialTheme.shapes.medium)
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs),
+                .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs)
+                .semantics { liveRegion = LiveRegionMode.Polite },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
@@ -102,12 +114,12 @@ fun Message(
         contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier = Modifier.width(360.dp),
+            modifier = Modifier.widthIn(max = 360.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
             Spacer(Modifier.size(AppSpacing.md))
-            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.sectionHeading())
             Spacer(Modifier.size(AppSpacing.xs))
             Text(
                 message,
@@ -142,7 +154,7 @@ fun SectionHeader(
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).sectionHeading())
         onSeeAll?.let {
             TextButton(onClick = it) {
                 Text(stringResource(Res.string.action_see_all))

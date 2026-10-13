@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,6 +53,7 @@ import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.motionBorder
 import com.misgus.agustream.ui.components.rememberInteraction
+import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -169,7 +171,7 @@ internal fun SimilarRow(
     Column {
         Text(
             stringResource(Res.string.detail_you_may_also_like),
-            modifier = Modifier.padding(horizontal = AppSpacing.xl),
+            modifier = Modifier.padding(horizontal = AppSpacing.xl).sectionHeading(),
             style = MaterialTheme.typography.titleLarge,
         )
         Spacer(Modifier.height(AppSpacing.sm))
@@ -246,7 +248,11 @@ internal fun EpisodesSection(
             modifier = Modifier.fillMaxWidth().padding(horizontal = windowSize.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(stringResource(Res.string.detail_episodes), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            Text(
+                stringResource(Res.string.detail_episodes),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f).sectionHeading(),
+            )
             if (seasons.size > 1) {
                 Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
                     seasons.forEach { value ->
@@ -267,7 +273,7 @@ internal fun EpisodesSection(
         }
         Spacer(Modifier.height(AppSpacing.md))
         LazyRow(
-            modifier = Modifier.height(190.dp),
+            modifier = Modifier.heightIn(min = 190.dp),
             contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
             horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
         ) {

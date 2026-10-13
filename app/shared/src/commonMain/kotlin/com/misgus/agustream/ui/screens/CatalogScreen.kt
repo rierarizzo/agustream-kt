@@ -49,6 +49,7 @@ import com.misgus.agustream.ui.catalog.CatalogViewModel
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
+import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -112,6 +113,7 @@ fun CatalogScreen(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.sectionHeading(),
                 )
                 Text(ref.addonName, style = MaterialTheme.typography.bodyMedium)
             }

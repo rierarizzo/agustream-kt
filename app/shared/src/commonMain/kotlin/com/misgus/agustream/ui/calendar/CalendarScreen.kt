@@ -66,6 +66,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.PosterImage
+import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
@@ -178,6 +179,7 @@ private fun MonthHeader(
                 text = formatMonth(month),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
+                modifier = Modifier.sectionHeading(),
             )
             if (isLoading) {
                 Spacer(Modifier.width(AppSpacing.sm))

@@ -54,6 +54,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
@@ -62,6 +64,7 @@ import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SectionHeader
+import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.discover.DiscoverFeed
 import com.misgus.agustream.ui.discover.DiscoverViewModel
@@ -134,11 +137,12 @@ fun SearchScreen(
                 text = stringResource(Res.string.search_discover),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier =
-                    Modifier.padding(
-                        start = LocalWindowSize.current.screenPadding,
-                        end = LocalWindowSize.current.screenPadding,
-                        top = AppSpacing.lg,
-                    ),
+                    Modifier
+                        .padding(
+                            start = LocalWindowSize.current.screenPadding,
+                            end = LocalWindowSize.current.screenPadding,
+                            top = AppSpacing.lg,
+                        ).sectionHeading(),
             )
         }
         FilterRow(
@@ -264,12 +268,14 @@ private fun <T> FilterDropdown(
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
+                val isSelected = option == selected
                 DropdownMenuItem(
                     text = { Text(optionLabel(option)) },
                     onClick = {
                         onSelect(option)
                         expanded = false
                     },
+                    modifier = Modifier.semantics { this.selected = isSelected },
                 )
             }
         }

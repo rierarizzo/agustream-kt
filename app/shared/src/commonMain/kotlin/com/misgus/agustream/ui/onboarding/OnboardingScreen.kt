@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.repository.SignInMethod
+import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
@@ -46,7 +47,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.widthIn(max = ONBOARDING_MAX_WIDTH).padding(LocalWindowSize.current.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(stringResource(Res.string.app_name), style = AppType.screenTitle())
+            Text(stringResource(Res.string.app_name), style = AppType.screenTitle(), modifier = Modifier.sectionHeading())
             Spacer(Modifier.height(AppSpacing.sm))
             Text(
                 stringResource(Res.string.onboarding_tagline),

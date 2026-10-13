@@ -42,6 +42,7 @@ import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
+import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
@@ -67,7 +68,7 @@ fun ProfilePicker(modifier: Modifier = Modifier) {
             modifier = Modifier.width(720.dp).padding(LocalWindowSize.current.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(stringResource(Res.string.profiles_title), style = AppType.screenTitle())
+            Text(stringResource(Res.string.profiles_title), style = AppType.screenTitle(), modifier = Modifier.sectionHeading())
             Spacer(Modifier.height(AppSpacing.xs))
             Text(
                 stringResource(Res.string.profiles_subtitle),

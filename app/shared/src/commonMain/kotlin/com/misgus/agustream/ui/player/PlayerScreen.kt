@@ -11,7 +11,6 @@ import agustream.app.shared.generated.resources.player_track_off
 import agustream.app.shared.generated.resources.player_track_subtitle
 import agustream.app.shared.generated.resources.player_track_trusted
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +18,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -337,7 +338,7 @@ private fun TrackMenu(
         },
         title = { Text(title) },
         text = {
-            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).selectableGroup()) {
                 if (rows.isEmpty()) {
                     Text(stringResource(Res.string.player_no_tracks), style = MaterialTheme.typography.bodyMedium)
                 }
@@ -346,10 +347,13 @@ private fun TrackMenu(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    row.onSelect()
-                                    onDismiss()
-                                }.padding(vertical = AppSpacing.sm),
+                                .selectable(
+                                    selected = row.selected,
+                                    onClick = {
+                                        row.onSelect()
+                                        onDismiss()
+                                    },
+                                ).padding(vertical = AppSpacing.sm),
                     ) {
                         Text(
                             text = if (row.selected) "● ${row.label}" else "○ ${row.label}",

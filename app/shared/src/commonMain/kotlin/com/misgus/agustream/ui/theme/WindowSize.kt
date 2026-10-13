@@ -19,7 +19,10 @@ enum class WindowSize {
     /** Phone portrait, or a narrow window: below 600dp. */
     COMPACT,
 
-    /** Phone landscape, tablet portrait, or a medium window: 600dp to 839dp. */
+    /**
+     * Phone landscape, tablet portrait, or a medium window: 600dp to 839dp.
+     * Shares the expanded layout for now; kept apart for a future tablet one.
+     */
     MEDIUM,
 
     /** Tablet landscape, desktop, or TV: 840dp and up. */
@@ -59,15 +62,6 @@ val LocalWindowSize = staticCompositionLocalOf { WindowSize.EXPANDED }
  * Defaults to [Dp.Infinity], which leaves such a caller unconstrained.
  */
 val LocalWindowWidth = staticCompositionLocalOf { Dp.Infinity }
-
-/**
- * Height of the app window in dp.
- *
- * A surface that cannot measure its own viewport — one inside a vertical scroll,
- * where the incoming height constraint is unbounded — reads it to cap its size.
- * Defaults to [Dp.Infinity], which leaves such a caller uncapped.
- */
-val LocalWindowHeight = staticCompositionLocalOf { Dp.Infinity }
 
 /**
  * Height of the status bar (and any display cutout), in dp.

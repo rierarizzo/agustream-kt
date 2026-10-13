@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.ui.components.ProfileAvatar
@@ -127,6 +129,7 @@ private fun RailNavItem(
     onTap: () -> Unit,
 ) {
     val interaction = rememberInteraction()
+    val isSelected = selected
     val background =
         interactionHighlight(
             interaction,
@@ -145,7 +148,8 @@ private fun RailNavItem(
                 .size(AppSizes.minTouchTarget)
                 .clip(MaterialTheme.shapes.small)
                 .background(background)
-                .clickableSurface(interaction, onTap),
+                .clickableSurface(interaction, onTap)
+                .semantics { this.selected = isSelected },
         contentAlignment = Alignment.Center,
     ) {
         Icon(

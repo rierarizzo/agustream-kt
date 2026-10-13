@@ -29,6 +29,7 @@ import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.SignInRequest
 import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.ui.onboarding.OnboardingScreen
+import com.misgus.agustream.ui.platform.systemAnimationsEnabled
 import com.misgus.agustream.ui.player.PlayerScreen
 import com.misgus.agustream.ui.services.AppServices
 import com.misgus.agustream.ui.services.LocalAppServices
@@ -38,7 +39,6 @@ import com.misgus.agustream.ui.theme.AgustreamTheme
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
-import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.LocalWindowWidth
 import com.misgus.agustream.ui.theme.WindowSize
@@ -85,7 +85,7 @@ fun AgustreamApp(
     CompositionLocalProvider(
         LocalAppServices provides services,
         LocalViewModelStoreOwner provides owner,
-        LocalMotionEnabled provides settings.animationsEnabled,
+        LocalMotionEnabled provides (settings.animationsEnabled && systemAnimationsEnabled()),
     ) {
         AgustreamTheme {
             // Publish the window class and insets once, at the root, so every
@@ -95,7 +95,6 @@ fun AgustreamApp(
                 CompositionLocalProvider(
                     LocalWindowSize provides windowSize,
                     LocalWindowWidth provides maxWidth,
-                    LocalWindowHeight provides maxHeight,
                 ) {
                     Surface(
                         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
