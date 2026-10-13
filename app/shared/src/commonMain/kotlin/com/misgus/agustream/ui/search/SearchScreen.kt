@@ -229,6 +229,7 @@ private fun <T> FilterDropdown(
     Box(modifier) {
         OutlinedButton(
             onClick = { expanded = true },
+            shape = MaterialTheme.shapes.small,
             contentPadding = PaddingValues(horizontal = AppSpacing.md, vertical = AppSpacing.xs),
         ) {
             Text(
@@ -279,9 +280,9 @@ private fun SearchResults(
             )
         else -> {
             val visible = state.results.filter(matches)
-            val movies = visible.filter { it.type == "movie" }
-            val series = visible.filter { it.type == "series" }
-            val other = visible.filter { it.type != "movie" && it.type != "series" }
+            val movies = visible.filter(MediaTypeFilter.MOVIES::matches)
+            val series = visible.filter(MediaTypeFilter.SERIES::matches)
+            val other = visible.filter { !MediaTypeFilter.MOVIES.matches(it) && !MediaTypeFilter.SERIES.matches(it) }
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 if (movies.isNotEmpty()) {
                     SectionHeader("Movies")

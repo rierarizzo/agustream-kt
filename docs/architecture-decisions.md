@@ -93,7 +93,7 @@ engine, the filesystem and the player touch platform source sets through
   where the OS allows it; that is best-effort hardening, not a keychain.
 - **Settings** live in `settings.json` as a flat JSON object with dotted keys,
   like VS Code's `settings.json` (`animations.enabled`, `player.resumePlayback`,
-  `player.autoPlayNext`, `poster.size`, `library.poster.size`, `nav.style`).
+  `player.autoPlayNext`, `poster.size`, `library.poster.size`).
   `JsonSettingsRepository` reads it defensively, keeps unknown keys on write and
   can `reload()` after a manual edit; the settings screen groups the toggles by
   category, edits the same file, shows its path and can open it in the OS
@@ -143,10 +143,8 @@ engine, the filesystem and the player touch platform source sets through
   expanded, at Material's 600 and 840 dp breakpoints) plus the window width,
   through `LocalWindowSize` / `LocalWindowWidth`, so a surface picks a layout
   without measuring anything itself. Compact windows (phones) always get an
-  icon-only bottom bar and reserve its height; wider windows pick their
-  navigation with the `nav.style` setting — an opaque vertical rail on the left
-  (reserving its width) or the centered top bar (reserving its height). The
-  setting is hidden on a compact window, where it would have no effect.
+  icon-only bottom bar and reserve its height; wider windows always get the
+  centered top bar and reserve its height.
   The poster grids and rails scale their cell width down on compact windows
   (the user's small / default / large choice still applies), the Home hero swaps
   the wide billboard for the poster crop without the title logo, the detail
@@ -163,7 +161,7 @@ engine, the filesystem and the player touch platform source sets through
   `WindowInsets.statusBars` / `navigationBars`, zero on desktop) or the
   `statusBarsPadding` / `navigationBarsPadding` / `safeDrawingPadding`
   modifiers. The shell reserves the navigation plus the system bars it sits
-  behind for a section (the bottom bar on a phone, the left rail on a wide
+  behind for a section (the bottom bar on a phone, the top bar on a wide
   window); the navigation bars carry their own inset; the detail backdrop, the
   player and the onboarding/profile gates paint behind the bars while their
   controls sit below them; and the Home billboard is full-bleed, so the artwork
@@ -172,10 +170,8 @@ engine, the filesystem and the player touch platform source sets through
   the viewport; the image is drawn `Fit` so the whole artwork is shown, over a
   blurred, cover-filled copy of itself (dimmed) and the gradient, so a wide
   artwork leaves no side bars instead of being cropped to fill. On a wide window
-  the rail uses the shell background — no separate surface or edge — with the
-  profile and section items centered, and the content reserves its width (or the
-  top bar's height when `nav.style` is the top bar), so the navigation never
-  overlaps it.
+  the top bar floats over the content, which reserves its height, so the
+  navigation never overlaps it.
 - **Typography.** Inter is bundled through Compose Resources, so every target
   renders the same typeface, and text is written in `sp` so Android's system
   font size keeps working. `LocalDensity` is deliberately never overridden: that
@@ -189,14 +185,14 @@ engine, the filesystem and the player touch platform source sets through
   rendered inside the shell content area. Sections keep the top navigation
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such
   as the detail one fills the whole window — the same behaviour as the Flutter
-  nested `Navigator`, without adding a navigation library. The chrome itself is
-  Material 3: a compact window gets a `NavigationBar` with icon-only
-  `NavigationBarItem`s, a wide window a `NavigationRail` with the profile as its
-  header and `NavigationRailItem`s, and the top bar keeps custom items styled
-  with the Material navigation colours (a secondary-container selection
-  indicator), since Material has no multi-destination top bar. The container
-  still owns the surface colour and the system insets, so the rail and the bar
-  add neither and their backgrounds reach the window edges.
+  nested `Navigator`, without adding a navigation library. The chrome mixes
+  Material and custom: a compact window gets a `NavigationBar` with icon-only
+  `NavigationBarItem`s; a wide window a centered top bar with custom items,
+  since Material has no multi-destination top bar. The top bar items use a
+  translucent on-surface fill for the selection, with the hover/press state
+  layer blended over it so a selected item never loses its fill. The
+  container still owns the surface colour and the system insets, so the bar adds
+  neither and its background reaches the window edges.
 - **Search owns the discover feed.** It has a free-text search across every
   catalog that declares the `search` extra, debounced, run in parallel and
   deduped across addons, split into Movies / Series / Other rails; and — while
@@ -219,8 +215,9 @@ engine, the filesystem and the player touch platform source sets through
 - **Theme** follows Material 3. `AgustreamTheme` supplies the full
   `darkColorScheme` (every role, including the surface-container tiers,
   `outline`/`outlineVariant`, `inverse*`, `tertiary` and the error containers),
-  the Inter typeface loaded from Compose Resources, and a Material 3 shape scale
-  (`AppCorner` feeds `MaterialTheme.shapes`: 4/8/12/16/28dp). The UI reads
+  the Inter typeface loaded from Compose Resources, and a small, square-ish
+  shape scale (`AppCorner` feeds `MaterialTheme.shapes`: 2/4/6/8/12dp; the app
+  reads square, not rounded). The UI reads
   semantic colours from `MaterialTheme.colorScheme`; the raw brand palette is
   private and only fills the scheme, so stock Material3 components and custom
   surfaces stay on the same colours. `AppColors` keeps only `mediaScrim`, a

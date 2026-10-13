@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.misgus.agustream.core.repository.SignInRequest
-import com.misgus.agustream.ui.components.PillButton
+import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -93,7 +93,7 @@ fun SignInForm(modifier: Modifier = Modifier) {
             )
         }
         Spacer(Modifier.height(AppSpacing.md))
-        PillButton(
+        ActionButton(
             text = "Sign in",
             onClick = submit,
             icon = Icons.AutoMirrored.Outlined.Login,

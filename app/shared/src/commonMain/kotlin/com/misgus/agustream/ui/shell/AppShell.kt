@@ -3,9 +3,7 @@ package com.misgus.agustream.ui.shell
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -31,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
-import com.misgus.agustream.core.repository.NavStyle
 import com.misgus.agustream.ui.profiles.ProfilePicker
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.streams.StreamsDialog
@@ -50,18 +47,16 @@ import kotlinx.coroutines.launch
  * The content area fills the whole window and the navigation floats over it, so
  * showing or hiding it never changes the content viewport. That matters:
  * resizing the viewport clamps a section's scroll (it was scrolled back up when
- * a route hid the bar). Sections reserve the bar's height (or the rail's width)
- * with padding; pushed routes use the full window and let the bar fade away.
+ * a route hid the bar). Sections reserve the bar's height with padding; pushed
+ * routes use the full window and let the bar fade away.
  */
 @Composable
 fun AppShell() {
     val services = LocalAppServices.current
     val account by services.account.state.collectAsStateWithLifecycle()
-    val settings by services.settings.state.collectAsStateWithLifecycle()
     val isFullScreen by services.window.isFullScreen.collectAsStateWithLifecycle()
     val immersive = services.chrome.immersive
     val motionEnabled = LocalMotionEnabled.current
-    val navStyle = settings.navStyle
 
     var selected by remember { mutableStateOf(AppSection.HOME) }
     val navigator = remember { ContentNavigator() }
@@ -105,7 +100,6 @@ fun AppShell() {
                         ContentArea(
                             selected = selected,
                             navigator = navigator,
-                            navStyle = navStyle,
                             onOpenStreams = { request ->
                                 if (services.playbackSupported) {
                                     streamsRequest = request
@@ -120,8 +114,8 @@ fun AppShell() {
                         )
                         // The navigation never changes the content viewport: it
                         // fades in over the space the sections reserve. Compact
-                        // windows (phones) always get the icon-only bottom bar;
-                        // wider windows pick the rail or the top bar in settings.
+                        // windows (phones) get the icon-only bottom bar; wider
+                        // windows get the top bar.
                         val navFade = AppMotion.spec<Float>(motionEnabled, AppMotion.SLOW, easing = AppMotion.emphasized)
                         val navSlide = AppMotion.spec<IntOffset>(motionEnabled, AppMotion.SLOW, easing = AppMotion.emphasized)
                         if (windowSize == WindowSize.COMPACT) {
@@ -134,38 +128,17 @@ fun AppShell() {
                                 BottomNav(selected = selected, onSelected = selectSection)
                             }
                         } else {
-                            val useRail = navStyle == NavStyle.RAIL
-                            val slideIn =
-                                if (useRail) {
-                                    slideInHorizontally(navSlide) { -it }
-                                } else {
-                                    slideInVertically(navSlide) { -it }
-                                }
-                            val slideOut =
-                                if (useRail) {
-                                    slideOutHorizontally(navSlide) { -it }
-                                } else {
-                                    slideOutVertically(navSlide) { -it }
-                                }
                             AnimatedVisibility(
                                 visible = showNav,
-                                modifier = Modifier.align(if (useRail) Alignment.CenterStart else Alignment.TopCenter),
-                                enter = fadeIn(navFade) + slideIn,
-                                exit = fadeOut(navFade) + slideOut,
+                                modifier = Modifier.align(Alignment.TopCenter),
+                                enter = fadeIn(navFade) + slideInVertically(navSlide) { -it },
+                                exit = fadeOut(navFade) + slideOutVertically(navSlide) { -it },
                             ) {
-                                if (useRail) {
-                                    LeftNav(
-                                        selected = selected,
-                                        onSelected = selectSection,
-                                        activeProfile = account.activeProfile,
-                                    )
-                                } else {
-                                    TopNav(
-                                        selected = selected,
-                                        onSelected = selectSection,
-                                        activeProfile = account.activeProfile,
-                                    )
-                                }
+                                TopNav(
+                                    selected = selected,
+                                    onSelected = selectSection,
+                                    activeProfile = account.activeProfile,
+                                )
                             }
                         }
                     }

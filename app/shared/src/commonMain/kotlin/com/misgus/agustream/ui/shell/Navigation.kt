@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -20,8 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +31,7 @@ import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
+import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSizes
@@ -85,65 +83,6 @@ fun TopNav(
 }
 
 /**
- * Vertical navigation rail for wide windows.
- *
- * Opaque and left-aligned, with the profile as the rail header. It floats over
- * the content, which reserves the rail's width, so showing or hiding it never
- * resizes the content viewport.
- */
-@Composable
-fun LeftNav(
-    selected: AppSection,
-    onSelected: (AppSection) -> Unit,
-    activeProfile: BackendProfile? = null,
-) {
-    // The container carries the surface and the system insets, so the rail
-    // itself adds neither and the background reaches the window edges.
-    Box(
-        Modifier
-            .fillMaxHeight()
-            .width(AppSizes.railWidth)
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .statusBarsPadding()
-            .navigationBarsPadding(),
-    ) {
-        NavigationRail(
-            modifier = Modifier.fillMaxHeight(),
-            containerColor = Color.Transparent,
-            // The container above already handles the system bars.
-            windowInsets = WindowInsets(0, 0, 0, 0),
-            header = {
-                ProfileAvatar(
-                    profile = activeProfile,
-                    size = 32.dp,
-                    initialStyle = MaterialTheme.typography.titleMedium,
-                )
-            },
-        ) {
-            AppSection.entries.forEach { section ->
-                NavigationRailItem(
-                    selected = section == selected,
-                    onClick = { onSelected(section) },
-                    icon = {
-                        Icon(
-                            imageVector = if (section == selected) section.selectedIcon else section.icon,
-                            contentDescription = section.label,
-                            modifier = Modifier.size(AppIconSize.lg),
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = section.label,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    },
-                )
-            }
-        }
-    }
-}
-
-/**
  * Icon-only bottom navigation for compact windows.
  *
  * A bar with labels does not fit a phone; the icons alone do, and the bar sits
@@ -186,7 +125,7 @@ fun BottomNav(
     }
 }
 
-/** One section in the custom top bar, styled with the Material navigation colours. */
+/** One section in the custom top bar, with a translucent selected fill. */
 @Composable
 private fun TopNavItem(
     section: AppSection,
@@ -197,10 +136,15 @@ private fun TopNavItem(
     val background =
         interactionHighlight(
             interaction,
-            base = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+            base =
+                if (selected) {
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.NAV_SELECTED)
+                } else {
+                    Color.Transparent
+                },
         )
     val contentColor =
-        if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+        if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
     Row(
         modifier =
             Modifier

@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.BackendProfile
-import com.misgus.agustream.ui.components.PillButton
+import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
@@ -148,7 +148,7 @@ private fun Problem(
         Spacer(Modifier.height(AppSpacing.md))
         Text(message, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(AppSpacing.md))
-        PillButton(
+        ActionButton(
             text = "Try again",
             onClick = onRetry,
             icon = Icons.Default.Refresh,

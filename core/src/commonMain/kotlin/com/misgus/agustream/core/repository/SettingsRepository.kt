@@ -9,20 +9,6 @@ enum class PosterSize {
     LARGE,
 }
 
-/**
- * Primary navigation on a wide window.
- *
- * Compact windows always use the bottom bar, so this only applies to tablets
- * and desktops.
- */
-enum class NavStyle {
-    /** Horizontal bar centered at the top. */
-    TOP_BAR,
-
-    /** Vertical rail on the left. */
-    RAIL,
-}
-
 /** Locally stored preferences. */
 data class AppSettings(
     /** Play the app's motion (transitions, hover, skeletons). */
@@ -38,8 +24,6 @@ data class AppSettings(
     val posterSize: PosterSize = PosterSize.DEFAULT,
     /** Poster size for the library grid, kept apart from [posterSize]. */
     val libraryPosterSize: PosterSize = PosterSize.DEFAULT,
-    /** Navigation layout on a wide window; ignored on a compact one. */
-    val navStyle: NavStyle = NavStyle.RAIL,
 )
 
 /**
@@ -71,6 +55,4 @@ interface SettingsRepository {
     suspend fun setPosterSize(size: PosterSize)
 
     suspend fun setLibraryPosterSize(size: PosterSize)
-
-    suspend fun setNavStyle(style: NavStyle)
 }

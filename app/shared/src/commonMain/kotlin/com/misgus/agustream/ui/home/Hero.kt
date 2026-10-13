@@ -29,9 +29,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.MetaPreview
+import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
-import com.misgus.agustream.ui.components.PillButton
 import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.ratingText
 import com.misgus.agustream.ui.theme.AppAlpha
@@ -183,8 +183,8 @@ private fun HeroSlide(
             }
             Spacer(Modifier.height(AppSpacing.lg))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                PillButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
-                PillButton(text = "More info", icon = Icons.Outlined.Info, onClick = onOpen, primary = false)
+                ActionButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
+                ActionButton(text = "More info", icon = Icons.Outlined.Info, onClick = onOpen, primary = false)
             }
         }
     }

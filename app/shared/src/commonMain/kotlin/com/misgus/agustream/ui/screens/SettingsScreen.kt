@@ -34,10 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
-import com.misgus.agustream.core.repository.NavStyle
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.core.repository.SignInMethod
-import com.misgus.agustream.ui.components.PillButton
+import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.onboarding.SignInForm
 import com.misgus.agustream.ui.platform.openInDefaultApp
@@ -45,7 +44,6 @@ import com.misgus.agustream.ui.platform.pickVideoFile
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
-import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.launch
 
@@ -86,8 +84,6 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
                 onPosterSizeChange = { value -> save { settings.setPosterSize(value) } },
                 libraryPosterSize = state.libraryPosterSize,
                 onLibraryPosterSizeChange = { value -> save { settings.setLibraryPosterSize(value) } },
-                navStyle = state.navStyle,
-                onNavStyleChange = { value -> save { settings.setNavStyle(value) } },
             )
             Spacer(Modifier.height(AppSpacing.lg))
             PlaybackSettingsCard(
@@ -135,7 +131,7 @@ private fun AccountCard() {
             },
     ) {
         if (state.isSignedIn) {
-            PillButton(
+            ActionButton(
                 text = "Sign out",
                 onClick = {
                     signingOut = true
@@ -171,8 +167,6 @@ private fun AppearanceCard(
     onPosterSizeChange: (PosterSize) -> Unit,
     libraryPosterSize: PosterSize,
     onLibraryPosterSizeChange: (PosterSize) -> Unit,
-    navStyle: NavStyle,
-    onNavStyleChange: (NavStyle) -> Unit,
 ) {
     SettingsCard(
         title = "Appearance",
@@ -201,18 +195,6 @@ private fun AppearanceCard(
                 label = { it.label() },
                 onSelect = onLibraryPosterSizeChange,
             )
-            // A phone always uses the bottom bar, so the choice only makes sense
-            // on a wide window.
-            if (LocalWindowSize.current != WindowSize.COMPACT) {
-                SettingsChoice(
-                    title = "Navigation",
-                    subtitle = "Where the section menu lives on a wide window.",
-                    options = NavStyle.entries,
-                    selected = navStyle,
-                    label = { it.label() },
-                    onSelect = onNavStyleChange,
-                )
-            }
         }
     }
 }
@@ -263,8 +245,8 @@ private fun ConfigFileCard(
             )
             Spacer(Modifier.height(AppSpacing.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                PillButton(text = "Open settings.json", onClick = onOpen, primary = false)
-                PillButton(text = "Reload from file", onClick = onReload, primary = false)
+                ActionButton(text = "Open settings.json", onClick = onOpen, primary = false)
+                ActionButton(text = "Reload from file", onClick = onReload, primary = false)
             }
         }
     }
@@ -309,13 +291,13 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
             )
             Spacer(Modifier.height(AppSpacing.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                PillButton(
+                ActionButton(
                     text = "Play URL",
                     onClick = { onOpenPlayer(PlaybackTarget.raw(url.trim())) },
                     icon = Icons.Default.PlayArrow,
                     enabled = url.isNotBlank(),
                 )
-                PillButton(
+                ActionButton(
                     text = "Open local file",
                     onClick = {
                         scope.launch {
@@ -360,12 +342,6 @@ private fun PosterSize.label(): String =
         PosterSize.SMALL -> "Small"
         PosterSize.DEFAULT -> "Default"
         PosterSize.LARGE -> "Large"
-    }
-
-private fun NavStyle.label(): String =
-    when (this) {
-        NavStyle.TOP_BAR -> "Top bar"
-        NavStyle.RAIL -> "Left rail"
     }
 
 @Composable

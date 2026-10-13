@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -17,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.ui.theme.AppAlpha
-import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -25,12 +23,13 @@ import com.misgus.agustream.ui.theme.AppSpacing
 /**
  * The app's single call-to-action button, used for every action.
  *
- * [primary] is the solid white button with dark content; the secondary variant is
- * translucent. The content colour is applied explicitly to the icon and the
- * label, so it never depends on the surrounding content colour.
+ * [primary] is the high-contrast inverse surface with inverse-on-surface
+ * content; the secondary variant is a translucent on-surface fill. The content
+ * colour is applied explicitly to the icon and the label, so it never depends
+ * on the surrounding content colour.
  */
 @Composable
-fun PillButton(
+fun ActionButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -47,7 +46,7 @@ fun PillButton(
     Button(
         onClick = onClick,
         enabled = enabled && !loading,
-        shape = RoundedCornerShape(AppCorner.full),
+        shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
         contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.sm),
         modifier = modifier.height(AppSizes.controlHeight),

@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import com.misgus.agustream.core.repository.NavStyle
 import com.misgus.agustream.ui.player.PlayerScreen
 import com.misgus.agustream.ui.screens.CatalogScreen
 import com.misgus.agustream.ui.screens.DetailScreen
@@ -56,7 +55,6 @@ class RouteViewModelStoreOwner : ViewModelStoreOwner {
 fun ContentArea(
     selected: AppSection,
     navigator: ContentNavigator,
-    navStyle: NavStyle,
     onOpenStreams: (StreamsRequest) -> Unit,
 ) {
     val enabled = LocalMotionEnabled.current
@@ -71,9 +69,9 @@ fun ContentArea(
             label = "section",
         ) { section ->
             // Sections reserve the navigation plus the system bars it sits
-            // behind: a phone reserves the bottom bar, a wide window the rail
-            // (or the top bar). Home keeps the billboard full-bleed under it, so
-            // on a phone it reserves only the bottom bar.
+            // behind: a phone reserves the bottom bar, a wide window the top
+            // bar. Home keeps the billboard full-bleed under it, so on a phone it
+            // reserves only the bottom bar.
             val compact = LocalWindowSize.current == WindowSize.COMPACT
             val contentPadding =
                 when {
@@ -81,12 +79,6 @@ fun ContentArea(
                         PaddingValues(bottom = AppSizes.bottomBarHeight + safeBottomInset)
                     compact ->
                         PaddingValues(top = safeTopInset, bottom = AppSizes.bottomBarHeight + safeBottomInset)
-                    navStyle == NavStyle.RAIL ->
-                        PaddingValues(
-                            start = AppSizes.railWidth,
-                            top = safeTopInset,
-                            bottom = safeBottomInset,
-                        )
                     section == AppSection.HOME ->
                         PaddingValues(top = safeTopInset, bottom = safeBottomInset)
                     else ->

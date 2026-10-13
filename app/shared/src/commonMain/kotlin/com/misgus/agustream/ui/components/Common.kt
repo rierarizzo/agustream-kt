@@ -111,7 +111,7 @@ fun Message(
             )
             if (actionLabel != null && onAction != null) {
                 Spacer(Modifier.size(AppSpacing.md))
-                PillButton(text = actionLabel, onClick = onAction)
+                ActionButton(text = actionLabel, onClick = onAction)
             }
         }
     }

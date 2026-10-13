@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
@@ -67,10 +68,12 @@ fun Modifier.clickableSurface(
     )
 
 /**
- * Background tint for [state], falling back to [base] when idle.
+ * Background tint for [state], on top of [base].
  *
  * The state layer uses the `onSurface` role, per Material's state-layer spec, so
- * it adapts to the theme instead of a hard-coded white.
+ * it adapts to the theme instead of a hard-coded white. It is blended over
+ * [base] rather than replacing it, so a selected surface keeps its fill while it
+ * is hovered or pressed.
  */
 @Composable
 fun interactionHighlight(
@@ -78,12 +81,14 @@ fun interactionHighlight(
     base: Color = Color.Transparent,
 ): Color {
     val layer = MaterialTheme.colorScheme.onSurface
-    return when {
-        state.pressed -> layer.copy(alpha = AppAlpha.INTERACT_PRESSED)
-        state.focused -> layer.copy(alpha = AppAlpha.INTERACT_FOCUS)
-        state.hovered -> layer.copy(alpha = AppAlpha.INTERACT_HOVER)
-        else -> base
-    }
+    val alpha =
+        when {
+            state.pressed -> AppAlpha.INTERACT_PRESSED
+            state.focused -> AppAlpha.INTERACT_FOCUS
+            state.hovered -> AppAlpha.INTERACT_HOVER
+            else -> return base
+        }
+    return layer.copy(alpha = alpha).compositeOver(base)
 }
 
 /**

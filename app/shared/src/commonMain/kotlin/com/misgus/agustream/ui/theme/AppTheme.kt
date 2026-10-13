@@ -81,19 +81,16 @@ object AppSpacing {
 /**
  * Corner radii, as the raw values behind [AppShapes].
  *
- * They match the Material 3 shape tokens; a surface that needs a radius in the
- * draw phase (such as `motionBorder`) reads the `Dp` here, while anything that
- * takes a `Shape` uses `MaterialTheme.shapes`.
+ * Kept small on purpose: the UI reads square-ish, not rounded. A surface that
+ * needs a radius in the draw phase (such as `motionBorder`) reads the `Dp` here,
+ * while anything that takes a `Shape` uses `MaterialTheme.shapes`.
  */
 object AppCorner {
-    val extraSmall: Dp = 4.dp
-    val small: Dp = 8.dp
-    val medium: Dp = 12.dp
-    val large: Dp = 16.dp
-    val extraLarge: Dp = 28.dp
-
-    /** The Material 3 button "full" radius, used by the pill button. */
-    val full: Dp = 9999.dp
+    val extraSmall: Dp = 2.dp
+    val small: Dp = 4.dp
+    val medium: Dp = 6.dp
+    val large: Dp = 8.dp
+    val extraLarge: Dp = 12.dp
 }
 
 /** Material 3 shapes, built from [AppCorner]. */
@@ -108,9 +105,6 @@ private val AppShapes =
 
 /** Sizes shared by the shell. */
 object AppSizes {
-    /** Width of the vertical navigation rail used on wide windows. */
-    val railWidth: Dp = 80.dp
-
     /** Height of the horizontal top navigation bar, used on wide windows. */
     val topBarHeight: Dp = 64.dp
 
@@ -164,6 +158,9 @@ object AppAlpha {
     const val INTERACT_HOVER = 0.08f
     const val INTERACT_FOCUS = 0.18f
     const val INTERACT_PRESSED = 0.16f
+
+    /** Translucent fill behind the selected top-navigation item. */
+    const val NAV_SELECTED = 0.12f
 }
 
 /**
@@ -276,10 +273,10 @@ private val darkScheme =
         primaryContainer = Color(0xFF4A3208),
         onPrimaryContainer = Color(0xFFFFDDAD),
         inversePrimary = Color(0xFF7A5900),
-        secondary = Color(0xFFD3C4AC),
-        onSecondary = Color(0xFF382E1C),
-        secondaryContainer = Color(0xFF4F422A),
-        onSecondaryContainer = Color(0xFFF0E0C4),
+        secondary = Color(0xFFCBC9CE),
+        onSecondary = Color(0xFF323034),
+        secondaryContainer = Color(0xFF47464A),
+        onSecondaryContainer = Color(0xFFE6E4E9),
         tertiary = Color(0xFF8FCBD2),
         onTertiary = Color(0xFF00363D),
         tertiaryContainer = Color(0xFF004F58),

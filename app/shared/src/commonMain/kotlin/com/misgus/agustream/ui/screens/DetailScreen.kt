@@ -51,9 +51,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.util.runCatchingCancellable
+import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
-import com.misgus.agustream.ui.components.PillButton
 import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
@@ -373,7 +373,7 @@ private fun HeroContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg),
             ) {
-                PillButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
+                ActionButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
                 ActionRow(
                     saved = saved,
                     savedBusy = savedBusy,
