@@ -292,11 +292,11 @@ private val HOME_CONTENT_LIFT = 96.dp
 
 /**
  * Height of a section header plus a little breathing room, for the hero fit math:
- * the row paddings (`AppSpacing.lg` + `AppSpacing.md`), the 48dp minimum touch
- * target the Material button imposes, and a small gap so the poster year is not
- * flush against the bottom edge.
+ * the title line and the row paddings (`AppSpacing.lg` + `AppSpacing.md`), plus a
+ * small gap so the poster year is not flush against the bottom edge. The header
+ * height is the title's, so the (optional) See all button does not change it.
  */
-private val HOME_SECTION_HEADER_HEIGHT = 96.dp
+private val HOME_SECTION_HEADER_HEIGHT = 76.dp
 
 /** Floor for the hero height, so a short window cannot shrink it under its copy. */
 private val HOME_HERO_MIN_HEIGHT = 480.dp

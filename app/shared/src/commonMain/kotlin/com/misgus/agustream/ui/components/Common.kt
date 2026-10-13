@@ -38,12 +38,14 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -160,22 +162,36 @@ fun SectionHeader(
     title: String,
     onSeeAll: (() -> Unit)? = null,
 ) {
-    Row(
+    val screenPadding = LocalWindowSize.current.screenPadding
+    Layout(
         modifier =
-            Modifier.fillMaxWidth().padding(
-                start = LocalWindowSize.current.screenPadding,
-                end = LocalWindowSize.current.screenPadding,
-                top = AppSpacing.lg,
-                bottom = AppSpacing.md,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f).sectionHeading())
-        onSeeAll?.let {
-            TextButton(onClick = it) {
-                Text(stringResource(Res.string.action_see_all))
-                Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(AppIconSize.sm).mirrorInRtl())
+            Modifier
+                .fillMaxWidth()
+                .padding(start = screenPadding, end = screenPadding, top = AppSpacing.lg, bottom = AppSpacing.md),
+        content = {
+            Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.sectionHeading())
+            if (onSeeAll != null) {
+                TextButton(onClick = onSeeAll) {
+                    Text(stringResource(Res.string.action_see_all))
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(AppIconSize.sm).mirrorInRtl())
+                }
             }
+        },
+    ) { measurables, constraints ->
+        // The header is as tall as its title; the optional "See all" is centred on
+        // it and allowed to overflow into the padding. That way the gap to the
+        // content below is the same with and without the button, instead of the
+        // button's 48dp touch target stretching the row.
+        val button = measurables.getOrNull(1)?.measure(Constraints())
+        val buttonWidth = button?.width ?: 0
+        val titleLayout =
+            measurables[0].measure(constraints.copy(minWidth = 0, maxWidth = constraints.maxWidth - buttonWidth))
+        layout(constraints.maxWidth, titleLayout.height) {
+            titleLayout.place(0, 0)
+            button?.place(
+                x = constraints.maxWidth - button.width,
+                y = (titleLayout.height - button.height) / 2,
+            )
         }
     }
 }

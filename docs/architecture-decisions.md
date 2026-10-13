@@ -160,7 +160,10 @@ engine, the filesystem and the player touch platform source sets through
   a taller row shrinks it, a shorter one grows it, so the second row never peeks
   — and the rows are pulled up over its faded bottom, so the first row stays on
   screen instead of being cut. A floating window, or a Continue watching first
-  row, keeps the natural height and lets the rows flow. Compact
+  row, keeps the natural height and lets the rows flow. Section headers keep a
+  fixed height too: the title sets it and the "See all" button is centred on it
+  and overflows into the padding, so the gap to the row below is the same with
+  and without the button. Compact
   windows also use a tighter screen padding (16dp) and grid gap, and the detail
   actions are icon-only (with a `contentDescription`) at the call-to-action's
   height, so the row lines up.
