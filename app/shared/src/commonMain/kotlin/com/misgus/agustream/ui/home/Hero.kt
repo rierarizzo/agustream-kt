@@ -170,6 +170,7 @@ internal fun WideHero(
     items: List<MetaPreview>,
     onOpen: (MetaPreview) -> Unit,
     onPlay: (MetaPreview) -> Unit,
+    maxHeight: Dp = Dp.Infinity,
 ) {
     if (items.isEmpty()) return
     val density = LocalDensity.current
@@ -177,7 +178,9 @@ internal fun WideHero(
     var aspect by remember(items) { mutableStateOf(HERO_FALLBACK_ASPECT_RATIO) }
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val height = desktopHeroHeight(maxWidth, aspect)
+        // The cap keeps the hero from eating the whole viewport, so a row of the
+        // content below stays on screen; the artwork crops a little more instead.
+        val height = minOf(desktopHeroHeight(maxWidth, aspect), maxHeight)
         // Decode the full artwork at its display width, so `Crop` has the whole
         // bitmap to trim from and not just the shorter frame.
         val artworkHeight = (maxWidth * HERO_IMAGE_WIDTH_FRACTION) / aspect

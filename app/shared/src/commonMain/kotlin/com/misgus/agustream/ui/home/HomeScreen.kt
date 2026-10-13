@@ -34,6 +34,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -57,6 +59,7 @@ import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.PosterCaption
 import com.misgus.agustream.ui.theme.WindowSize
@@ -140,45 +143,58 @@ private fun HomeContent(
             )
         else -> {
             val compact = windowSize == WindowSize.COMPACT
+            // Cap the hero by the viewport so at least the first row stays on
+            // screen, and pull the rows up so they sit closer to it. Both apply to
+            // a wide window only; the phone keeps the default flow.
+            val viewportHeight = LocalWindowHeight.current
+            val heroMax = (viewportHeight * HOME_HERO_MAX_VIEWPORT_FRACTION).coerceAtLeast(HOME_HERO_MIN_HEIGHT)
+            val liftPx = if (compact) 0 else with(LocalDensity.current) { HOME_CONTENT_LIFT.roundToPx() }
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
             ) {
                 when {
                     state.featured.isNotEmpty() && !compact ->
-                        WideHero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
+                        WideHero(
+                            items = state.featured,
+                            onOpen = onOpenPreview,
+                            onPlay = onPlayPreview,
+                            maxHeight = heroMax,
+                        )
                     state.featured.isNotEmpty() ->
                         Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
                     compact ->
                         // No billboard to tuck under the status bar: reserve its height.
                         Spacer(Modifier.height(safeTopInset))
                 }
-                if (state.continueWatching.isNotEmpty()) {
-                    SectionHeader(title = stringResource(Res.string.home_continue_watching))
-                    LazyRow(
-                        modifier = Modifier.heightIn(min = if (compact) CompactContinueHeight else ContinueHeight),
-                        contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
-                        horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
-                    ) {
-                        items(state.continueWatching) { entry ->
-                            val cardWidth = if (compact) CompactContinueWidth else ContinueWidth
-                            ContinueCard(entry, cardWidth) { onOpenDetail(entry.item) }
+                Column(modifier = Modifier.pullUp(liftPx)) {
+                    if (state.continueWatching.isNotEmpty()) {
+                        SectionHeader(title = stringResource(Res.string.home_continue_watching))
+                        LazyRow(
+                            modifier = Modifier.heightIn(min = if (compact) CompactContinueHeight else ContinueHeight),
+                            contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
+                            horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
+                        ) {
+                            items(state.continueWatching) { entry ->
+                                val cardWidth = if (compact) CompactContinueWidth else ContinueWidth
+                                ContinueCard(entry, cardWidth) { onOpenDetail(entry.item) }
+                            }
                         }
                     }
-                }
-                state.rows.forEach { row ->
-                    SectionHeader(title = row.title, onSeeAll = { onOpenCatalog(row.ref) })
-                    LazyRow(
-                        modifier = Modifier.height(posterSize.railHeight(windowSize)),
-                        contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
-                        horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
-                    ) {
-                        items(row.items) { item ->
-                            MetaPosterCard(
-                                preview = item,
-                                width = posterSize.cellWidth(windowSize),
-                                watched = item.id in state.watchedIds,
-                                onTap = { onOpenPreview(item) },
-                            )
+                    state.rows.forEach { row ->
+                        SectionHeader(title = row.title, onSeeAll = { onOpenCatalog(row.ref) })
+                        LazyRow(
+                            modifier = Modifier.height(posterSize.railHeight(windowSize)),
+                            contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
+                            horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
+                        ) {
+                            items(row.items) { item ->
+                                MetaPosterCard(
+                                    preview = item,
+                                    width = posterSize.cellWidth(windowSize),
+                                    watched = item.id in state.watchedIds,
+                                    onTap = { onOpenPreview(item) },
+                                )
+                            }
                         }
                     }
                 }
@@ -249,6 +265,40 @@ private val ContinueWidth = 336.dp
 private val CompactContinueWidth = 224.dp
 private val ContinueHeight = 248.dp
 private val CompactContinueHeight = 184.dp
+
+/**
+ * How far the rows below the hero are raised on a wide window, so they sit
+ * closer to (or over) the hero's faded bottom. `0.dp` restores the old spacing;
+ * larger values pull the rows up and overlap the hero. The practical ceiling is
+ * the hero copy's bottom margin (100dp): past it the rows would cover the
+ * title, synopsis and actions. The phone keeps the default flow.
+ */
+private val HOME_CONTENT_LIFT = 96.dp
+
+/**
+ * Cap on the hero height as a share of the viewport, so at least the first row
+ * fits on screen. `1f` disables the cap.
+ */
+private const val HOME_HERO_MAX_VIEWPORT_FRACTION = 0.62f
+
+/** Floor for that cap, so a short window cannot shrink the hero under its copy. */
+private val HOME_HERO_MIN_HEIGHT = 480.dp
+
+/**
+ * Lifts the content by [px] pixels and shrinks the reported height by the same
+ * amount, so it overlaps the previous sibling instead of leaving a gap.
+ */
+private fun Modifier.pullUp(px: Int): Modifier =
+    if (px == 0) {
+        this
+    } else {
+        layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            layout(placeable.width, (placeable.height - px).coerceAtLeast(0)) {
+                placeable.place(0, -px)
+            }
+        }
+    }
 
 /** Extracts the four-digit year from a Stremio `releaseInfo` string. */
 internal fun yearOf(releaseInfo: String?): String? = Regex("(?:1[89]\\d\\d|20\\d\\d)").find(releaseInfo ?: "")?.value

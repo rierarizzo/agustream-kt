@@ -39,6 +39,7 @@ import com.misgus.agustream.ui.theme.AgustreamTheme
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
+import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.LocalWindowWidth
 import com.misgus.agustream.ui.theme.WindowSize
@@ -95,6 +96,7 @@ fun AgustreamApp(
                 CompositionLocalProvider(
                     LocalWindowSize provides windowSize,
                     LocalWindowWidth provides maxWidth,
+                    LocalWindowHeight provides maxHeight,
                 ) {
                     Surface(
                         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),

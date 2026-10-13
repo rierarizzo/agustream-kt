@@ -154,7 +154,10 @@ engine, the filesystem and the player touch platform source sets through
   (the user's small / default / large choice still applies), the Home hero swaps
   the wide billboard for the poster crop without the title logo, the detail
   billboard is capped on an expanded window so the content stays close, and the
-  streams dialog clamps to the app window because it opens its own. Compact
+  streams dialog clamps to the app window because it opens its own. On a wide
+  window the Home billboard is capped to a share of the window height and the
+  rows below it are pulled up over its faded bottom, so the first row stays on
+  screen instead of being cut. Compact
   windows also use a tighter screen padding (16dp) and grid gap, and the detail
   actions are icon-only (with a `contentDescription`) at the call-to-action's
   height, so the row lines up.
