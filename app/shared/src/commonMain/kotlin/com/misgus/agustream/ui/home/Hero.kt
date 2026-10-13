@@ -55,6 +55,7 @@ import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppLogoSize
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppSynopsis
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
@@ -69,12 +70,6 @@ private const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
 
 /** Widest the copy column ever grows, so the synopsis keeps a comfortable measure. */
 private val HERO_CONTENT_MAX_WIDTH = 840.dp
-
-/**
- * The synopsis wraps to a narrower measure than the rest of the copy, so it
- * settles into four short lines instead of three long ones.
- */
-private val HERO_SYNOPSIS_MAX_WIDTH = 630.dp
 
 /** Gap between the bottom of the billboard and the copy actions. */
 private val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
@@ -314,11 +309,11 @@ private fun BoxScope.HeroCopy(
             Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))
             Text(
                 synopsis,
-                maxLines = 4,
+                maxLines = AppSynopsis.MAX_LINES,
                 overflow = TextOverflow.Ellipsis,
                 style = AppType.heroBody(),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
-                modifier = Modifier.widthIn(max = HERO_SYNOPSIS_MAX_WIDTH),
+                modifier = Modifier.widthIn(max = AppSynopsis.maxWidth),
             )
         }
         Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))

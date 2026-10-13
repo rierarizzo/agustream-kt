@@ -69,6 +69,7 @@ import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppSynopsis
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
@@ -394,8 +395,8 @@ private fun HeroContent(
                 // different synopsis, and swapping it mid-view reads worse than
                 // a short reserve. `minLines` keeps the layout stable.
                 text = if (state.hasLoaded) state.description.orEmpty() else "",
-                minLines = 3,
-                maxLines = 3,
+                minLines = AppSynopsis.MAX_LINES,
+                maxLines = AppSynopsis.MAX_LINES,
                 overflow = TextOverflow.Ellipsis,
                 style = AppType.heroBody(),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),

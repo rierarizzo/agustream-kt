@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
 
 /**
  * Type roles that step down one size on a compact window.
@@ -35,8 +36,8 @@ object AppType {
     @Composable
     fun heroBody(): TextStyle =
         if (LocalWindowSize.current == WindowSize.COMPACT) {
-            MaterialTheme.typography.bodyMedium
-        } else {
             MaterialTheme.typography.bodyLarge
+        } else {
+            MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp)
         }
 }

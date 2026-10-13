@@ -147,6 +147,21 @@ object AppLogoSize {
     val maxWidth: Dp = 520.dp
 }
 
+/**
+ * Layout for a hero synopsis.
+ *
+ * A hero synopsis is a teaser, not reading copy: it shows [MAX_LINES] lines at
+ * most, with the rest behind "More info", and a [maxWidth] that keeps the
+ * measure around 60 characters (45–90 is the legibility range).
+ */
+object AppSynopsis {
+    /** Widest the synopsis grows; keeps the measure around 60 characters. */
+    val maxWidth: Dp = 520.dp
+
+    /** Lines shown on a billboard; the detail screen shows the rest. */
+    const val MAX_LINES = 3
+}
+
 /** Shared icon sizes. */
 object AppIconSize {
     val sm: Dp = 18.dp
