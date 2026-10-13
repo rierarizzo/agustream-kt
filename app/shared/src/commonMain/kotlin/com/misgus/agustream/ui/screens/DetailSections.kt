@@ -183,7 +183,10 @@ internal fun SimilarRow(
                         label = "borderColor",
                     )
                 Column(
-                    modifier = Modifier.width(posterSize.cellWidth(windowSize)).clickableSurface(interaction, onClick = { onOpen(item) }),
+                    modifier =
+                        Modifier
+                            .width(posterSize.cellWidth(windowSize))
+                            .clickableSurface(interaction, onClick = { onOpen(item) }, indication = null),
                 ) {
                     Box(
                         Modifier
@@ -324,7 +327,7 @@ private fun EpisodeCard(
             animationSpec = motionTween(),
             label = "borderColor",
         )
-    Column(modifier = Modifier.width(220.dp).clickableSurface(interaction, onTap)) {
+    Column(modifier = Modifier.width(220.dp).clickableSurface(interaction, onTap, indication = null)) {
         Box(
             Modifier
                 .fillMaxWidth()

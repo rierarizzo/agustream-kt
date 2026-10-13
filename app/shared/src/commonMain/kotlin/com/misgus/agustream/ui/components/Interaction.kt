@@ -1,5 +1,6 @@
 package com.misgus.agustream.ui.components
 
+import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -50,7 +51,9 @@ fun rememberInteraction(): InteractionState {
  * Click handling for a custom surface, with the Material ripple state layer.
  *
  * [role] defaults to [Role.Button], so a custom clickable surface is announced as
- * a button by accessibility services instead of an unlabelled node.
+ * a button by accessibility services instead of an unlabelled node. Pass
+ * `indication = null` for a surface that draws its own hover feedback (a poster
+ * that scales on hover), so the Material hover state layer does not grey it.
  */
 @Composable
 fun Modifier.clickableSurface(
@@ -58,10 +61,11 @@ fun Modifier.clickableSurface(
     onClick: () -> Unit,
     enabled: Boolean = true,
     role: Role? = Role.Button,
+    indication: Indication? = ripple(),
 ): Modifier =
     clickable(
         interactionSource = state.source,
-        indication = ripple(),
+        indication = indication,
         enabled = enabled,
         role = role,
         onClick = onClick,

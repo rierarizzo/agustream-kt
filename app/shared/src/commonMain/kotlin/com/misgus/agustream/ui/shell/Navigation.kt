@@ -33,7 +33,6 @@ import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppIconSize
-import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -59,9 +58,7 @@ fun TopNav(
             Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                // Over the full-bleed Home billboard the bar needs its own dark
-                // strip; over the plain section background it is invisible.
-                .background(AppScrim.detailTop)
+                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .horizontalScroll(rememberScrollState()),
         contentAlignment = Alignment.Center,
     ) {

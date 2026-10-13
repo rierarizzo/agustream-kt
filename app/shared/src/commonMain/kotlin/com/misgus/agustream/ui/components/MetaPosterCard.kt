@@ -62,7 +62,7 @@ fun MetaPosterCard(
             Modifier
                 .then(if (width != null) Modifier.width(width) else Modifier)
                 .fillMaxHeight()
-                .clickableSurface(interaction, onTap),
+                .clickableSurface(interaction, onTap, indication = null),
     ) {
         Box(
             modifier =

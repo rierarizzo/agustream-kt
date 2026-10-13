@@ -201,7 +201,7 @@ private fun ContinueCard(
         )
 
     Column(
-        modifier = Modifier.width(width).clickableSurface(interaction, onTap),
+        modifier = Modifier.width(width).clickableSurface(interaction, onTap, indication = null),
     ) {
         Box(
             modifier =

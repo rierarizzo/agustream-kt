@@ -67,7 +67,7 @@ fun PosterTile(
         modifier =
             Modifier
                 .fillMaxHeight()
-                .clickableSurface(interaction, onTap)
+                .clickableSurface(interaction, onTap, indication = null)
                 .pointerHoverIcon(PointerIcon.Hand),
     ) {
         Box(

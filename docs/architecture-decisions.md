@@ -188,11 +188,12 @@ engine, the filesystem and the player touch platform source sets through
   nested `Navigator`, without adding a navigation library. The chrome mixes
   Material and custom: a compact window gets a `NavigationBar` with icon-only
   `NavigationBarItem`s; a wide window a centered top bar with custom items,
-  since Material has no multi-destination top bar. The top bar items use a
-  translucent on-surface fill for the selection, with the hover/press state
-  layer blended over it so a selected item never loses its fill. The
-  container still owns the surface colour and the system insets, so the bar adds
-  neither and its background reaches the window edges.
+  since Material has no multi-destination top bar. The top bar uses a
+  `surface-container` container (Material's top-app-bar guidance) instead of a
+  translucent scrim, so its items always keep on-surface contrast over any
+  artwork; the selected item is a translucent on-surface fill, with the
+  hover/press state layer blended over it so a selected item never loses its
+  fill.
 - **Search owns the discover feed.** It has a free-text search across every
   catalog that declares the `search` extra, debounced, run in parallel and
   deduped across addons, split into Movies / Series / Other rails; and — while
@@ -225,8 +226,11 @@ engine, the filesystem and the player touch platform source sets through
   `minTouchTarget` keep interactive targets at Material's 48dp minimum. Custom
   clickable surfaces draw the Material ripple state layer (`clickableSurface`),
   so focus and press feedback stays visible, and carry a button role so a custom
-  surface is announced correctly. Settings panels use the Material `Card`, and
-  the primary call to action uses the inverse surface / on-surface roles. The
+  surface is announced correctly. Poster tiles opt out of that state layer
+  (`indication = null`) and signal hover with the scale/border animation
+  instead, so a hovered poster is not greyed. Settings panels use the Material
+  `Card`, and the primary call to action uses the inverse surface / on-surface
+  roles. The
   app is deliberately **dark-only** — no light scheme and no dynamic colour —
   because the UI is built around dark artwork and scrims; the player keeps a
   fixed white-on-black control palette over video. Material3 `visualDensity`
@@ -284,8 +288,9 @@ engine, the filesystem and the player touch platform source sets through
   The only window behaviour routed through `WindowController` is **fullscreen**,
   which the player owns; the previous placement is restored on exit. On Windows
   the native title bar is opted into the DWM immersive dark mode and, on
-  Windows 11, tinted to the app background (`WindowAppearance.kt`), because AWT
-  does not follow the OS dark mode on its own.
+  Windows 11, tinted to the top bar's `surface-container` colour
+  (`WindowAppearance.kt`), because AWT does not follow the OS dark mode on its
+  own.
 
 ## Player
 

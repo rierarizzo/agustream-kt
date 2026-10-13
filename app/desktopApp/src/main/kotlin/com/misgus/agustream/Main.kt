@@ -110,7 +110,7 @@ fun main(args: Array<String>) {
             // AWT does not follow the OS dark mode for the native title bar, so
             // ask DWM. The native peer may not exist on the first frame; retry.
             LaunchedEffect(window) {
-                val caption = AppWindowChrome.background.toAwtColor()
+                val caption = AppWindowChrome.titleBar.toAwtColor()
                 val title = AppWindowChrome.foreground.toAwtColor()
                 repeat(DARK_TITLE_BAR_ATTEMPTS) {
                     if (applyDarkTitleBar(window, caption = caption, text = title)) return@LaunchedEffect
@@ -120,7 +120,7 @@ fun main(args: Array<String>) {
             // Paint the native window with the app background so resizing does
             // not flash the default white surface before Compose's next frame.
             SideEffect {
-                applyBackground(window, AppWindowChrome.background.toAwtColor())
+                applyBackground(window, AppWindowChrome.windowBackground.toAwtColor())
             }
             AgustreamApp(
                 services = services,
