@@ -2,6 +2,7 @@ package com.misgus.agustream.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +36,10 @@ import com.misgus.agustream.ui.theme.AgustreamTheme
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
+import com.misgus.agustream.ui.theme.LocalWindowHeight
+import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.LocalWindowWidth
+import com.misgus.agustream.ui.theme.WindowSize
 
 /**
  * Root composable.
@@ -50,10 +55,14 @@ fun AgustreamApp(
     initialSource: String? = null,
     autoSignIn: SignInRequest? = null,
 ) {
-    val owner = remember { RouteViewModelStoreOwner() }
-    DisposableEffect(Unit) {
-        onDispose { owner.viewModelStore.clear() }
+    // Reuse the host's owner when there is one (an Android Activity, which
+    // survives configuration changes). Hosts without one, such as desktop, get a
+    // composition-scoped fallback.
+    val fallbackOwner = remember { RouteViewModelStoreOwner() }
+    DisposableEffect(fallbackOwner) {
+        onDispose { fallbackOwner.viewModelStore.clear() }
     }
+    val owner = LocalViewModelStoreOwner.current ?: fallbackOwner
     val settings by services.settings.state.collectAsStateWithLifecycle()
     val account by services.account.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { services.settings.load() }
@@ -76,16 +85,27 @@ fun AgustreamApp(
         LocalMotionEnabled provides settings.animationsEnabled,
     ) {
         AgustreamTheme {
-            Surface(
-                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-                color = MaterialTheme.colorScheme.background,
-            ) {
-                when {
-                    initialSource != null ->
-                        PlayerScreen(target = PlaybackTarget.raw(initialSource), onBack = {})
-                    bootstrapping -> BootSplash()
-                    !account.isSignedIn -> OnboardingScreen()
-                    else -> AppShell()
+            // Publish the window class and insets once, at the root, so every
+            // surface — the shell, onboarding and the player — reads the same one.
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                val windowSize = WindowSize.of(maxWidth)
+                CompositionLocalProvider(
+                    LocalWindowSize provides windowSize,
+                    LocalWindowWidth provides maxWidth,
+                    LocalWindowHeight provides maxHeight,
+                ) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+                        color = MaterialTheme.colorScheme.background,
+                    ) {
+                        when {
+                            initialSource != null ->
+                                PlayerScreen(target = PlaybackTarget.raw(initialSource), onBack = {})
+                            bootstrapping -> BootSplash()
+                            !account.isSignedIn -> OnboardingScreen()
+                            else -> AppShell()
+                        }
+                    }
                 }
             }
         }

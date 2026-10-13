@@ -124,9 +124,14 @@ engine, the filesystem and the player touch platform source sets through
   its state and launches work in `viewModelScope`. The UI collects with
   `collectAsStateWithLifecycle()`, so collection stops when a screen leaves the
   lifecycle.
-- **Compose lifecycle.** A root `ViewModelStoreOwner` is provided by
-  `AgustreamApp`. Section ViewModels live in it and survive section switches
-  (replacing Flutter's `IndexedStack` state retention). Pushed routes get their
+- **Compose lifecycle.** `AgustreamApp` reuses the host's
+  `ViewModelStoreOwner` when there is one — an Android `Activity`, so section
+  ViewModels survive a configuration change — and falls back to a
+  composition-scoped owner where there is none, such as desktop. Section
+  ViewModels live in it and survive section switches (replacing Flutter's
+  `IndexedStack` state retention); the selected section and the route stack live
+  in a `ShellViewModel` for the same reason, and `PlatformBackHandler` (Android)
+  pops the stack on system back. Pushed routes get their
   own `ViewModelStoreOwner` (`ContentArea`) that is cleared on pop, so transient
   ViewModels do not leak.
 - **Onboarding and session bootstrap.** `AgustreamApp` resolves the persisted
@@ -138,7 +143,7 @@ engine, the filesystem and the player touch platform source sets through
   backend that signs in another way renders another form. The desktop
   `NUVIO_EMAIL` / `NUVIO_PASSWORD` shortcut is passed in as an `autoSignIn`
   request, applied only when there is no stored session.
-- **Adaptive layout.** `AppShell` measures the window once with
+- **Adaptive layout.** `AgustreamApp` measures the window once with
   `BoxWithConstraints` and publishes a `WindowSize` (compact / medium /
   expanded, at Material's 600 and 840 dp breakpoints) plus the window width,
   through `LocalWindowSize` / `LocalWindowWidth`, so a surface picks a layout

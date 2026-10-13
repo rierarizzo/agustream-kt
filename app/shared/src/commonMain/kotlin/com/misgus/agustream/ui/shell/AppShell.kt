@@ -9,7 +9,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -30,16 +29,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.player.PlaybackTarget
+import com.misgus.agustream.ui.platform.PlatformBackHandler
 import com.misgus.agustream.ui.profiles.ProfilePicker
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.streams.StreamsDialog
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
-import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
-import com.misgus.agustream.ui.theme.LocalWindowWidth
 import com.misgus.agustream.ui.theme.WindowSize
 import kotlinx.coroutines.launch
 
@@ -61,29 +60,31 @@ fun AppShell() {
     val immersive = services.chrome.immersive
     val motionEnabled = LocalMotionEnabled.current
 
-    var selected by remember { mutableStateOf(AppSection.HOME) }
-    val navigator = remember { ContentNavigator() }
-    val selectSection: (AppSection) -> Unit = {
-        selected = it
-        navigator.clear()
-    }
+    // Section and route stack live in a ViewModel so a rotation (Android) keeps
+    // the navigation instead of returning to Home. Keying it by the active
+    // profile makes a profile switch start from a clean shell.
+    val shell: ShellViewModel = viewModel(key = account.activeProfile?.id) { ShellViewModel() }
+    val selected = shell.selected
+    val navigator = shell.navigator
+    val selectSection: (AppSection) -> Unit = shell::select
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var streamsRequest by remember { mutableStateOf<StreamsRequest?>(null) }
+
+    // The system back leaves a pushed route before it leaves the app. A dialog
+    // or the player is composed on top, so it gets the event first.
+    PlatformBackHandler(enabled = navigator.canGoBack) { navigator.pop() }
 
     // A pushed route (detail, catalog) is an immersive screen with its own back
     // affordance, so the navigation fades away; the content keeps its size.
     val showNav = !isFullScreen && !immersive && navigator.current == null
     val gate = account.isSignedIn && account.requiresProfile && account.activeProfile == null
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        val windowSize = WindowSize.of(maxWidth)
-        CompositionLocalProvider(
-            LocalSnackbarHost provides snackbarHost,
-            LocalWindowSize provides windowSize,
-            LocalWindowWidth provides maxWidth,
-            LocalWindowHeight provides maxHeight,
-        ) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        // The window class is published at the root (AgustreamApp), so every
+        // surface — including onboarding and the player — reads the same one.
+        val windowSize = LocalWindowSize.current
+        CompositionLocalProvider(LocalSnackbarHost provides snackbarHost) {
             if (gate) {
                 // Profile gate: the library and every write belong to a profile, so
                 // there is no safe default. Backends without profiles never enter here.
