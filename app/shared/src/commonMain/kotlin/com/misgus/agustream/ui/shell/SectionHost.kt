@@ -5,7 +5,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.ui.calendar.CalendarScreen
 import com.misgus.agustream.ui.calendar.CalendarViewModel
-import com.misgus.agustream.ui.discover.DiscoverScreen
 import com.misgus.agustream.ui.discover.DiscoverViewModel
 import com.misgus.agustream.ui.home.HomeScreen
 import com.misgus.agustream.ui.home.HomeViewModel
@@ -58,19 +57,6 @@ fun SectionHost(
                 }
             LibraryScreen(viewModel, navigator)
         }
-        AppSection.DISCOVER -> {
-            val viewModel: DiscoverViewModel =
-                viewModel {
-                    DiscoverViewModel(
-                        account = services.account,
-                        catalogs = services.catalogs,
-                    )
-                }
-            DiscoverScreen(
-                viewModel = viewModel,
-                navigator = navigator,
-            )
-        }
         AppSection.SEARCH -> {
             val viewModel: SearchViewModel =
                 viewModel {
@@ -79,8 +65,18 @@ fun SectionHost(
                         catalogs = services.catalogs,
                     )
                 }
+            // The discover feed is embedded in Search, so both ViewModels live
+            // in the same section scope.
+            val discoverViewModel: DiscoverViewModel =
+                viewModel {
+                    DiscoverViewModel(
+                        account = services.account,
+                        catalogs = services.catalogs,
+                    )
+                }
             SearchScreen(
                 viewModel = viewModel,
+                discoverViewModel = discoverViewModel,
                 navigator = navigator,
             )
         }

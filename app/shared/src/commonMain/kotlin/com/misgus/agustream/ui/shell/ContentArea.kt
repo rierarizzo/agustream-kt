@@ -1,9 +1,9 @@
 package com.misgus.agustream.ui.shell
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,8 +45,8 @@ class RouteViewModelStoreOwner : ViewModelStoreOwner {
  *
  * The section stays composed while a route is open, so its scroll position is
  * never saved and restored — that round-trip lost the within-item offset and
- * scrolled the section back up. It only animates when the tab changes; the route
- * fades in over it and leaves at once when popped.
+ * scrolled the section back up. Changing a tab swaps the section with no
+ * transition; the route fades in over it and leaves at once when popped.
  *
  * The player renders outside the route transition on purpose: it drives a single
  * shared engine, and a transition would keep the outgoing player alive next to
@@ -64,11 +64,9 @@ fun ContentArea(
         AnimatedContent(
             targetState = selected,
             transitionSpec = {
-                val enter = AppMotion.spec<Float>(enabled, AppMotion.MEDIUM, easing = AppMotion.emphasizedDecelerate)
-                val exit = AppMotion.spec<Float>(enabled, AppMotion.MEDIUM, easing = AppMotion.emphasizedAccelerate)
-                // `using(null)` disables the size animation, so the crossfade
-                // stays on the draw phase.
-                (fadeIn(enter) togetherWith fadeOut(exit)).using(null)
+                // Switching a tab swaps the whole section at once: no crossfade,
+                // so a section never paints over its neighbour mid-swap.
+                EnterTransition.None togetherWith ExitTransition.None
             },
             label = "section",
         ) { section ->

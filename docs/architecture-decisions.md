@@ -112,8 +112,8 @@ engine, the filesystem and the player touch platform source sets through
   catalog manifests are fetched in parallel and cached per addon (a manifest is
   immutable). The addon list is cached per profile uuid, so the watched-badge
   sync does not re-query it for every series. Account-scoped ViewModels (Home,
-  Library, Discover, Calendar) wait for a profile before loading rather than
-  loading without one and failing.
+  Library, Search (and its discover feed), Calendar) wait for a profile before
+  loading rather than loading without one and failing.
 
 ## UI (`:app:shared`)
 
@@ -197,20 +197,25 @@ engine, the filesystem and the player touch platform source sets through
   indicator), since Material has no multi-destination top bar. The container
   still owns the surface colour and the system insets, so the rail and the bar
   add neither and their backgrounds reach the window edges.
-- **Discover** flattens every catalog the enabled addons declare into a single
-  mixed grid, like the Library, so the addon catalog boundaries stay invisible.
-  Only browsable catalogs are used: one whose extras are required (a search
-  term, a list of ids, ...) cannot be fetched without a query, so Home and
-  Discover skip it instead of asking and getting an empty page. The catalogs are
-  interleaved across addons before the cap, so one addon with many catalogs does
-  not crowd out the rest, and the items are interleaved round-robin and deduped,
-  so the grid alternates sources instead of showing one catalog as a block. It
-  pages with `skip` as the grid is scrolled, so it keeps growing instead of
-  stopping at the first page. **Search** aggregates the catalogs that declare
-  the `search` extra in parallel, debounced and deduped across addons, and
-  splits the results into a Movies rail and a Series rail. **Calendar** paints a
-  month grid with the upcoming episodes of the Library's series; see the
-  limitation below.
+- **Search owns the discover feed.** It has a free-text search across every
+  catalog that declares the `search` extra, debounced, run in parallel and
+  deduped across addons, split into Movies / Series / Other rails; and — while
+  the query is empty — the discover feed underneath the bar. The feed flattens
+  every catalog the enabled addons declare into a single mixed grid, like the
+  Library, so the catalog boundaries stay invisible. Only browsable catalogs are
+  used: one whose extras are required (a search term, a list of ids, ...) cannot
+  be fetched without a query, so it is skipped instead of asking and getting an
+  empty page. The catalogs are interleaved across addons before the cap, so one
+  addon with many catalogs does not crowd out the rest, and the items are
+  interleaved round-robin and deduped, so the grid alternates sources instead of
+  showing one catalog as a block. It pages with `skip` as the grid is scrolled,
+  so it keeps growing instead of stopping at the first page, and it keeps paging
+  while a narrow filter has not yet yielded enough items to show. Two dropdowns
+  — the title type (All / Movies / Series) and the genre — narrow both the feed
+  and the search results; the genre menu is built from the genres of the items
+  that have loaded, so it never offers one the addons do not return. Discover is
+  no longer a section. **Calendar** paints a month grid with the upcoming
+  episodes of the Library's series; see the limitation below.
 - **Theme** follows Material 3. `AgustreamTheme` supplies the full
   `darkColorScheme` (every role, including the surface-container tiers,
   `outline`/`outlineVariant`, `inverse*`, `tertiary` and the error containers),
@@ -248,7 +253,8 @@ engine, the filesystem and the player touch platform source sets through
   `LocalMotionEnabled` gates every animation. Specs
   built through `AppMotion.spec`/`motionTween` collapse to zero duration when it
   is off, and `Modifier.motionLayer` applies scale and alpha in the draw phase,
-  so motion never relayouts or recomposes per frame. Tabs crossfade; the section
+  so motion never relayouts or recomposes per frame. Tabs swap with no
+  transition; the section
   stays composed while a route is open (so its scroll is never saved and
   restored, which lost the within-item offset and scrolled it back up) and the
   route fades in over it, leaving at once when popped. The top bar floats over
@@ -266,9 +272,9 @@ engine, the filesystem and the player touch platform source sets through
   so a slow load never pops. The player is deliberately outside the route
   transition because it drives a single shared engine.
 - **Poster sizes** are a setting (`PosterSize`: small / default / large, 210 /
-  230 / 250 dp). `poster.size` is shared by Home, Discover, the catalog grids and
-  "More like this", while `library.poster.size` applies only to the Library
-  grid. A grid uses the size as its minimum cell width and a rail derives its
+  230 / 250 dp). `poster.size` is shared by Home, the discover feed, the catalog
+  grids and "More like this", while `library.poster.size` applies only to the
+  Library grid. A grid uses the size as its minimum cell width and a rail derives its
   height from it (`width / 0.58`), so the card aspect is the same everywhere and
   every surface can be resized from a single key.
 - **Window**: the app keeps the **native window decoration** (title bar,

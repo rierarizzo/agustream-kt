@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Immutable state of the Discover section. */
+/** Immutable state of the discover feed. */
 data class DiscoverUiState(
     /** `true` during the very first load. */
     val isLoading: Boolean = false,
@@ -35,7 +35,7 @@ data class DiscoverUiState(
 /**
  * Flattens every catalog the account's addons expose into a single grid.
  *
- * Unlike Home, Discover does not keep the catalog boundaries: the items are
+ * Unlike Home, the feed does not keep the catalog boundaries: the items are
  * interleaved round-robin across catalogs and deduped, so the grid alternates
  * sources instead of showing one addon's catalog as a block. The grid pages
  * like a feed: each [loadMore] asks every catalog that declares `skip` for its

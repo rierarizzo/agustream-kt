@@ -24,16 +24,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
+import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.toUserMessage
-import com.misgus.agustream.ui.services.LocalAppServices
-import com.misgus.agustream.ui.shell.ContentNavigator
-import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.cellWidth
@@ -41,69 +38,70 @@ import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.screenPadding
 
 /**
- * Discover section: everything the addon catalogs return, in one infinite grid.
+ * The discover feed: every catalog item in one infinite grid.
  *
- * A single mixed grid (like the Library) instead of per-catalog rails: the
- * catalog boundaries are an addon detail the user should not have to care
+ * It is embedded in the Search section, so it owns no loading trigger and no
+ * filter control; the caller loads and pages it, and passes the already-filtered
+ * [items]. A single mixed grid (like the Library) instead of per-catalog rails:
+ * the catalog boundaries are an addon detail the user should not have to care
  * about. Reaching the end loads the next page.
  */
 @Composable
-fun DiscoverScreen(
-    viewModel: DiscoverViewModel,
-    navigator: ContentNavigator,
-) {
-    LaunchedEffect(Unit) { viewModel.load() }
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val settingsRepository = LocalAppServices.current.settings
-    val settings by settingsRepository.state.collectAsStateWithLifecycle()
-
-    DiscoverContent(
-        state = state,
-        posterSize = settings.posterSize,
-        onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
-        onLoadMore = viewModel::loadMore,
-    )
-}
-
-@Composable
-private fun DiscoverContent(
+fun DiscoverFeed(
     state: DiscoverUiState,
+    items: List<MetaPreview>,
     posterSize: PosterSize,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     when {
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize, modifier)
         state.error != null && state.items.isEmpty() ->
-            Message(
-                icon = Icons.Outlined.ErrorOutline,
-                title = "Could not load Discover",
-                message = state.error.toUserMessage(),
-            )
+            Box(modifier, contentAlignment = Alignment.Center) {
+                Message(
+                    icon = Icons.Outlined.ErrorOutline,
+                    title = "Could not load Discover",
+                    message = state.error.toUserMessage(),
+                )
+            }
         state.items.isEmpty() ->
-            Message(
-                icon = Icons.Outlined.Explore,
-                title = "Nothing to discover",
-                message = "Install a metadata addon with catalogs to fill this section.",
-            )
+            Box(modifier, contentAlignment = Alignment.Center) {
+                Message(
+                    icon = Icons.Outlined.Explore,
+                    title = "Nothing to discover",
+                    message = "Install a metadata addon with catalogs to fill this section.",
+                )
+            }
         else ->
-            DiscoverGrid(state = state, posterSize = posterSize, onOpenDetail = onOpenDetail, onLoadMore = onLoadMore)
+            DiscoverGrid(
+                items = items,
+                isLoadingMore = state.isLoadingMore,
+                posterSize = posterSize,
+                onOpenDetail = onOpenDetail,
+                onLoadMore = onLoadMore,
+                modifier = modifier,
+            )
     }
 }
 
 @Composable
 private fun DiscoverGrid(
-    state: DiscoverUiState,
+    items: List<MetaPreview>,
+    isLoadingMore: Boolean,
     posterSize: PosterSize,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val gridState = rememberLazyGridState()
     val windowSize = LocalWindowSize.current
     // `rememberUpdatedState` keeps the count current inside the derived state;
-    // capturing `state` directly would freeze it at the first composition and
-    // make `shouldLoadMore` permanently true, loading every page at once.
-    val itemCount by rememberUpdatedState(state.items.size)
+    // capturing `items` directly would freeze it at the first composition and
+    // make `shouldLoadMore` permanently true, loading every page at once. The
+    // count is of the filtered list, so a narrow filter keeps pulling pages
+    // until it has enough to show.
+    val itemCount by rememberUpdatedState(items.size)
     val shouldLoadMore by remember {
         derivedStateOf {
             val last =
@@ -113,19 +111,19 @@ private fun DiscoverGrid(
             last >= itemCount - 8
         }
     }
-    LaunchedEffect(shouldLoadMore, state.items.size, state.hasMore) {
+    LaunchedEffect(shouldLoadMore, items.size) {
         if (shouldLoadMore) onLoadMore()
     }
 
     LazyVerticalGrid(
         state = gridState,
         columns = GridCells.Adaptive(posterSize.cellWidth(windowSize)),
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(windowSize.screenPadding),
         verticalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
         horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
     ) {
-        items(state.items, key = { "${it.type}:${it.id}" }) { item ->
+        items(items, key = { "${it.type}:${it.id}" }) { item ->
             Box(Modifier.aspectRatio(0.58f)) {
                 MetaPosterCard(
                     preview = item,
@@ -133,7 +131,7 @@ private fun DiscoverGrid(
                 )
             }
         }
-        if (state.isLoadingMore) {
+        if (isLoadingMore) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Box(Modifier.fillMaxWidth().padding(AppSpacing.lg), Alignment.Center) {
                     CircularProgressIndicator()
