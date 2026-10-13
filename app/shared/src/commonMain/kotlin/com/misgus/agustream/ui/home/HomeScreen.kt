@@ -143,11 +143,19 @@ private fun HomeContent(
             )
         else -> {
             val compact = windowSize == WindowSize.COMPACT
-            // Cap the hero by the viewport so at least the first row stays on
-            // screen, and pull the rows up so they sit closer to it. Both apply to
-            // a wide window only; the phone keeps the default flow.
+            // Size the hero so exactly one full row of content lands at the bottom
+            // of the viewport: a taller row shrinks it, a shorter one grows it (so
+            // the second row never peeks). Wide windows only; the phone keeps the
+            // default flow.
             val viewportHeight = LocalWindowHeight.current
-            val heroMax = (viewportHeight * HOME_HERO_MAX_VIEWPORT_FRACTION).coerceAtLeast(HOME_HERO_MIN_HEIGHT)
+            val heroHeight =
+                if (compact) {
+                    null
+                } else {
+                    val firstRowHeight = posterSize.railHeight(windowSize)
+                    (viewportHeight - HOME_SECTION_HEADER_HEIGHT - firstRowHeight + HOME_CONTENT_LIFT)
+                        .coerceAtLeast(HOME_HERO_MIN_HEIGHT)
+                }
             val liftPx = if (compact) 0 else with(LocalDensity.current) { HOME_CONTENT_LIFT.roundToPx() }
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
@@ -158,7 +166,7 @@ private fun HomeContent(
                             items = state.featured,
                             onOpen = onOpenPreview,
                             onPlay = onPlayPreview,
-                            maxHeight = heroMax,
+                            height = heroHeight,
                         )
                     state.featured.isNotEmpty() ->
                         Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
@@ -276,12 +284,14 @@ private val CompactContinueHeight = 184.dp
 private val HOME_CONTENT_LIFT = 96.dp
 
 /**
- * Cap on the hero height as a share of the viewport, so at least the first row
- * fits on screen. `1f` disables the cap.
+ * Height of a section header plus a little breathing room, for the hero fit math:
+ * the row paddings (`AppSpacing.lg` + `AppSpacing.md`), the 48dp minimum touch
+ * target the Material button imposes, and a small gap so the poster year is not
+ * flush against the bottom edge.
  */
-private const val HOME_HERO_MAX_VIEWPORT_FRACTION = 0.62f
+private val HOME_SECTION_HEADER_HEIGHT = 96.dp
 
-/** Floor for that cap, so a short window cannot shrink the hero under its copy. */
+/** Floor for the hero height, so a short window cannot shrink it under its copy. */
 private val HOME_HERO_MIN_HEIGHT = 480.dp
 
 /**

@@ -170,7 +170,8 @@ internal fun WideHero(
     items: List<MetaPreview>,
     onOpen: (MetaPreview) -> Unit,
     onPlay: (MetaPreview) -> Unit,
-    maxHeight: Dp = Dp.Infinity,
+    /** Frame height; `null` uses the artwork's own aspect. */
+    height: Dp? = null,
 ) {
     if (items.isEmpty()) return
     val density = LocalDensity.current
@@ -178,16 +179,17 @@ internal fun WideHero(
     var aspect by remember(items) { mutableStateOf(HERO_FALLBACK_ASPECT_RATIO) }
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        // The cap keeps the hero from eating the whole viewport, so a row of the
-        // content below stays on screen; the artwork crops a little more instead.
-        val height = minOf(desktopHeroHeight(maxWidth, aspect), maxHeight)
-        // Decode the full artwork at its display width, so `Crop` has the whole
-        // bitmap to trim from and not just the shorter frame.
-        val artworkHeight = (maxWidth * HERO_IMAGE_WIDTH_FRACTION) / aspect
+        // The caller may pass a height that leaves room for a row below; otherwise
+        // the frame follows the artwork's aspect ratio.
+        val frameHeight = height ?: desktopHeroHeight(maxWidth, aspect)
+        // Decode the full artwork at its display width; if the frame ends up
+        // taller than the artwork's aspect, decode to the frame height so `Crop`
+        // does not upscale.
+        val artworkHeight = maxOf((maxWidth * HERO_IMAGE_WIDTH_FRACTION) / aspect, frameHeight)
         HeroCarousel(
             items = items,
             pagerState = pagerState,
-            height = height,
+            height = frameHeight,
             wide = true,
             backdropWidthPx = with(density) { (maxWidth * HERO_IMAGE_WIDTH_FRACTION).roundToPx().coerceAtLeast(1) },
             backdropHeightPx = with(density) { artworkHeight.roundToPx().coerceAtLeast(1) },
