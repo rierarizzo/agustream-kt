@@ -194,6 +194,14 @@ engine, the filesystem and the player touch platform source sets through
   synopsis); desktop and tablet keep the full scale. No type slot carries a
   colour: text colour comes from the colour scheme at the call site, as Material
   intends, and `PosterCaption` is just the `titleSmall` / `bodySmall` roles.
+- **Localisation.** Every user-facing string lives in
+  `composeResources/values/strings.xml` and is read with
+  `stringResource(Res.string.key)`, so adding a locale is a new `values-*` folder
+  instead of a code change. Failure messages go through
+  `Throwable.toUserMessage()`, which returns a `StringResource` (not a `String`)
+  so the mapping stays unit-testable while the caller resolves the text. Only
+  locale-independent formatting stays in code: separators, timecodes, file
+  sizes, content types and the release-date assembly.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
   rendered inside the shell content area. Sections keep the navigation
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such
