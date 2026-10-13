@@ -201,7 +201,9 @@ engine, the filesystem and the player touch platform source sets through
   `Throwable.toUserMessage()`, which returns a `StringResource` (not a `String`)
   so the mapping stays unit-testable while the caller resolves the text. Only
   locale-independent formatting stays in code: separators, timecodes, file
-  sizes, content types and the release-date assembly.
+  sizes, content types and the release-date assembly. Directional chevrons go
+  through `Modifier.mirrorInRtl()`, since Material ships no auto-mirrored
+  chevron; arrows use the `AutoMirrored` icons.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
   rendered inside the shell content area. Sections keep the navigation
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such

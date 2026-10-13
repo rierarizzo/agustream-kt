@@ -38,11 +38,13 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.misgus.agustream.ui.theme.AppColors
@@ -58,6 +60,20 @@ import org.jetbrains.compose.resources.stringResource
  * sections instead of reading the screen linearly.
  */
 fun Modifier.sectionHeading(): Modifier = semantics { heading() }
+
+/**
+ * Mirrors the content in a right-to-left layout.
+ *
+ * Material ships auto-mirrored variants for arrows but not for chevrons, so a
+ * directional chevron is flipped here instead of swapping the icon at every use.
+ */
+@Composable
+fun Modifier.mirrorInRtl(): Modifier =
+    if (LocalLayoutDirection.current == LayoutDirection.Rtl) {
+        graphicsLayer { scaleX = -1f }
+    } else {
+        this
+    }
 
 /** Check badge shown on a title the account marked as watched. */
 @Composable
@@ -158,7 +174,7 @@ fun SectionHeader(
         onSeeAll?.let {
             TextButton(onClick = it) {
                 Text(stringResource(Res.string.action_see_all))
-                Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(AppIconSize.sm))
+                Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(AppIconSize.sm).mirrorInRtl())
             }
         }
     }

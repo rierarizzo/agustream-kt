@@ -66,6 +66,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.PosterImage
+import com.misgus.agustream.ui.components.mirrorInRtl
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.shell.ContentNavigator
@@ -168,7 +169,11 @@ private fun MonthHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onPrevious) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = stringResource(Res.string.calendar_prev_month))
+            Icon(
+                Icons.Default.ChevronLeft,
+                contentDescription = stringResource(Res.string.calendar_prev_month),
+                modifier = Modifier.mirrorInRtl(),
+            )
         }
         Row(
             modifier = Modifier.weight(1f),
@@ -187,7 +192,11 @@ private fun MonthHeader(
             }
         }
         IconButton(onClick = onNext) {
-            Icon(Icons.Default.ChevronRight, contentDescription = stringResource(Res.string.calendar_next_month))
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = stringResource(Res.string.calendar_next_month),
+                modifier = Modifier.mirrorInRtl(),
+            )
         }
     }
 }
