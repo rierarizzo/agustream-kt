@@ -19,11 +19,11 @@ import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.core.model.BackendProfile
 
 /**
- * Circular profile avatar, shared by the top bar and the profile picker.
+ * Circular profile avatar, shared by the navigation and the profile picker.
  *
  * Shows the remote image when available, otherwise the initial of the name, and
  * a generic person icon when no profile is selected. [size] and [initialStyle]
- * let the caller scale it (small in the top bar, large in the picker).
+ * let the caller scale it (small in the rail, large in the picker).
  */
 @Composable
 fun ProfileAvatar(

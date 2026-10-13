@@ -108,8 +108,8 @@ private val AppShapes =
 
 /** Sizes shared by the shell. */
 object AppSizes {
-    /** Height of the horizontal top navigation bar, used on wide windows. */
-    val topBarHeight: Dp = 64.dp
+    /** Width of the vertical navigation rail used on wide windows. */
+    val railWidth: Dp = 80.dp
 
     /** Height of the icon-only bottom navigation bar, used on compact windows. */
     val bottomBarHeight: Dp = 80.dp
@@ -310,7 +310,7 @@ object PosterCaption {
  * cannot read `MaterialTheme`; it reads these values instead.
  */
 object AppWindowChrome {
-    /** Native title-bar colour; matches the top bar's `surface-container`. */
+    /** Native title-bar colour (`BrandPalette.surface`). */
     val titleBar: Color = BrandPalette.surface
 
     /** Window background behind Compose, so a resize does not flash. */

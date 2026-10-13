@@ -3,7 +3,9 @@ package com.misgus.agustream.ui.shell
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -47,8 +49,9 @@ import kotlinx.coroutines.launch
  * The content area fills the whole window and the navigation floats over it, so
  * showing or hiding it never changes the content viewport. That matters:
  * resizing the viewport clamps a section's scroll (it was scrolled back up when
- * a route hid the bar). Sections reserve the bar's height with padding; pushed
- * routes use the full window and let the bar fade away.
+ * a route hid the bar). Sections reserve the bottom bar's height on a phone (or
+ * the rail's width on a wide window) with padding; pushed routes use the full
+ * window and let the navigation fade away.
  */
 @Composable
 fun AppShell() {
@@ -69,7 +72,7 @@ fun AppShell() {
     var streamsRequest by remember { mutableStateOf<StreamsRequest?>(null) }
 
     // A pushed route (detail, catalog) is an immersive screen with its own back
-    // affordance, so the top navigation fades away; the content keeps its size.
+    // affordance, so the navigation fades away; the content keeps its size.
     val showNav = !isFullScreen && !immersive && navigator.current == null
     val gate = account.isSignedIn && account.requiresProfile && account.activeProfile == null
 
@@ -115,7 +118,7 @@ fun AppShell() {
                         // The navigation never changes the content viewport: it
                         // fades in over the space the sections reserve. Compact
                         // windows (phones) get the icon-only bottom bar; wider
-                        // windows get the top bar.
+                        // windows get the left rail.
                         val navFade = AppMotion.spec<Float>(motionEnabled, AppMotion.SLOW, easing = AppMotion.emphasized)
                         val navSlide = AppMotion.spec<IntOffset>(motionEnabled, AppMotion.SLOW, easing = AppMotion.emphasized)
                         if (windowSize == WindowSize.COMPACT) {
@@ -130,11 +133,11 @@ fun AppShell() {
                         } else {
                             AnimatedVisibility(
                                 visible = showNav,
-                                modifier = Modifier.align(Alignment.TopCenter),
-                                enter = fadeIn(navFade) + slideInVertically(navSlide) { -it },
-                                exit = fadeOut(navFade) + slideOutVertically(navSlide) { -it },
+                                modifier = Modifier.align(Alignment.CenterStart),
+                                enter = fadeIn(navFade) + slideInHorizontally(navSlide) { -it },
+                                exit = fadeOut(navFade) + slideOutHorizontally(navSlide) { -it },
                             ) {
-                                TopNav(
+                                LeftNav(
                                     selected = selected,
                                     onSelected = selectSection,
                                     activeProfile = account.activeProfile,

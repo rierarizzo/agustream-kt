@@ -143,8 +143,8 @@ engine, the filesystem and the player touch platform source sets through
   expanded, at Material's 600 and 840 dp breakpoints) plus the window width,
   through `LocalWindowSize` / `LocalWindowWidth`, so a surface picks a layout
   without measuring anything itself. Compact windows (phones) always get an
-  icon-only bottom bar and reserve its height; wider windows always get the
-  centered top bar and reserve its height.
+  icon-only bottom bar and reserve its height; wider windows always get a left
+  navigation rail and reserve its width.
   The poster grids and rails scale their cell width down on compact windows
   (the user's small / default / large choice still applies), the Home hero swaps
   the wide billboard for the poster crop without the title logo, the detail
@@ -161,7 +161,7 @@ engine, the filesystem and the player touch platform source sets through
   `WindowInsets.statusBars` / `navigationBars`, zero on desktop) or the
   `statusBarsPadding` / `navigationBarsPadding` / `safeDrawingPadding`
   modifiers. The shell reserves the navigation plus the system bars it sits
-  behind for a section (the bottom bar on a phone, the top bar on a wide
+  behind for a section (the bottom bar on a phone, the rail on a wide
   window); the navigation bars carry their own inset; the detail backdrop, the
   player and the onboarding/profile gates paint behind the bars while their
   controls sit below them; and the Home billboard scrolls with the content (it
@@ -175,8 +175,8 @@ engine, the filesystem and the player touch platform source sets through
   artwork's aspect ratio. The copy column is
   bottom-anchored 100dp above the hero edge, up to 840dp wide (the synopsis is
   capped tighter, at 630dp, so it wraps into four short lines), and shares the
-  sections' left padding. On a wide window the top bar floats over the content,
-  which reserves its height, so the navigation never overlaps it.
+  sections' left padding. On a wide window the rail floats over the content,
+  which reserves its width, so the navigation never overlaps it.
 - **Typography.** Inter is bundled through Compose Resources, so every target
   renders the same typeface, and text is written in `sp` so Android's system
   font size keeps working. `LocalDensity` is deliberately never overridden: that
@@ -187,18 +187,17 @@ engine, the filesystem and the player touch platform source sets through
   colour: text colour comes from the colour scheme at the call site, as Material
   intends, and `PosterCaption` is just the `titleSmall` / `bodySmall` roles.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
-  rendered inside the shell content area. Sections keep the top navigation
+  rendered inside the shell content area. Sections keep the navigation
   visible; a pushed route (detail, catalog) hides it, so an immersive hero such
   as the detail one fills the whole window — the same behaviour as the Flutter
   nested `Navigator`, without adding a navigation library. The chrome mixes
   Material and custom: a compact window gets a `NavigationBar` with icon-only
-  `NavigationBarItem`s; a wide window a centered top bar with custom items,
-  since Material has no multi-destination top bar. The top bar uses a
-  `surface-container` container (Material's top-app-bar guidance) instead of a
-  translucent scrim, so its items always keep on-surface contrast over any
-  artwork; the selected item is a translucent on-surface fill, with the
-  hover/press state layer blended over it so a selected item never loses its
-  fill.
+  `NavigationBarItem`s; a wide window a left navigation rail with custom
+  icon-only items. The rail drops the labels to stay narrow, centers the
+  profile avatar and the section items in the window, and paints the page
+  background instead of a panel colour, so it blends into the content; the
+  selected item is a translucent on-surface fill, with the hover/press state
+  layer blended over it so a selected item never loses its fill.
 - **Search owns the discover feed.** It has a free-text search across every
   catalog that declares the `search` extra, debounced, run in parallel and
   deduped across addons, split into Movies / Series / Other rails; and — while
@@ -268,9 +267,9 @@ engine, the filesystem and the player touch platform source sets through
   transition; the section
   stays composed while a route is open (so its scroll is never saved and
   restored, which lost the within-item offset and scrolled it back up) and the
-  route fades in over it, leaving at once when popped. The top bar floats over
-  the content instead of taking layout height, because hiding it used to grow
-  the content viewport and clamp the section scroll; sections reserve its height
+  route fades in over it, leaving at once when popped. The rail floats over
+  the content instead of taking layout width, because hiding it used to grow
+  the content viewport and clamp the section scroll; sections reserve its width
   with a constant padding, so the viewport never changes. The size animation is
   disabled (`.using(null)`) because it relayouts every frame. Posters scale on
   hover and dialogs fade/scale in. Loading screens are skeletons driven by a
@@ -299,8 +298,8 @@ engine, the filesystem and the player touch platform source sets through
   The only window behaviour routed through `WindowController` is **fullscreen**,
   which the player owns; the previous placement is restored on exit. On Windows
   the native title bar is opted into the DWM immersive dark mode and, on
-  Windows 11, tinted to the top bar's `surface-container` colour
-  (`WindowAppearance.kt`), because AWT does not follow the OS dark mode on its
+  Windows 11, tinted to the window chrome colour (`AppWindowChrome.titleBar`,
+  `WindowAppearance.kt`), because AWT does not follow the OS dark mode on its
   own.
 
 ## Player

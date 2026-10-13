@@ -14,7 +14,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * The sections reachable from the top navigation.
+ * The sections reachable from the navigation.
  *
  * The order here is the order shown in the bar.
  */

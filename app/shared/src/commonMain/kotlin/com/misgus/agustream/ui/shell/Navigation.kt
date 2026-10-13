@@ -1,25 +1,22 @@
 package com.misgus.agustream.ui.shell
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,20 +32,19 @@ import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
-import com.misgus.agustream.ui.theme.LocalWindowSize
-import com.misgus.agustream.ui.theme.screenPadding
 
 /**
- * Horizontal navigation bar for wide windows, with the profile and section items
- * centered. It floats over the content, which reserves its height, so showing or
- * hiding it never resizes the content viewport.
+ * Vertical navigation rail for wide windows, with the profile and section items
+ * centered in the window.
  *
- * Material 3 has no multi-destination top bar, so the items are custom; they
- * still use the Material navigation colours, so a selected item reads the same
- * as on the bar and the rail.
+ * It floats over the content, which reserves the rail's width, so showing or
+ * hiding it never resizes the content viewport. The items are icon-only — at
+ * [AppSizes.railWidth] the icons alone stay legible and the rail stays narrow —
+ * and the container paints the page background, so the rail blends into the
+ * window instead of reading as a separate panel.
  */
 @Composable
-fun TopNav(
+fun LeftNav(
     selected: AppSection,
     onSelected: (AppSection) -> Unit,
     activeProfile: BackendProfile? = null,
@@ -56,24 +52,25 @@ fun TopNav(
     Box(
         modifier =
             Modifier
-                .fillMaxWidth()
+                .fillMaxHeight()
+                .width(AppSizes.railWidth)
+                .background(MaterialTheme.colorScheme.background)
                 .statusBarsPadding()
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .horizontalScroll(rememberScrollState()),
+                .navigationBarsPadding(),
         contentAlignment = Alignment.Center,
     ) {
-        Row(
-            modifier = Modifier.height(AppSizes.topBarHeight).padding(horizontal = LocalWindowSize.current.screenPadding),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm),
         ) {
             ProfileAvatar(
                 profile = activeProfile,
                 size = 32.dp,
                 initialStyle = MaterialTheme.typography.titleMedium,
             )
-            Spacer(Modifier.width(AppSpacing.lg))
+            Spacer(Modifier.height(AppSpacing.sm))
             AppSection.entries.forEach { section ->
-                TopNavItem(section, section == selected) { onSelected(section) }
+                RailNavItem(section, section == selected) { onSelected(section) }
             }
         }
     }
@@ -122,9 +119,9 @@ fun BottomNav(
     }
 }
 
-/** One section in the custom top bar, with a translucent selected fill. */
+/** One section in the rail: an icon-only target with a translucent selected fill. */
 @Composable
-private fun TopNavItem(
+private fun RailNavItem(
     section: AppSection,
     selected: Boolean,
     onTap: () -> Unit,
@@ -142,28 +139,20 @@ private fun TopNavItem(
         )
     val contentColor =
         if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-    Row(
+    Box(
         modifier =
             Modifier
-                .sizeIn(minWidth = AppSizes.minTouchTarget, minHeight = AppSizes.minTouchTarget)
-                .padding(horizontal = AppSpacing.xs)
+                .size(AppSizes.minTouchTarget)
                 .clip(MaterialTheme.shapes.small)
                 .background(background)
-                .clickableSurface(interaction, onTap)
-                .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
+                .clickableSurface(interaction, onTap),
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = if (selected) section.selectedIcon else section.icon,
             contentDescription = section.label,
             tint = contentColor,
             modifier = Modifier.size(AppIconSize.sm),
-        )
-        Spacer(Modifier.width(AppSpacing.sm))
-        Text(
-            text = section.label,
-            style = MaterialTheme.typography.labelLarge,
-            color = contentColor,
         )
     }
 }

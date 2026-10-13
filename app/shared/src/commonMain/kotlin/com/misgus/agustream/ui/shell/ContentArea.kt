@@ -69,9 +69,7 @@ fun ContentArea(
             label = "section",
         ) { section ->
             // Sections reserve the navigation plus the system bars it sits
-            // behind: a phone reserves the bottom bar, a wide window the top
-            // bar. Home keeps the billboard full-bleed under it, so on a phone it
-            // reserves only the bottom bar.
+            // behind: a phone reserves the bottom bar, a wide window the rail.
             val compact = LocalWindowSize.current == WindowSize.COMPACT
             val contentPadding =
                 when {
@@ -79,10 +77,12 @@ fun ContentArea(
                         PaddingValues(bottom = AppSizes.bottomBarHeight + safeBottomInset)
                     compact ->
                         PaddingValues(top = safeTopInset, bottom = AppSizes.bottomBarHeight + safeBottomInset)
-                    section == AppSection.HOME ->
-                        PaddingValues(top = safeTopInset, bottom = safeBottomInset)
                     else ->
-                        PaddingValues(top = AppSizes.topBarHeight + safeTopInset, bottom = safeBottomInset)
+                        PaddingValues(
+                            start = AppSizes.railWidth,
+                            top = safeTopInset,
+                            bottom = safeBottomInset,
+                        )
                 }
             Box(Modifier.fillMaxSize().padding(contentPadding)) {
                 SectionHost(section, navigator, onOpenStreams)
