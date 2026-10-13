@@ -317,11 +317,14 @@ engine, the filesystem and the player touch platform source sets through
   `minimumSize` on the AWT window), so the OS lets it grow and maximise but
   never shrink below the size it started with.
   The only window behaviour routed through `WindowController` is **fullscreen**,
-  which the player owns; the previous placement is restored on exit. On Windows
-  the native title bar is opted into the DWM immersive dark mode and, on
-  Windows 11, tinted to the window chrome colour (`AppWindowChrome.titleBar`,
-  `WindowAppearance.kt`), because AWT does not follow the OS dark mode on its
-  own.
+  which the player owns; the previous placement is restored on exit. The app
+  keeps the **native window decoration** and only themes it: on Windows it opts
+  into the DWM immersive dark mode and, on Windows 11, paints the caption, the
+  text and the border from `AppWindowChrome` and forces rounded corners
+  (`WindowAppearance.kt`), because AWT does not follow the OS dark mode on its
+  own. Keeping the native frame is what preserves snap, maximise, the window
+  animations and high contrast, and it matches on Linux, where the window
+  manager draws the decoration.
 
 ## Player
 

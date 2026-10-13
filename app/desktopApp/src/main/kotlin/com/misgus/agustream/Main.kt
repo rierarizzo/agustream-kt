@@ -112,8 +112,9 @@ fun main(args: Array<String>) {
             LaunchedEffect(window) {
                 val caption = AppWindowChrome.titleBar.toAwtColor()
                 val title = AppWindowChrome.foreground.toAwtColor()
+                val border = AppWindowChrome.border.toAwtColor()
                 repeat(DARK_TITLE_BAR_ATTEMPTS) {
-                    if (applyDarkTitleBar(window, caption = caption, text = title)) return@LaunchedEffect
+                    if (applyDarkTitleBar(window, caption = caption, text = title, border = border)) return@LaunchedEffect
                     delay(TITLE_BAR_RETRY_DELAY_MS)
                 }
             }

@@ -11,10 +11,11 @@ import java.awt.Window
  * Paints the native window decoration to match the app.
  *
  * AWT windows keep the light system title bar until the app opts into the DWM
- * immersive dark mode; Windows 11 additionally lets the app set an explicit
- * caption and text colour (attributes 35 and 36), while Windows 10 only
- * supports the light/dark flag. The app keeps the native decoration on purpose
- * (see the architecture decisions), so this is the only place that talks to DWM.
+ * immersive dark mode; Windows 11 additionally lets the app set explicit
+ * caption, text and border colours (attributes 35, 36 and 34) and the corner
+ * rounding (attribute 33), while Windows 10 only supports the light/dark flag.
+ * The app keeps the native decoration on purpose (see the architecture
+ * decisions), so this is the only place that talks to DWM.
  *
  * Returns `true` once the request reached the window, or `false` when the native
  * peer does not exist yet, so the caller can retry on the next frame.
@@ -23,6 +24,7 @@ fun applyDarkTitleBar(
     window: Window,
     caption: Color? = null,
     text: Color? = null,
+    border: Color? = null,
 ): Boolean {
     if (!isWindows()) return true
     val hwnd =
@@ -39,6 +41,10 @@ fun applyDarkTitleBar(
     // Explicit colours; Windows 11 only, ignored on older builds.
     caption?.let { setColor(hwnd, DWMWA_CAPTION_COLOR, it) }
     text?.let { setColor(hwnd, DWMWA_TEXT_COLOR, it) }
+    border?.let { setColor(hwnd, DWMWA_BORDER_COLOR, it) }
+    // Rounded corners; Windows 11 only, ignored on older builds.
+    val corner = IntByReference(DWMWCP_ROUND)
+    DwmApi.INSTANCE.DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, corner, INT_SIZE)
     return true
 }
 
@@ -59,8 +65,13 @@ private const val INT_SIZE = 4
 
 private const val DWMWA_USE_IMMERSIVE_DARK_MODE = 20
 private const val DWMWA_USE_IMMERSIVE_DARK_MODE_OLD = 19
+private const val DWMWA_WINDOW_CORNER_PREFERENCE = 33
+private const val DWMWA_BORDER_COLOR = 34
 private const val DWMWA_CAPTION_COLOR = 35
 private const val DWMWA_TEXT_COLOR = 36
+
+/** `DWMWCP_ROUND`: the standard rounded corners. */
+private const val DWMWCP_ROUND = 2
 
 private fun isWindows(): Boolean = System.getProperty("os.name").startsWith("Windows")
 

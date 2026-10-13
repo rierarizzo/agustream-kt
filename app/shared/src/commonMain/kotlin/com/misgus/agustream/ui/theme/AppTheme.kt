@@ -347,8 +347,11 @@ object PosterCaption {
  * cannot read `MaterialTheme`; it reads these values instead.
  */
 object AppWindowChrome {
-    /** Native title-bar colour (`BrandPalette.surface`). */
-    val titleBar: Color = BrandPalette.surface
+    /** Native title-bar colour; matches the page background and the rail. */
+    val titleBar: Color = BrandPalette.background
+
+    /** Native window border, matched to the title bar so the frame disappears. */
+    val border: Color = BrandPalette.background
 
     /** Window background behind Compose, so a resize does not flash. */
     val windowBackground: Color = BrandPalette.background
