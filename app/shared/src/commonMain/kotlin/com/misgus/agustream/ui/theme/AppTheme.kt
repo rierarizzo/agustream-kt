@@ -29,8 +29,11 @@ import org.jetbrains.compose.resources.Font
  * keeps stock Material3 components and custom surfaces on the same colours.
  */
 private object BrandPalette {
-    /** App background, near black. */
-    val background = Color(0xFF0A0A0C)
+    /**
+     * App background. The single source of truth for the near-black the whole
+     * UI sits on and the colour every page fade ends on.
+     */
+    val background = Color(0xFF0B0803)
 
     /** Cards, panels and rails. */
     val surface = Color(0xFF151518)
@@ -184,6 +187,57 @@ object AppScrim {
             0f to Color.Transparent,
             0.4f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_MEDIUM),
             1f to BrandPalette.background,
+        )
+
+    /**
+     * Home billboard, left-to-right: fully opaque over the copy column and clear
+     * from ~78% on, so the right-aligned artwork stays clean.
+     */
+    val heroHorizontal: Brush =
+        Brush.horizontalGradient(
+            0f to BrandPalette.background,
+            0.25f to BrandPalette.background.copy(alpha = 0.92f),
+            0.42f to BrandPalette.background.copy(alpha = 0.6f),
+            0.6f to BrandPalette.background.copy(alpha = 0.2f),
+            0.78f to Color.Transparent,
+        )
+
+    /**
+     * Wide desktop billboard, left-to-right: opaque over the left column and
+     * the copy, then a short fade that dissolves the artwork's left edge into
+     * the page background.
+     */
+    val heroWideLeft: Brush =
+        Brush.horizontalGradient(
+            0f to BrandPalette.background,
+            0.3f to BrandPalette.background,
+            0.5f to Color.Transparent,
+        )
+
+    /**
+     * Home billboard, bottom-up: fully opaque at the bottom edge and clear by 35%
+     * of the height, so the hero dissolves into the section below without a seam.
+     */
+    val heroBottom: Brush =
+        Brush.verticalGradient(
+            0f to Color.Transparent,
+            0.65f to Color.Transparent,
+            1f to BrandPalette.background,
+        )
+
+    /** Home billboard top fade, subtle enough to keep the window controls legible. */
+    val heroTop: Brush =
+        Brush.verticalGradient(
+            0f to BrandPalette.background.copy(alpha = 0.45f),
+            0.2f to Color.Transparent,
+        )
+
+    /** Home billboard right-edge vignette. */
+    val heroRightVignette: Brush =
+        Brush.horizontalGradient(
+            0f to Color.Transparent,
+            0.7f to Color.Transparent,
+            1f to BrandPalette.background.copy(alpha = 0.25f),
         )
 
     /** Stronger fade for short media headers, such as dialogs. */

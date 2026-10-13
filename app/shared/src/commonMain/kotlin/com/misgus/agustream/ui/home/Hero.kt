@@ -1,12 +1,16 @@
 package com.misgus.agustream.ui.home
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,189 +18,457 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil3.SingletonImageLoader
+import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.components.ActionButton
-import com.misgus.agustream.ui.components.MediaTitle
-import com.misgus.agustream.ui.components.MetadataRow
+import com.misgus.agustream.ui.components.ArtworkFilterQuality
+import com.misgus.agustream.ui.components.LogoFilterQuality
 import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.ratingText
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
-import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
-import com.misgus.agustream.ui.theme.safeTopInset
+import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
 
-/** Billboard crop ratio (Netflix-style wide banner). */
-internal const val HERO_ASPECT_RATIO = 1920f / 823f
+/** Share of the window width the desktop artwork occupies. */
+private const val HERO_IMAGE_WIDTH_FRACTION = 0.7f
 
-/** Portrait crop used on a compact window, where the poster carries the hero. */
-internal const val COMPACT_HERO_ASPECT_RATIO = 2f / 3f
+/** Aspect ratio used until the artwork has decoded, so the frame has a height. */
+private const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
 
-/** Blur applied to the cover-filled copy behind the complete artwork. */
-private val HERO_FILL_BLUR = 24.dp
+/** Height of the title logo on the billboard. */
+private val HERO_LOGO_HEIGHT = 150.dp
 
-/** How much the blurred copy is dimmed, so it does not compete with the artwork. */
-private const val HERO_FILL_DIM = 0.4f
+/** Widest the copy column ever grows, so the synopsis keeps a comfortable measure. */
+private val HERO_CONTENT_MAX_WIDTH = 840.dp
 
-/** Featured billboard carousel. */
+/** Gap between the bottom of the billboard and the copy actions. */
+private val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
+
+/** Vertical rhythm of the copy column. */
+private val HERO_LOGO_METADATA_SPACE = 20.dp
+private val HERO_METADATA_SYNOPSIS_SPACE = 22.dp
+private val HERO_SYNOPSIS_ACTIONS_SPACE = 28.dp
+
+/** Gap between the rating star and its number. */
+private val HERO_STAR_GAP = 4.dp
+
+/** Carousel paginator: inset from the right edge, dot size, gap and animation. */
+private val HERO_PAGINATOR_END_MARGIN = 30.dp
+private val HERO_PAGINATOR_ACTIVE_WIDTH = 30.dp
+private val HERO_PAGINATOR_DOT = 6.dp
+private val HERO_PAGINATOR_GAP = 8.dp
+private const val HERO_PAGINATOR_ANIMATION_MS = 250
+
+/**
+ * Height of the full-width billboard for [maxWidth], used on a phone where the
+ * artwork spans the whole width. Sizing the frame to the artwork's own aspect
+ * ratio lets `Fit` show the whole image, with no crop and no bars.
+ */
+private fun heroHeight(
+    maxWidth: Dp,
+    aspectRatio: Float,
+): Dp = maxWidth / aspectRatio
+
+/**
+ * Height of the desktop billboard, whose artwork spans [HERO_IMAGE_WIDTH_FRACTION]
+ * of [maxWidth] and is pinned to the top-right of the frame.
+ */
+private fun desktopHeroHeight(
+    maxWidth: Dp,
+    aspectRatio: Float,
+): Dp = (maxWidth * HERO_IMAGE_WIDTH_FRACTION) / aspectRatio
+
+/**
+ * Compact / Android billboard: in the scroll flow, full-bleed, complete artwork.
+ *
+ * A phone cannot show the wide desktop composition, so it keeps the simpler
+ * full-width frame that scrolls with the content.
+ */
 @Composable
 internal fun Hero(
     items: List<MetaPreview>,
     onOpen: (MetaPreview) -> Unit,
     onPlay: (MetaPreview) -> Unit,
 ) {
+    if (items.isEmpty()) return
+    val density = LocalDensity.current
     val pagerState = rememberPagerState(pageCount = { items.size })
-    // A phone cannot show the wide billboard, so it gets a taller crop of the
-    // poster instead, with the name as text rather than the title logo.
-    val compact = LocalWindowSize.current == WindowSize.COMPACT
-    val windowHeight = LocalWindowHeight.current
+    // Each page reports the aspect ratio of its decoded artwork; the billboard
+    // adopts the current page's, so `Fit` never has to letterbox or crop.
+    val aspects = remember(items) { mutableStateMapOf<Int, Float>() }
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        // Full-bleed: the billboard reaches the window edges and tucks under the
-        // floating navigation, so it reads as an immersive backdrop instead of an
-        // inset card. Its height follows the artwork's aspect ratio (never a
-        // forced crop), and is only capped so it cannot grow past the viewport on
-        // a very wide, short window.
-        val ratio = if (compact) COMPACT_HERO_ASPECT_RATIO else HERO_ASPECT_RATIO
-        val naturalHeight = maxWidth / ratio
-        val heroHeight = if (windowHeight.value.isFinite()) minOf(naturalHeight, windowHeight) else naturalHeight
-        Box(Modifier.fillMaxWidth().height(heroHeight)) {
-            HorizontalPager(
-                state = pagerState,
-                beyondViewportPageCount = 1,
-            ) { page ->
-                HeroSlide(
-                    item = items[page],
-                    compact = compact,
-                    onOpen = { onOpen(items[page]) },
-                    onPlay = { onPlay(items[page]) },
-                )
-            }
-            if (items.size > 1) {
-                Row(
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(AppSpacing.lg),
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
-                ) {
-                    items.indices.forEach { index ->
-                        val selected = index == pagerState.currentPage
-                        Box(
-                            modifier =
-                                Modifier
-                                    .width(if (selected) 20.dp else 6.dp)
-                                    .height(6.dp)
-                                    .clip(MaterialTheme.shapes.extraSmall)
-                                    .background(
-                                        if (selected) {
-                                            MaterialTheme.colorScheme.onSurface
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.HERO_INDICATOR)
-                                        },
-                                    ),
-                        )
-                    }
-                }
-            }
-        }
+        val aspect = aspects[pagerState.currentPage] ?: HERO_FALLBACK_ASPECT_RATIO
+        val height = heroHeight(maxWidth, aspect)
+        HeroCarousel(
+            items = items,
+            pagerState = pagerState,
+            height = height,
+            wide = false,
+            backdropWidthPx = with(density) { maxWidth.roundToPx().coerceAtLeast(1) },
+            backdropHeightPx = with(density) { height.roundToPx().coerceAtLeast(1) },
+            onBackdropAspect = { page, ratio -> aspects[page] = ratio },
+            onOpen = onOpen,
+            onPlay = onPlay,
+        )
     }
 }
 
-/** One billboard slide: full-bleed artwork with the copy and actions over a scrim. */
+/**
+ * Desktop billboard: in the scroll flow, with the complete artwork scaled to
+ * [HERO_IMAGE_WIDTH_FRACTION] of the window and pinned to the top-right.
+ *
+ * A single aspect keeps the frame (and the sections below it) stable while the
+ * pages swipe; the first decoded artwork sets it.
+ */
+@Composable
+internal fun WideHero(
+    items: List<MetaPreview>,
+    onOpen: (MetaPreview) -> Unit,
+    onPlay: (MetaPreview) -> Unit,
+) {
+    if (items.isEmpty()) return
+    val density = LocalDensity.current
+    val pagerState = rememberPagerState(pageCount = { items.size })
+    var aspect by remember(items) { mutableStateOf(HERO_FALLBACK_ASPECT_RATIO) }
+
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val height = desktopHeroHeight(maxWidth, aspect)
+        HeroCarousel(
+            items = items,
+            pagerState = pagerState,
+            height = height,
+            wide = true,
+            backdropWidthPx = with(density) { (maxWidth * HERO_IMAGE_WIDTH_FRACTION).roundToPx().coerceAtLeast(1) },
+            backdropHeightPx = with(density) { height.roundToPx().coerceAtLeast(1) },
+            onBackdropAspect = { page, ratio -> if (page == 0) aspect = ratio },
+            onOpen = onOpen,
+            onPlay = onPlay,
+        )
+    }
+}
+
+/** Shared pager, paginator and preloader; [wide] selects the artwork placement. */
+@Composable
+private fun HeroCarousel(
+    items: List<MetaPreview>,
+    pagerState: PagerState,
+    height: Dp,
+    wide: Boolean,
+    backdropWidthPx: Int,
+    backdropHeightPx: Int,
+    onBackdropAspect: (Int, Float) -> Unit,
+    onOpen: (MetaPreview) -> Unit,
+    onPlay: (MetaPreview) -> Unit,
+) {
+    val compact = LocalWindowSize.current == WindowSize.COMPACT
+    val density = LocalDensity.current
+
+    Box(Modifier.fillMaxWidth().height(height)) {
+        HorizontalPager(
+            state = pagerState,
+            beyondViewportPageCount = 1,
+            key = { page -> items[page].id },
+        ) { page ->
+            HeroSlide(
+                item = items[page],
+                compact = compact,
+                wide = wide,
+                onBackdropAspect = { ratio -> onBackdropAspect(page, ratio) },
+                onOpen = { onOpen(items[page]) },
+                onPlay = { onPlay(items[page]) },
+            )
+        }
+        if (items.size > 1) {
+            HeroPaginator(
+                pageCount = items.size,
+                pagerState = pagerState,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(
+                            end = HERO_PAGINATOR_END_MARGIN,
+                            // Sit on the actions' baseline, like the sample.
+                            bottom = HERO_CONTENT_BOTTOM_MARGIN,
+                        ),
+            )
+        }
+    }
+    HeroArtworkPreloader(
+        items = items,
+        compact = compact,
+        backdropWidthPx = backdropWidthPx,
+        backdropHeightPx = backdropHeightPx,
+        logoHeightPx = with(density) { HERO_LOGO_HEIGHT.roundToPx().coerceAtLeast(1) },
+    )
+}
+
+/** One billboard slide: complete artwork under the background washes and the copy. */
 @Composable
 private fun HeroSlide(
+    item: MetaPreview,
+    compact: Boolean,
+    wide: Boolean,
+    onBackdropAspect: (Float) -> Unit,
+    onOpen: () -> Unit,
+    onPlay: () -> Unit,
+) {
+    val backdrop = if (compact) item.poster ?: item.background else item.background ?: item.poster
+    // The background shows through if the artwork never loads, so a slow or
+    // missing image never leaves a bright gap.
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        if (!backdrop.isNullOrEmpty()) {
+            AsyncImage(
+                model = backdrop,
+                contentDescription = null,
+                // The frame tracks the artwork's aspect ratio, so `Fit` shows the
+                // whole image edge to edge: no crop and no bars.
+                contentScale = ContentScale.Fit,
+                filterQuality = ArtworkFilterQuality,
+                onSuccess = { state ->
+                    val image = state.result.image
+                    if (image.width > 0 && image.height > 0) {
+                        onBackdropAspect(image.width.toFloat() / image.height.toFloat())
+                    }
+                },
+                modifier =
+                    if (wide) {
+                        // Pinned to the top-right corner, at the billboard's width.
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .fillMaxWidth(HERO_IMAGE_WIDTH_FRACTION)
+                            .fillMaxHeight()
+                    } else {
+                        Modifier.fillMaxSize()
+                    },
+            )
+        }
+        // Washes over the artwork, in draw order. The last child paints on top,
+        // and every one ends on the page background so the hero has no seam.
+        Box(Modifier.fillMaxSize().background(if (wide) AppScrim.heroWideLeft else AppScrim.heroHorizontal))
+        Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
+        Box(Modifier.fillMaxSize().background(AppScrim.heroTop))
+        Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
+        HeroCopy(item, compact, onOpen, onPlay)
+    }
+}
+
+/** The copy block: title logo, metadata, synopsis and the existing actions. */
+@Composable
+private fun BoxScope.HeroCopy(
     item: MetaPreview,
     compact: Boolean,
     onOpen: () -> Unit,
     onPlay: () -> Unit,
 ) {
-    val backdrop = if (compact) item.poster ?: item.background else item.background ?: item.poster
-    // The gradient shows through if the artwork never loads, so a slow or
-    // missing image never leaves a bright gap.
-    Box(Modifier.fillMaxSize().background(AppScrim.detailBackdrop)) {
-        if (!backdrop.isNullOrEmpty()) {
-            // A blurred, cover-filled copy keeps the frame full-bleed when the
-            // artwork does not match the box, so no side bars are left...
-            RemoteImage(
-                url = backdrop,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize().blur(HERO_FILL_BLUR),
-            )
-            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = HERO_FILL_DIM)))
-            // ...and the complete artwork sits on top, never cropped.
-            RemoteImage(
-                url = backdrop,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-        // Netflix-style scrim: dark on the left column and along the bottom, so
-        // the copy stays readable no matter how bright the artwork is.
-        Box(Modifier.fillMaxSize().background(AppScrim.mediaHorizontal))
-        Box(Modifier.fillMaxSize().background(AppScrim.mediaBottom))
-        if (compact) {
-            // The billboard runs under the status bar, so a short top fade keeps
-            // the system icons legible over bright artwork.
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .height(safeTopInset + AppSpacing.xl)
-                    .background(AppScrim.detailTop),
+    Column(
+        modifier =
+            Modifier
+                .align(Alignment.BottomStart)
+                .padding(
+                    start = LocalWindowSize.current.screenPadding,
+                    end = LocalWindowSize.current.screenPadding,
+                    bottom = HERO_CONTENT_BOTTOM_MARGIN,
+                ).widthIn(max = HERO_CONTENT_MAX_WIDTH),
+    ) {
+        HeroTitle(item.name, if (compact) null else item.logo)
+        Spacer(Modifier.height(HERO_LOGO_METADATA_SPACE))
+        HeroMetadata(item)
+        item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
+            Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))
+            Text(
+                synopsis,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                style = AppType.heroBody(),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
             )
         }
-        Column(
-            modifier =
-                Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(LocalWindowSize.current.screenPadding)
-                    .widthIn(max = 620.dp),
-        ) {
-            MediaTitle(item.name, if (compact) null else item.logo)
-            MetadataRow(heroMetadataParts(item))
-            item.description?.takeIf { it.isNotEmpty() }?.let {
-                Spacer(Modifier.height(AppSpacing.md))
-                Text(
-                    it,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    style = AppType.heroBody(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
-                )
-            }
-            Spacer(Modifier.height(AppSpacing.lg))
-            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                ActionButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
-                ActionButton(text = "More info", icon = Icons.Outlined.Info, onClick = onOpen, primary = false)
-            }
+        Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
+        Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+            ActionButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
+            ActionButton(text = "More info", icon = Icons.Outlined.Info, onClick = onOpen, primary = false)
         }
     }
 }
 
-/** Type, genres, year and rating, dot-separated like the Netflix billboard. */
-private fun heroMetadataParts(item: MetaPreview): List<String> {
-    val type = item.type.replaceFirstChar { it.uppercase() }
-    return buildList {
-        if (type.isNotEmpty()) add(type)
-        addAll(item.genres.take(2))
-        yearOf(item.releaseInfo)?.let { add(it) }
-        item.imdbRating?.let { add("★ ${ratingText(it)}") }
+/** Title logo when the metadata provides one, otherwise the name as a headline. */
+@Composable
+private fun HeroTitle(
+    name: String,
+    logo: String?,
+) {
+    if (!logo.isNullOrEmpty()) {
+        RemoteImage(
+            url = logo,
+            contentDescription = name,
+            contentScale = ContentScale.Fit,
+            filterQuality = LogoFilterQuality,
+            fadeIn = true,
+            modifier = Modifier.height(HERO_LOGO_HEIGHT),
+        )
+    } else {
+        Text(
+            name,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            style = AppType.heroTitle(),
+        )
+    }
+}
+
+/** `year • ★ rating • genres`, with the star in the theme's accent colour. */
+@Composable
+private fun HeroMetadata(item: MetaPreview) {
+    val year = yearOf(item.releaseInfo)
+    val rating = item.imdbRating
+    val genres = item.genres
+    if (year == null && rating == null && genres.isEmpty()) return
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        var hasPart = false
+        if (year != null) {
+            HeroMetaText(year)
+            hasPart = true
+        }
+        if (rating != null) {
+            if (hasPart) HeroMetaSeparator()
+            Text("★", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(HERO_STAR_GAP))
+            HeroMetaText(ratingText(rating))
+            hasPart = true
+        }
+        if (genres.isNotEmpty()) {
+            if (hasPart) HeroMetaSeparator()
+            HeroMetaText(genres.joinToString(", "))
+        }
+    }
+}
+
+@Composable
+private fun HeroMetaText(text: String) {
+    Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
+}
+
+@Composable
+private fun HeroMetaSeparator() {
+    Text(
+        "•",
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = AppSpacing.sm),
+    )
+}
+
+/** Carousel paginator: a growing pill for the active page, dots for the rest. */
+@Composable
+private fun HeroPaginator(
+    pageCount: Int,
+    pagerState: PagerState,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(HERO_PAGINATOR_GAP),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        for (index in 0 until pageCount) {
+            val selected = index == pagerState.currentPage
+            val width by animateDpAsState(
+                targetValue = if (selected) HERO_PAGINATOR_ACTIVE_WIDTH else HERO_PAGINATOR_DOT,
+                animationSpec = motionTween(HERO_PAGINATOR_ANIMATION_MS),
+                label = "heroIndicatorWidth",
+            )
+            val color by animateColorAsState(
+                targetValue =
+                    if (selected) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.HERO_INDICATOR)
+                    },
+                animationSpec = motionTween(HERO_PAGINATOR_ANIMATION_MS),
+                label = "heroIndicatorColor",
+            )
+            Box(
+                modifier =
+                    Modifier
+                        .width(width)
+                        .height(HERO_PAGINATOR_DOT)
+                        .clip(RoundedCornerShape(HERO_PAGINATOR_DOT / 2))
+                        .background(color),
+            )
+        }
+    }
+}
+
+/**
+ * Warms Coil's cache with every hero artwork, so swiping the carousel paints
+ * from memory instead of starting a network round-trip mid-gesture. The
+ * requests are cancelled with the composition if the items change.
+ */
+@Composable
+private fun HeroArtworkPreloader(
+    items: List<MetaPreview>,
+    compact: Boolean,
+    backdropWidthPx: Int,
+    backdropHeightPx: Int,
+    logoHeightPx: Int,
+) {
+    val context = LocalPlatformContext.current
+    LaunchedEffect(items, compact, backdropWidthPx, backdropHeightPx, logoHeightPx) {
+        if (items.isEmpty()) return@LaunchedEffect
+        val loader = SingletonImageLoader.get(context)
+        items.forEach { item ->
+            val backdrop =
+                if (compact) item.poster ?: item.background else item.background ?: item.poster
+            backdrop?.let { url ->
+                loader.enqueue(
+                    ImageRequest
+                        .Builder(context)
+                        .data(url)
+                        .size(backdropWidthPx, backdropHeightPx)
+                        .build(),
+                )
+            }
+            item.logo?.let { url ->
+                loader.enqueue(
+                    ImageRequest
+                        .Builder(context)
+                        .data(url)
+                        .size(backdropWidthPx, logoHeightPx)
+                        .build(),
+                )
+            }
+        }
     }
 }

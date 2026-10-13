@@ -164,14 +164,18 @@ engine, the filesystem and the player touch platform source sets through
   behind for a section (the bottom bar on a phone, the top bar on a wide
   window); the navigation bars carry their own inset; the detail backdrop, the
   player and the onboarding/profile gates paint behind the bars while their
-  controls sit below them; and the Home billboard is full-bleed, so the artwork
-  reaches the edges of the content area instead of an empty band being left
-  above it. Its height follows the artwork's aspect ratio and is only capped to
-  the viewport; the image is drawn `Fit` so the whole artwork is shown, over a
-  blurred, cover-filled copy of itself (dimmed) and the gradient, so a wide
-  artwork leaves no side bars instead of being cropped to fill. On a wide window
-  the top bar floats over the content, which reserves its height, so the
-  navigation never overlaps it.
+  controls sit below them; and the Home billboard scrolls with the content (it
+  is never pinned). On desktop the complete artwork is drawn `Fit` (no crop, no
+  letterbox bars) at 70% of the window width, pinned to the top-right corner of
+  the frame, so the sections below start higher without losing image detail. It
+  is washed by `BrandPalette.background` gradients: a left fade that dissolves
+  the artwork's left edge under the copy, a bottom fade that melts into
+  "Continue watching" without a seam, a subtle top fade, and a right-edge
+  vignette. On a phone the billboard spans the full width, sized to the
+  artwork's aspect ratio. The copy column is
+  bottom-anchored 100dp above the hero edge, up to 840dp wide, and shares the
+  sections' left padding. On a wide window the top bar floats over the content,
+  which reserves its height, so the navigation never overlaps it.
 - **Typography.** Inter is bundled through Compose Resources, so every target
   renders the same typeface, and text is written in `sp` so Android's system
   font size keeps working. `LocalDensity` is deliberately never overridden: that
@@ -230,7 +234,9 @@ engine, the filesystem and the player touch platform source sets through
   (`indication = null`) and signal hover with the scale/border animation
   instead, so a hovered poster is not greyed. Settings panels use the Material
   `Card`, and the primary call to action uses the inverse surface / on-surface
-  roles. The
+  roles. The near-black page background (`#0B0803`) is the single source of
+  truth: the scheme, the native window background and every page-fade gradient
+  end on it. The
   app is deliberately **dark-only** — no light scheme and no dynamic colour —
   because the UI is built around dark artwork and scrims; the player keeps a
   fixed white-on-black control palette over video. Material3 `visualDensity`
@@ -247,7 +253,10 @@ engine, the filesystem and the player touch platform source sets through
   defines as nearest-neighbour, so `app/desktopApp` installs
   `MitchellImageDecoder`, a cubic decoder that keeps Coil's size math and
   reduces once at decode time. Together they both sharpen the artwork and cut
-  the bitmap memory the renderer has to scale every frame.
+  the bitmap memory the renderer has to scale every frame. The Home hero
+  preloads every featured backdrop and logo through the singleton loader, sized
+  to the billboard, so swiping the carousel paints from cache instead of
+  starting a network round-trip mid-gesture.
 - **Motion** is centralised in `ui/theme/Motion.kt`: `AppMotion` holds the
   durations and both the utility and the Material emphasized easings (entering
   screens use emphasized decelerate, exiting ones emphasized accelerate), and
@@ -265,9 +274,10 @@ engine, the filesystem and the player touch platform source sets through
   disabled (`.using(null)`) because it relayouts every frame. Posters scale on
   hover and dialogs fade/scale in. Loading screens are skeletons driven by a
   single shimmer read in the draw phase: the poster grid derives its cell count
-  from the viewport, so it never stops halfway down a wide window, Home mirrors
-  its billboard and rails, and the static gradient stops are built once instead
-  of on every frame. The detail hero does not paint the library fallback as if it were the final
+  from the viewport, so it never stops halfway down a wide window, and the
+  static gradient stops are built once instead of on every frame. Home has no
+  skeleton on purpose: it paints nothing until the data arrives, instead of
+  flashing a billboard placeholder that then changes shape. The detail hero does not paint the library fallback as if it were the final
   artwork: it reserves the logo's space without drawing a placeholder, and the
   logo and backdrop fade in when the image itself is ready (`RemoteImage(fadeIn)`),
   so a slow load never pops. The player is deliberately outside the route

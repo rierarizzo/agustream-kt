@@ -117,7 +117,8 @@ private fun HomeContent(
     val windowSize = LocalWindowSize.current
     when {
         state.isLoading && !state.hasLoaded ->
-            HomeSkeleton(posterSize = posterSize)
+            // No placeholder skeleton; the sections paint when the data arrives.
+            Box(Modifier.fillMaxSize())
         state.error != null && state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
@@ -130,18 +131,21 @@ private fun HomeContent(
                 title = "Nothing to show",
                 message = "Install a metadata addon with catalogs to fill this Home.",
             )
-        else ->
+        else -> {
+            val compact = windowSize == WindowSize.COMPACT
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
             ) {
-                if (state.featured.isNotEmpty()) {
-                    Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
-                } else if (windowSize == WindowSize.COMPACT) {
-                    // No billboard to tuck under the status bar: reserve its height.
-                    Spacer(Modifier.height(safeTopInset))
+                when {
+                    state.featured.isNotEmpty() && !compact ->
+                        WideHero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
+                    state.featured.isNotEmpty() ->
+                        Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
+                    compact ->
+                        // No billboard to tuck under the status bar: reserve its height.
+                        Spacer(Modifier.height(safeTopInset))
                 }
                 if (state.continueWatching.isNotEmpty()) {
-                    val compact = windowSize == WindowSize.COMPACT
                     SectionHeader(title = "Continue watching")
                     LazyRow(
                         modifier = Modifier.height(if (compact) CompactContinueHeight else ContinueHeight),
@@ -173,6 +177,7 @@ private fun HomeContent(
                 }
                 Spacer(Modifier.height(AppSpacing.xl))
             }
+        }
     }
 }
 
