@@ -1,5 +1,10 @@
 package com.misgus.agustream.ui.home
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.empty_nothing_to_show
+import agustream.app.shared.generated.resources.home_continue_watching
+import agustream.app.shared.generated.resources.home_empty_message
+import agustream.app.shared.generated.resources.home_error_title
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -123,14 +128,14 @@ private fun HomeContent(
         state.error != null && state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
-                title = "Could not load Home",
+                title = stringResource(Res.string.home_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(
                 icon = Icons.Outlined.Explore,
-                title = "Nothing to show",
-                message = "Install a metadata addon with catalogs to fill this Home.",
+                title = stringResource(Res.string.empty_nothing_to_show),
+                message = stringResource(Res.string.home_empty_message),
             )
         else -> {
             val compact = windowSize == WindowSize.COMPACT
@@ -147,7 +152,7 @@ private fun HomeContent(
                         Spacer(Modifier.height(safeTopInset))
                 }
                 if (state.continueWatching.isNotEmpty()) {
-                    SectionHeader(title = "Continue watching")
+                    SectionHeader(title = stringResource(Res.string.home_continue_watching))
                     LazyRow(
                         modifier = Modifier.height(if (compact) CompactContinueHeight else ContinueHeight),
                         contentPadding = PaddingValues(horizontal = windowSize.screenPadding),

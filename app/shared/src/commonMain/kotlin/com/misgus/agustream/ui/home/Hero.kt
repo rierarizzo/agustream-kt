@@ -1,5 +1,8 @@
 package com.misgus.agustream.ui.home
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_more_info
+import agustream.app.shared.generated.resources.action_play
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -61,6 +64,7 @@ import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /** Share of the window width the desktop artwork occupies. */
 private const val HERO_IMAGE_WIDTH_FRACTION = 0.75f
@@ -333,8 +337,8 @@ private fun BoxScope.HeroCopy(
         }
         Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
         Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-            ActionButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
-            ActionButton(text = "More info", icon = Icons.Outlined.Info, onClick = onOpen, primary = false)
+            ActionButton(text = stringResource(Res.string.action_play), icon = Icons.Default.PlayArrow, onClick = onPlay)
+            ActionButton(text = stringResource(Res.string.action_more_info), icon = Icons.Outlined.Info, onClick = onOpen, primary = false)
         }
     }
 }

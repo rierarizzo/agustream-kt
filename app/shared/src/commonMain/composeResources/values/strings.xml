@@ -63,8 +63,8 @@
     <string name="search_failed_title">Search failed</string>
     <string name="search_no_results_title">No results</string>
     <string name="search_nothing_matched">Nothing matched &quot;%1$s&quot;.</string>
-    <string name="search_nothing_matched_typed">No %1$s%2$s matched &quot;%3$s&quot;.</string>
-    <string name="search_in_genre"> in %1$s</string>
+    <string name="search_nothing_matched_typed">No %1$s matched &quot;%2$s&quot;.</string>
+    <string name="search_nothing_matched_typed_genre">No %1$s in %2$s matched &quot;%3$s&quot;.</string>
     <string name="search_type_all">All Types</string>
     <string name="search_type_movies">Movies</string>
     <string name="search_type_series">Series</string>

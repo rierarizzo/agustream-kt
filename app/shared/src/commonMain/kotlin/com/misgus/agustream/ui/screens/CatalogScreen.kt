@@ -1,5 +1,11 @@
 package com.misgus.agustream.ui.screens
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_back
+import agustream.app.shared.generated.resources.catalog_empty_message
+import agustream.app.shared.generated.resources.catalog_error_title
+import agustream.app.shared.generated.resources.empty_nothing_to_show
+import agustream.app.shared.generated.resources.error_try_again_later
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +56,7 @@ import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.safeBottomInset
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Full catalog grid, opened from a Home row's "See all".
@@ -96,7 +103,7 @@ fun CatalogScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.action_back))
             }
             Spacer(Modifier.size(AppSpacing.sm))
             Column(Modifier.weight(1f)) {
@@ -129,14 +136,14 @@ private fun CatalogContent(
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
-                title = "Could not load this catalog",
-                message = "Try again later.",
+                title = stringResource(Res.string.catalog_error_title),
+                message = stringResource(Res.string.error_try_again_later),
             )
         state.items.isEmpty() ->
             Message(
                 icon = Icons.Outlined.Inbox,
-                title = "Nothing to show",
-                message = "This catalog is empty.",
+                title = stringResource(Res.string.empty_nothing_to_show),
+                message = stringResource(Res.string.catalog_empty_message),
             )
         else ->
             LazyVerticalGrid(

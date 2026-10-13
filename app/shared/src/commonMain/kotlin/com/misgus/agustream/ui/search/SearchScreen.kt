@@ -1,5 +1,22 @@
 package com.misgus.agustream.ui.search
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_clear
+import agustream.app.shared.generated.resources.search_all_genres
+import agustream.app.shared.generated.resources.search_discover
+import agustream.app.shared.generated.resources.search_failed_title
+import agustream.app.shared.generated.resources.search_no_results_title
+import agustream.app.shared.generated.resources.search_nothing_matched
+import agustream.app.shared.generated.resources.search_nothing_matched_typed
+import agustream.app.shared.generated.resources.search_nothing_matched_typed_genre
+import agustream.app.shared.generated.resources.search_placeholder
+import agustream.app.shared.generated.resources.search_type_all
+import agustream.app.shared.generated.resources.search_type_movies
+import agustream.app.shared.generated.resources.search_type_movies_lower
+import agustream.app.shared.generated.resources.search_type_other
+import agustream.app.shared.generated.resources.search_type_series
+import agustream.app.shared.generated.resources.search_type_series_lower
+import agustream.app.shared.generated.resources.search_type_titles
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,12 +77,10 @@ import com.misgus.agustream.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
 
 /** Which title types the search results and the discover feed show. */
-enum class MediaTypeFilter(
-    val label: String,
-) {
-    ALL("All Types"),
-    MOVIES("Movies"),
-    SERIES("Series"),
+enum class MediaTypeFilter {
+    ALL,
+    MOVIES,
+    SERIES,
     ;
 
     /** `true` when [preview] belongs to the selected type. */
@@ -116,7 +131,7 @@ fun SearchScreen(
         SearchField(query = state.query, onQueryChange = viewModel::onQueryChange)
         if (state.query.isBlank()) {
             Text(
-                text = "Discover",
+                text = stringResource(Res.string.search_discover),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier =
                     Modifier.padding(
@@ -165,12 +180,12 @@ private fun SearchField(
         value = query,
         onValueChange = onQueryChange,
         singleLine = true,
-        placeholder = { Text("Search movies and series") },
+        placeholder = { Text(stringResource(Res.string.search_placeholder)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
         trailingIcon = {
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Default.Close, contentDescription = "Clear")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.action_clear))
                 }
             }
         },
@@ -202,16 +217,23 @@ private fun FilterRow(
         horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val typeLabels =
+            mapOf(
+                MediaTypeFilter.ALL to stringResource(Res.string.search_type_all),
+                MediaTypeFilter.MOVIES to stringResource(Res.string.search_type_movies),
+                MediaTypeFilter.SERIES to stringResource(Res.string.search_type_series),
+            )
+        val allGenres = stringResource(Res.string.search_all_genres)
         FilterDropdown(
             options = MediaTypeFilter.entries,
             selected = typeFilter,
-            optionLabel = { it.label },
+            optionLabel = { typeLabels.getValue(it) },
             onSelect = onTypeSelect,
         )
         FilterDropdown(
             options = listOf<String?>(null) + genres,
             selected = genreFilter,
-            optionLabel = { it ?: "All genres" },
+            optionLabel = { it ?: allGenres },
             onSelect = onGenreSelect,
         )
     }
@@ -270,13 +292,13 @@ private fun SearchResults(
         state.error != null && state.results.isEmpty() ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
-                title = "Search failed",
+                title = stringResource(Res.string.search_failed_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.results.none(matches) && state.hasSearched ->
             Message(
                 icon = Icons.Outlined.Inbox,
-                title = "No results",
+                title = stringResource(Res.string.search_no_results_title),
                 message = emptyMessage,
             )
         else -> {
@@ -286,15 +308,15 @@ private fun SearchResults(
             val other = visible.filter { !MediaTypeFilter.MOVIES.matches(it) && !MediaTypeFilter.SERIES.matches(it) }
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 if (movies.isNotEmpty()) {
-                    SectionHeader("Movies")
+                    SectionHeader(stringResource(Res.string.search_type_movies))
                     ResultsRail(movies, posterSize, onOpenDetail)
                 }
                 if (series.isNotEmpty()) {
-                    SectionHeader("Series")
+                    SectionHeader(stringResource(Res.string.search_type_series))
                     ResultsRail(series, posterSize, onOpenDetail)
                 }
                 if (other.isNotEmpty()) {
-                    SectionHeader("Other")
+                    SectionHeader(stringResource(Res.string.search_type_other))
                     ResultsRail(other, posterSize, onOpenDetail)
                 }
                 Spacer(Modifier.height(AppSpacing.xl))
@@ -303,21 +325,27 @@ private fun SearchResults(
     }
 }
 
+@Composable
 private fun emptyMessage(
     state: SearchUiState,
     typeFilter: MediaTypeFilter,
     genre: String?,
 ): String {
     val query = state.query.trim()
-    if (typeFilter == MediaTypeFilter.ALL && genre == null) return "Nothing matched \"$query\"."
+    if (typeFilter == MediaTypeFilter.ALL && genre == null) {
+        return stringResource(Res.string.search_nothing_matched, query)
+    }
     val type =
         when (typeFilter) {
-            MediaTypeFilter.ALL -> "titles"
-            MediaTypeFilter.MOVIES -> "movies"
-            MediaTypeFilter.SERIES -> "series"
+            MediaTypeFilter.ALL -> stringResource(Res.string.search_type_titles)
+            MediaTypeFilter.MOVIES -> stringResource(Res.string.search_type_movies_lower)
+            MediaTypeFilter.SERIES -> stringResource(Res.string.search_type_series_lower)
         }
-    val inGenre = if (genre != null) " in $genre" else ""
-    return "No $type$inGenre matched \"$query\"."
+    return if (genre != null) {
+        stringResource(Res.string.search_nothing_matched_typed_genre, type, genre, query)
+    } else {
+        stringResource(Res.string.search_nothing_matched_typed, type, query)
+    }
 }
 
 @Composable

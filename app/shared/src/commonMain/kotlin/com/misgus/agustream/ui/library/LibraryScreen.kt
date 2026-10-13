@@ -1,5 +1,9 @@
 package com.misgus.agustream.ui.library
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.empty_nothing_to_show
+import agustream.app.shared.generated.resources.library_empty_message
+import agustream.app.shared.generated.resources.library_error_title
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -72,14 +76,14 @@ private fun LibraryContent(
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
-                title = "Could not load the library",
+                title = stringResource(Res.string.library_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.items.isEmpty() ->
             Message(
                 icon = Icons.Outlined.Inbox,
-                title = "Nothing to show",
-                message = "Your library is empty.",
+                title = stringResource(Res.string.empty_nothing_to_show),
+                message = stringResource(Res.string.library_empty_message),
             )
         else ->
             // The grid owns the padding through contentPadding: the scroll area

@@ -1,5 +1,9 @@
 package com.misgus.agustream.ui.discover
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.discover_empty_message
+import agustream.app.shared.generated.resources.discover_empty_title
+import agustream.app.shared.generated.resources.discover_error_title
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -62,7 +66,7 @@ fun DiscoverFeed(
             Box(modifier, contentAlignment = Alignment.Center) {
                 Message(
                     icon = Icons.Outlined.ErrorOutline,
-                    title = "Could not load Discover",
+                    title = stringResource(Res.string.discover_error_title),
                     message = stringResource(state.error.toUserMessage()),
                 )
             }
@@ -70,8 +74,8 @@ fun DiscoverFeed(
             Box(modifier, contentAlignment = Alignment.Center) {
                 Message(
                     icon = Icons.Outlined.Explore,
-                    title = "Nothing to discover",
-                    message = "Install a metadata addon with catalogs to fill this section.",
+                    title = stringResource(Res.string.discover_empty_title),
+                    message = stringResource(Res.string.discover_empty_message),
                 )
             }
         else ->
