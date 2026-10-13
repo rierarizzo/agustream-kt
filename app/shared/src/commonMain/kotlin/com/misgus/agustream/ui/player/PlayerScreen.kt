@@ -1,5 +1,15 @@
 package com.misgus.agustream.ui.player
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_close
+import agustream.app.shared.generated.resources.player_audio
+import agustream.app.shared.generated.resources.player_error
+import agustream.app.shared.generated.resources.player_no_tracks
+import agustream.app.shared.generated.resources.player_subtitles
+import agustream.app.shared.generated.resources.player_track_ai
+import agustream.app.shared.generated.resources.player_track_off
+import agustream.app.shared.generated.resources.player_track_subtitle
+import agustream.app.shared.generated.resources.player_track_trusted
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -50,6 +60,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -244,19 +255,20 @@ fun PlayerScreen(
         )
 
         state.error?.let { error ->
+            val message = stringResource(Res.string.player_error, error)
             LaunchedEffect(error) {
-                snackbar?.showSnackbar("Playback error: $error")
+                snackbar?.showSnackbar(message)
             }
         }
     }
 
     if (showSubtitleMenu) {
         TrackMenu(
-            title = "Subtitles",
+            title = stringResource(Res.string.player_subtitles),
             rows =
                 buildList {
                     add(
-                        TrackRow(label = "Off", selected = state.selectedSubtitleId == null) {
+                        TrackRow(label = stringResource(Res.string.player_track_off), selected = state.selectedSubtitleId == null) {
                             player.selectSubtitleTrack(null)
                         },
                     )
@@ -292,7 +304,7 @@ fun PlayerScreen(
 
     if (showAudioMenu) {
         TrackMenu(
-            title = "Audio",
+            title = stringResource(Res.string.player_audio),
             rows =
                 state.audioTracks.map { track ->
                     TrackRow(
@@ -321,13 +333,13 @@ private fun TrackMenu(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_close)) }
         },
         title = { Text(title) },
         text = {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
                 if (rows.isEmpty()) {
-                    Text("No tracks available.", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(Res.string.player_no_tracks), style = MaterialTheme.typography.bodyMedium)
                 }
                 rows.forEach { row ->
                     Column(
@@ -356,25 +368,28 @@ private fun TrackMenu(
 private fun trackLabel(track: MediaTrack): String =
     track.title?.takeIf { it.isNotEmpty() } ?: track.language?.takeIf { it.isNotEmpty() } ?: track.id
 
+@Composable
 private fun subtitleSubtitleTitle(subtitle: Subtitle): String {
     val name = subtitle.languageName
     val code = subtitle.langCode ?: subtitle.lang
     return if (name != null) {
         if (code.isNullOrEmpty()) name else "$name ($code)"
     } else {
-        subtitle.lang ?: subtitle.title ?: "Subtitle"
+        subtitle.lang ?: subtitle.title ?: stringResource(Res.string.player_track_subtitle)
     }
 }
 
+@Composable
 private fun subtitleTrackLabel(subtitle: Subtitle): String = subtitleSubtitleTitle(subtitle)
 
+@Composable
 private fun subtitleDetail(subtitle: Subtitle): String? {
     val parts =
         buildList {
             subtitle.title?.takeIf { it.isNotEmpty() }?.let { add(it) }
             subtitle.addonName?.takeIf { it.isNotEmpty() }?.let { add(it) }
-            if (subtitle.aiTranslated) add("AI")
-            if (subtitle.fromTrusted) add("Trusted")
+            if (subtitle.aiTranslated) add(stringResource(Res.string.player_track_ai))
+            if (subtitle.fromTrusted) add(stringResource(Res.string.player_track_trusted))
         }
     return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
 }

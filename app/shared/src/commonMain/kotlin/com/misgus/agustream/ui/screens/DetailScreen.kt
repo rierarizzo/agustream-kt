@@ -1,5 +1,14 @@
 package com.misgus.agustream.ui.screens
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_back
+import agustream.app.shared.generated.resources.action_play
+import agustream.app.shared.generated.resources.detail_error_library
+import agustream.app.shared.generated.resources.detail_error_rating
+import agustream.app.shared.generated.resources.detail_error_watched
+import agustream.app.shared.generated.resources.detail_my_list
+import agustream.app.shared.generated.resources.detail_rate
+import agustream.app.shared.generated.resources.status_watched
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -78,6 +87,7 @@ import com.misgus.agustream.ui.theme.safeBottomInset
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 /** Title detail: an immersive hero, episodes and the extra sections. */
 @Composable
@@ -131,6 +141,11 @@ fun DetailScreen(
             }
         }
     }
+
+    // Resolved once, so the snackbars inside the click handlers stay composable-free.
+    val libraryError = stringResource(Res.string.detail_error_library)
+    val watchedError = stringResource(Res.string.detail_error_watched)
+    val ratingError = stringResource(Res.string.detail_error_rating)
 
     val openStreams: (String, String, String) -> Unit = { type, id, title ->
         onOpenStreams(
@@ -200,7 +215,7 @@ fun DetailScreen(
                                     services.library.add(item)
                                 }
                             }.onSuccess { saved = !saved }
-                                .onFailure { snackbar?.showSnackbar("Could not update your library.") }
+                                .onFailure { snackbar?.showSnackbar(libraryError) }
                             saving = false
                         }
                     },
@@ -218,7 +233,7 @@ fun DetailScreen(
                                     services.progress.markWatched(item.contentId, item.contentType)
                                 }
                             }.onSuccess { watched = !watched }
-                                .onFailure { snackbar?.showSnackbar("Could not update the watched state.") }
+                                .onFailure { snackbar?.showSnackbar(watchedError) }
                             watchedKnown = true
                         }
                     },
@@ -252,7 +267,11 @@ fun DetailScreen(
                 onClick = onBack,
                 modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(AppSpacing.md),
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(Res.string.action_back),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
             }
         }
     }
@@ -262,7 +281,7 @@ fun DetailScreen(
             rating = value
             scope.launch {
                 runCatchingCancellable { services.ratings.setRating(item.contentId, value) }
-                    .onFailure { snackbar?.showSnackbar("Could not save your rating.") }
+                    .onFailure { snackbar?.showSnackbar(ratingError) }
             }
         }
     }
@@ -374,7 +393,11 @@ private fun HeroContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg),
             ) {
-                ActionButton(text = "Play", icon = Icons.Default.PlayArrow, onClick = onPlay)
+                ActionButton(
+                    text = stringResource(Res.string.action_play),
+                    icon = Icons.Default.PlayArrow,
+                    onClick = onPlay,
+                )
                 ActionRow(
                     saved = saved,
                     savedBusy = savedBusy,
@@ -439,7 +462,7 @@ private fun ActionRow(
     Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         ActionItem(
             icon = if (saved) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-            label = "My List",
+            label = stringResource(Res.string.detail_my_list),
             active = saved,
             enabled = !savedBusy,
             loading = savedLoading,
@@ -447,7 +470,7 @@ private fun ActionRow(
         )
         ActionItem(
             icon = if (rating != null) Icons.Filled.Star else Icons.Outlined.StarBorder,
-            label = "Rate",
+            label = stringResource(Res.string.detail_rate),
             active = rating != null,
             enabled = true,
             loading = ratingLoading,
@@ -455,7 +478,7 @@ private fun ActionRow(
         )
         ActionItem(
             icon = if (watched) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle,
-            label = "Watched",
+            label = stringResource(Res.string.status_watched),
             active = watched,
             enabled = !watchedBusy,
             loading = watchedLoading,

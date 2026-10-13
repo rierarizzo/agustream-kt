@@ -1,7 +1,40 @@
 package com.misgus.agustream.ui.screens
 
 import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_sign_out
 import agustream.app.shared.generated.resources.error_open_file
+import agustream.app.shared.generated.resources.poster_size_default
+import agustream.app.shared.generated.resources.poster_size_large
+import agustream.app.shared.generated.resources.poster_size_small
+import agustream.app.shared.generated.resources.settings_account
+import agustream.app.shared.generated.resources.settings_animations
+import agustream.app.shared.generated.resources.settings_animations_subtitle
+import agustream.app.shared.generated.resources.settings_appearance
+import agustream.app.shared.generated.resources.settings_appearance_subtitle
+import agustream.app.shared.generated.resources.settings_autoplay
+import agustream.app.shared.generated.resources.settings_autoplay_subtitle
+import agustream.app.shared.generated.resources.settings_config_file
+import agustream.app.shared.generated.resources.settings_config_file_subtitle
+import agustream.app.shared.generated.resources.settings_library_poster_size
+import agustream.app.shared.generated.resources.settings_library_poster_size_subtitle
+import agustream.app.shared.generated.resources.settings_open_file
+import agustream.app.shared.generated.resources.settings_open_local
+import agustream.app.shared.generated.resources.settings_open_video
+import agustream.app.shared.generated.resources.settings_open_video_subtitle
+import agustream.app.shared.generated.resources.settings_play_url
+import agustream.app.shared.generated.resources.settings_playback
+import agustream.app.shared.generated.resources.settings_playback_subtitle
+import agustream.app.shared.generated.resources.settings_poster_size
+import agustream.app.shared.generated.resources.settings_poster_size_subtitle
+import agustream.app.shared.generated.resources.settings_reload
+import agustream.app.shared.generated.resources.settings_resume
+import agustream.app.shared.generated.resources.settings_resume_subtitle
+import agustream.app.shared.generated.resources.settings_sign_in_other_method
+import agustream.app.shared.generated.resources.settings_sign_in_to_load
+import agustream.app.shared.generated.resources.settings_signed_in_account
+import agustream.app.shared.generated.resources.settings_signed_in_as
+import agustream.app.shared.generated.resources.settings_title
+import agustream.app.shared.generated.resources.settings_video_url
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -77,7 +110,7 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
         Column(
             modifier = Modifier.widthIn(max = SETTINGS_MAX_WIDTH).fillMaxWidth().padding(LocalWindowSize.current.screenPadding),
         ) {
-            Text("Settings", style = MaterialTheme.typography.headlineLarge)
+            Text(stringResource(Res.string.settings_title), style = MaterialTheme.typography.headlineLarge)
             Spacer(Modifier.height(AppSpacing.lg))
             AccountCard()
             Spacer(Modifier.height(AppSpacing.lg))
@@ -125,18 +158,19 @@ private fun AccountCard() {
     val scope = rememberCoroutineScope()
     var signingOut by remember { mutableStateOf(false) }
 
+    val unknownAccount = stringResource(Res.string.settings_signed_in_account)
     SettingsCard(
-        title = "Account",
+        title = stringResource(Res.string.settings_account),
         subtitle =
             if (state.isSignedIn) {
-                "Signed in as ${state.email ?: "your account"}."
+                stringResource(Res.string.settings_signed_in_as, state.email ?: unknownAccount)
             } else {
-                "Sign in to load your library."
+                stringResource(Res.string.settings_sign_in_to_load)
             },
     ) {
         if (state.isSignedIn) {
             ActionButton(
-                text = "Sign out",
+                text = stringResource(Res.string.action_sign_out),
                 onClick = {
                     signingOut = true
                     scope.launch {
@@ -156,7 +190,7 @@ private fun AccountCard() {
             SignInForm()
         } else {
             Text(
-                "This account signs in through another method.",
+                stringResource(Res.string.settings_sign_in_other_method),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -172,31 +206,37 @@ private fun AppearanceCard(
     libraryPosterSize: PosterSize,
     onLibraryPosterSizeChange: (PosterSize) -> Unit,
 ) {
+    val posterSizeLabels =
+        mapOf(
+            PosterSize.SMALL to stringResource(Res.string.poster_size_small),
+            PosterSize.DEFAULT to stringResource(Res.string.poster_size_default),
+            PosterSize.LARGE to stringResource(Res.string.poster_size_large),
+        )
     SettingsCard(
-        title = "Appearance",
-        subtitle = "How the app looks and moves.",
+        title = stringResource(Res.string.settings_appearance),
+        subtitle = stringResource(Res.string.settings_appearance_subtitle),
     ) {
         Column {
             SettingsToggle(
-                title = "Animations",
-                subtitle = "Transitions, hover effects and loading skeletons.",
+                title = stringResource(Res.string.settings_animations),
+                subtitle = stringResource(Res.string.settings_animations_subtitle),
                 checked = animationsEnabled,
                 onCheckedChange = onAnimationsChange,
             )
             SettingsChoice(
-                title = "Poster size",
-                subtitle = "Catalogs, Discover and \"More like this\".",
+                title = stringResource(Res.string.settings_poster_size),
+                subtitle = stringResource(Res.string.settings_poster_size_subtitle),
                 options = PosterSize.entries,
                 selected = posterSize,
-                label = { it.label() },
+                label = { posterSizeLabels.getValue(it) },
                 onSelect = onPosterSizeChange,
             )
             SettingsChoice(
-                title = "Library poster size",
-                subtitle = "The library grid only.",
+                title = stringResource(Res.string.settings_library_poster_size),
+                subtitle = stringResource(Res.string.settings_library_poster_size_subtitle),
                 options = PosterSize.entries,
                 selected = libraryPosterSize,
-                label = { it.label() },
+                label = { posterSizeLabels.getValue(it) },
                 onSelect = onLibraryPosterSizeChange,
             )
         }
@@ -211,19 +251,19 @@ private fun PlaybackSettingsCard(
     onAutoPlayChange: (Boolean) -> Unit,
 ) {
     SettingsCard(
-        title = "Playback",
-        subtitle = "How titles play.",
+        title = stringResource(Res.string.settings_playback),
+        subtitle = stringResource(Res.string.settings_playback_subtitle),
     ) {
         Column {
             SettingsToggle(
-                title = "Resume playback",
-                subtitle = "Continue a title from where you left it.",
+                title = stringResource(Res.string.settings_resume),
+                subtitle = stringResource(Res.string.settings_resume_subtitle),
                 checked = resumePlayback,
                 onCheckedChange = onResumeChange,
             )
             SettingsToggle(
-                title = "Auto-play next episode",
-                subtitle = "Start the next episode when one finishes.",
+                title = stringResource(Res.string.settings_autoplay),
+                subtitle = stringResource(Res.string.settings_autoplay_subtitle),
                 checked = autoPlayNext,
                 onCheckedChange = onAutoPlayChange,
             )
@@ -238,8 +278,8 @@ private fun ConfigFileCard(
     onReload: () -> Unit,
 ) {
     SettingsCard(
-        title = "Configuration file",
-        subtitle = "Edit it by hand, then reload.",
+        title = stringResource(Res.string.settings_config_file),
+        subtitle = stringResource(Res.string.settings_config_file_subtitle),
     ) {
         Column {
             Text(
@@ -249,8 +289,8 @@ private fun ConfigFileCard(
             )
             Spacer(Modifier.height(AppSpacing.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                ActionButton(text = "Open settings.json", onClick = onOpen, primary = false)
-                ActionButton(text = "Reload from file", onClick = onReload, primary = false)
+                ActionButton(text = stringResource(Res.string.settings_open_file), onClick = onOpen, primary = false)
+                ActionButton(text = stringResource(Res.string.settings_reload), onClick = onReload, primary = false)
             }
         }
     }
@@ -282,27 +322,27 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
     val scope = rememberCoroutineScope()
 
     SettingsCard(
-        title = "Open a video (temporary)",
-        subtitle = "Playback test kept from phase 1.",
+        title = stringResource(Res.string.settings_open_video),
+        subtitle = stringResource(Res.string.settings_open_video_subtitle),
     ) {
         Column {
             OutlinedTextField(
                 value = url,
                 onValueChange = { url = it },
-                label = { Text("Video URL") },
+                label = { Text(stringResource(Res.string.settings_video_url)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(AppSpacing.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                 ActionButton(
-                    text = "Play URL",
+                    text = stringResource(Res.string.settings_play_url),
                     onClick = { onOpenPlayer(PlaybackTarget.raw(url.trim())) },
                     icon = Icons.Default.PlayArrow,
                     enabled = url.isNotBlank(),
                 )
                 ActionButton(
-                    text = "Open local file",
+                    text = stringResource(Res.string.settings_open_local),
                     onClick = {
                         scope.launch {
                             pickVideoFile()?.let { onOpenPlayer(PlaybackTarget.raw(it)) }
@@ -340,13 +380,6 @@ private fun <T> SettingsChoice(
         }
     }
 }
-
-private fun PosterSize.label(): String =
-    when (this) {
-        PosterSize.SMALL -> "Small"
-        PosterSize.DEFAULT -> "Default"
-        PosterSize.LARGE -> "Large"
-    }
 
 @Composable
 private fun SettingsCard(

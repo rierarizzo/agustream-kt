@@ -1,5 +1,13 @@
 package com.misgus.agustream.ui.screens
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_cancel
+import agustream.app.shared.generated.resources.action_clear
+import agustream.app.shared.generated.resources.action_save
+import agustream.app.shared.generated.resources.detail_episodes
+import agustream.app.shared.generated.resources.detail_not_rated
+import agustream.app.shared.generated.resources.detail_you_may_also_like
+import agustream.app.shared.generated.resources.detail_your_rating
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable
@@ -54,6 +62,7 @@ import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.railHeight
 import com.misgus.agustream.ui.theme.screenPadding
+import org.jetbrains.compose.resources.stringResource
 
 /** Cast or crew carousel of the detail screen. */
 @Composable
@@ -159,7 +168,7 @@ internal fun SimilarRow(
     val windowSize = LocalWindowSize.current
     Column {
         Text(
-            "You May Also Like",
+            stringResource(Res.string.detail_you_may_also_like),
             modifier = Modifier.padding(horizontal = AppSpacing.xl),
             style = MaterialTheme.typography.titleLarge,
         )
@@ -237,7 +246,7 @@ internal fun EpisodesSection(
             modifier = Modifier.fillMaxWidth().padding(horizontal = windowSize.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Episodes", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            Text(stringResource(Res.string.detail_episodes), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             if (seasons.size > 1) {
                 Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
                     seasons.forEach { value ->
@@ -359,11 +368,11 @@ internal fun RatingDialog(
     var value by remember { mutableStateOf(current ?: 0) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Your rating") },
+        title = { Text(stringResource(Res.string.detail_your_rating)) },
         text = {
             Column {
                 Text(
-                    if (value == 0) "Not rated" else "$value / 10",
+                    if (value == 0) stringResource(Res.string.detail_not_rated) else "$value / 10",
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Slider(
@@ -379,7 +388,7 @@ internal fun RatingDialog(
                 onSave(if (value == 0) null else value)
                 onDismiss()
             }) {
-                Text("Save")
+                Text(stringResource(Res.string.action_save))
             }
         },
         dismissButton = {
@@ -387,8 +396,8 @@ internal fun RatingDialog(
                 TextButton(onClick = {
                     onSave(null)
                     onDismiss()
-                }) { Text("Clear") }
-                TextButton(onClick = onDismiss) { Text("Cancel") }
+                }) { Text(stringResource(Res.string.action_clear)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
             }
         },
     )

@@ -1,8 +1,9 @@
 package com.misgus.agustream.ui.streams
 
 import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_close
 import agustream.app.shared.generated.resources.action_play
-import agustream.app.shared.generated.resources.streams_close
+import agustream.app.shared.generated.resources.action_refresh
 import agustream.app.shared.generated.resources.streams_copy_link
 import agustream.app.shared.generated.resources.streams_count_many
 import agustream.app.shared.generated.resources.streams_count_one
@@ -12,7 +13,6 @@ import agustream.app.shared.generated.resources.streams_error_short
 import agustream.app.shared.generated.resources.streams_filter
 import agustream.app.shared.generated.resources.streams_loading
 import agustream.app.shared.generated.resources.streams_no_match
-import agustream.app.shared.generated.resources.streams_refresh
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -175,10 +175,10 @@ private fun Header(
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
         ) {
             IconButton(onClick = onRefresh) {
-                Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.streams_refresh))
+                Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.action_refresh))
             }
             IconButton(onClick = onClose) {
-                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.streams_close))
+                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.action_close))
             }
         }
         Column(
