@@ -2,9 +2,9 @@ package com.misgus.agustream.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.SkeletonBox
 import com.misgus.agustream.ui.components.rememberShimmerProgress
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.cellWidth
@@ -45,18 +45,17 @@ internal fun HomeSkeleton(
 ) {
     val progress = rememberShimmerProgress()
     val windowSize = LocalWindowSize.current
-    // Mirrors the real billboard: full-bleed on a phone, an inset card otherwise.
+    val windowHeight = LocalWindowHeight.current
+    // Mirrors the real billboard: full-bleed, height from the artwork's aspect.
     val compact = windowSize == WindowSize.COMPACT
-    val heroHorizontal = if (compact) 0.dp else windowSize.screenPadding
-    val heroVertical = if (compact) 0.dp else AppSpacing.md
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = heroHorizontal, vertical = heroVertical)
-                .aspectRatio(if (compact) COMPACT_HERO_ASPECT_RATIO else HERO_ASPECT_RATIO),
-        ) {
-            SkeletonBox(progress, Modifier.fillMaxSize(), if (compact) RectangleShape else AppRadii.xlShape)
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val ratio = if (compact) COMPACT_HERO_ASPECT_RATIO else HERO_ASPECT_RATIO
+            val naturalHeight = maxWidth / ratio
+            val heroHeight = if (windowHeight.value.isFinite()) minOf(naturalHeight, windowHeight) else naturalHeight
+            Box(Modifier.fillMaxWidth().height(heroHeight)) {
+                SkeletonBox(progress, Modifier.fillMaxSize(), RectangleShape)
+            }
         }
         SkeletonRailHeader(progress)
         SkeletonRail(progress, CONTINUE_CARD_WIDTH, CONTINUE_CARD_WIDTH / (16f / 9f))

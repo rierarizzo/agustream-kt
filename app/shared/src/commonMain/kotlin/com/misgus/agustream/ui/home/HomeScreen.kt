@@ -72,6 +72,7 @@ fun HomeScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val settingsRepository = LocalAppServices.current.settings
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
+    val windowSize = LocalWindowSize.current
 
     Box(Modifier.fillMaxSize()) {
         HomeContent(
@@ -93,7 +94,11 @@ fun HomeScreen(
             },
         )
         if (state.isSyncingWatched) {
-            Box(Modifier.align(Alignment.TopEnd).padding(top = AppSpacing.md, end = AppSpacing.xl)) {
+            // A wide window already clears the system bars for the section; a
+            // phone keeps the billboard full-bleed, so the indicator clears the
+            // status bar itself.
+            val topInset = if (windowSize == WindowSize.COMPACT) safeTopInset else 0.dp
+            Box(Modifier.align(Alignment.TopEnd).padding(top = topInset + AppSpacing.md, end = AppSpacing.xl)) {
                 SyncingIndicator()
             }
         }

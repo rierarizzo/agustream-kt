@@ -1,13 +1,12 @@
 package com.misgus.agustream.ui.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,9 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.MetaPreview
@@ -37,11 +37,10 @@ import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.ratingText
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppElevation
-import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
+import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.safeTopInset
@@ -52,6 +51,12 @@ internal const val HERO_ASPECT_RATIO = 1920f / 823f
 
 /** Portrait crop used on a compact window, where the poster carries the hero. */
 internal const val COMPACT_HERO_ASPECT_RATIO = 2f / 3f
+
+/** Blur applied to the cover-filled copy behind the complete artwork. */
+private val HERO_FILL_BLUR = 24.dp
+
+/** How much the blurred copy is dimmed, so it does not compete with the artwork. */
+private const val HERO_FILL_DIM = 0.4f
 
 /** Featured billboard carousel. */
 @Composable
@@ -64,34 +69,18 @@ internal fun Hero(
     // A phone cannot show the wide billboard, so it gets a taller crop of the
     // poster instead, with the name as text rather than the title logo.
     val compact = LocalWindowSize.current == WindowSize.COMPACT
+    val windowHeight = LocalWindowHeight.current
 
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .padding(
-                // On a phone the billboard is full-bleed: it reaches the screen
-                // edges and tucks under the status bar, so no empty band is left
-                // above it. Wider windows keep it as an inset card.
-                horizontal = if (compact) 0.dp else AppSpacing.xl,
-                vertical = if (compact) 0.dp else AppSpacing.md,
-            ),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(if (compact) COMPACT_HERO_ASPECT_RATIO else HERO_ASPECT_RATIO)
-                    .then(
-                        if (compact) {
-                            Modifier
-                        } else {
-                            Modifier
-                                .shadow(elevation = AppElevation.hero, shape = AppRadii.xlShape, clip = false)
-                                .clip(AppRadii.xlShape)
-                                .border(1.dp, Color.White.copy(alpha = AppAlpha.HERO_RIM), AppRadii.xlShape)
-                        },
-                    ),
-        ) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        // Full-bleed: the billboard reaches the window edges and tucks under the
+        // floating navigation, so it reads as an immersive backdrop instead of an
+        // inset card. Its height follows the artwork's aspect ratio (never a
+        // forced crop), and is only capped so it cannot grow past the viewport on
+        // a very wide, short window.
+        val ratio = if (compact) COMPACT_HERO_ASPECT_RATIO else HERO_ASPECT_RATIO
+        val naturalHeight = maxWidth / ratio
+        val heroHeight = if (windowHeight.value.isFinite()) minOf(naturalHeight, windowHeight) else naturalHeight
+        Box(Modifier.fillMaxWidth().height(heroHeight)) {
             HorizontalPager(
                 state = pagerState,
                 beyondViewportPageCount = 1,
@@ -140,11 +129,23 @@ private fun HeroSlide(
     onPlay: () -> Unit,
 ) {
     val backdrop = if (compact) item.poster ?: item.background else item.background ?: item.poster
-    Box(Modifier.fillMaxSize().background(AppColors.surface)) {
+    // The gradient shows through if the artwork never loads, so a slow or
+    // missing image never leaves a bright gap.
+    Box(Modifier.fillMaxSize().background(AppScrim.detailBackdrop)) {
         if (!backdrop.isNullOrEmpty()) {
+            // A blurred, cover-filled copy keeps the frame full-bleed when the
+            // artwork does not match the box, so no side bars are left...
             RemoteImage(
                 url = backdrop,
                 contentDescription = null,
+                modifier = Modifier.fillMaxSize().blur(HERO_FILL_BLUR),
+            )
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = HERO_FILL_DIM)))
+            // ...and the complete artwork sits on top, never cropped.
+            RemoteImage(
+                url = backdrop,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize(),
             )
         }

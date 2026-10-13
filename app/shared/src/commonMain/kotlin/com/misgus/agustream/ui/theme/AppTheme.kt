@@ -81,7 +81,10 @@ object AppRadii {
 
 /** Sizes shared by the shell. */
 object AppSizes {
-    /** Height of the horizontal top navigation bar. */
+    /** Width of the vertical navigation rail used on wide windows. */
+    val railWidth: Dp = 96.dp
+
+    /** Height of the horizontal top navigation bar, used on wide windows. */
     val topBarHeight: Dp = 64.dp
 
     /** Height of the icon-only bottom navigation bar, used on compact windows. */
@@ -89,9 +92,6 @@ object AppSizes {
 
     /** Height of a primary control (call-to-action button, action icon box). */
     val controlHeight: Dp = 44.dp
-
-    /** Height of the shadow the top bar casts onto the content below. */
-    val topBarShadow: Dp = 14.dp
 }
 
 /** Shared icon sizes. */
@@ -101,20 +101,8 @@ object AppIconSize {
     val lg: Dp = 24.dp
 }
 
-/** Elevation of floating surfaces. */
-object AppElevation {
-    /** Home hero billboard. */
-    val hero: Dp = 28.dp
-}
-
 /** Reusable overlay alphas, so scrims and shadows stay consistent. */
 object AppAlpha {
-    /** Shadow the top bar casts over the content. */
-    const val TOP_BAR_SHADOW = 0.35f
-
-    /** Subtle rim light around the hero card. */
-    const val HERO_RIM = 0.08f
-
     /** Top scrim that keeps the detail back button legible over any content. */
     const val DETAIL_TOP_SCRIM = 0.55f
 

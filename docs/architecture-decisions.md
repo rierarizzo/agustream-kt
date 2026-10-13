@@ -73,7 +73,10 @@ engine, the filesystem and the player touch platform source sets through
 - **Stremio**: `StremioAddonClient` plus the four repositories. Same rules as
   the original: metadata is first-wins across addons, streams/subtitles are
   aggregated in parallel, and catalog `extra` values are encoded while keeping
-  `=`/`&` raw.
+  `=`/`&` raw. The "similar" row picks a catalog that can filter by genre and
+  skips catalogs whose required extras cannot be provided (a search term, a list
+  of ids), then falls back to the generic catalog, so a title is not left
+  without the row.
 - **Nuvio/Supabase**: raw HTTP split by responsibility, instead of one client
   class: `NuvioTransport` (verbs and base URL), `NuvioDiscovery`
   (`/.well-known/nuvio` and the publishable key), `NuvioAuth` (session, sign-in,
@@ -90,7 +93,7 @@ engine, the filesystem and the player touch platform source sets through
   where the OS allows it; that is best-effort hardening, not a keychain.
 - **Settings** live in `settings.json` as a flat JSON object with dotted keys,
   like VS Code's `settings.json` (`animations.enabled`, `player.resumePlayback`,
-  `player.autoPlayNext`, `poster.size`, `library.poster.size`).
+  `player.autoPlayNext`, `poster.size`, `library.poster.size`, `nav.style`).
   `JsonSettingsRepository` reads it defensively, keeps unknown keys on write and
   can `reload()` after a manual edit; the settings screen groups the toggles by
   category, edits the same file, shows its path and can open it in the OS
@@ -139,8 +142,11 @@ engine, the filesystem and the player touch platform source sets through
   `BoxWithConstraints` and publishes a `WindowSize` (compact / medium /
   expanded, at Material's 600 and 840 dp breakpoints) plus the window width,
   through `LocalWindowSize` / `LocalWindowWidth`, so a surface picks a layout
-  without measuring anything itself. Compact windows (phones) get an icon-only
-  bottom bar and reserve its height; wider windows keep the floating top bar.
+  without measuring anything itself. Compact windows (phones) always get an
+  icon-only bottom bar and reserve its height; wider windows pick their
+  navigation with the `nav.style` setting — an opaque vertical rail on the left
+  (reserving its width) or the centered top bar (reserving its height). The
+  setting is hidden on a compact window, where it would have no effect.
   The poster grids and rails scale their cell width down on compact windows
   (the user's small / default / large choice still applies), the Home hero swaps
   the wide billboard for the poster crop without the title logo, the detail
@@ -156,12 +162,20 @@ engine, the filesystem and the player touch platform source sets through
   `safeTopInset` / `safeBottomInset` (`ui/theme/WindowSize.kt`, backed by
   `WindowInsets.statusBars` / `navigationBars`, zero on desktop) or the
   `statusBarsPadding` / `navigationBarsPadding` / `safeDrawingPadding`
-  modifiers. The shell reserves the status bar plus the floating top bar (or the
-  bottom bar plus the navigation inset) for a section; the navigation bars carry
-  their own inset; the detail backdrop, the player and the onboarding/profile
-  gates paint behind the bars while their controls sit below them; and the Home
-  billboard is full-bleed on a phone, so the artwork reaches the status bar
-  instead of leaving an empty band above it.
+  modifiers. The shell reserves the navigation plus the system bars it sits
+  behind for a section (the bottom bar on a phone, the left rail on a wide
+  window); the navigation bars carry their own inset; the detail backdrop, the
+  player and the onboarding/profile gates paint behind the bars while their
+  controls sit below them; and the Home billboard is full-bleed, so the artwork
+  reaches the edges of the content area instead of an empty band being left
+  above it. Its height follows the artwork's aspect ratio and is only capped to
+  the viewport; the image is drawn `Fit` so the whole artwork is shown, over a
+  blurred, cover-filled copy of itself (dimmed) and the gradient, so a wide
+  artwork leaves no side bars instead of being cropped to fill. On a wide window
+  the rail uses the shell background — no separate surface or edge — with the
+  profile and section items centered, and the content reserves its width (or the
+  top bar's height when `nav.style` is the top bar), so the navigation never
+  overlaps it.
 - **Typography.** Inter is bundled through Compose Resources, so every target
   renders the same typeface, and text is written in `sp` so Android's system
   font size keeps working. `LocalDensity` is deliberately never overridden: that

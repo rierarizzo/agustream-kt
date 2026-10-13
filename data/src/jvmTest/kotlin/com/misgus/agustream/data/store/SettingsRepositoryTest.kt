@@ -1,5 +1,6 @@
 package com.misgus.agustream.data.store
 
+import com.misgus.agustream.core.repository.NavStyle
 import com.misgus.agustream.core.repository.PosterSize
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
@@ -29,6 +30,7 @@ class SettingsRepositoryTest {
             assertTrue(settings.state.value.animationsEnabled)
             assertTrue(settings.state.value.resumePlayback)
             assertTrue(settings.state.value.autoPlayNext)
+            assertEquals(NavStyle.RAIL, settings.state.value.navStyle)
         }
 
     @Test
@@ -44,6 +46,7 @@ class SettingsRepositoryTest {
             settings.setAutoPlayNext(false)
             settings.setPosterSize(PosterSize.LARGE)
             settings.setLibraryPosterSize(PosterSize.SMALL)
+            settings.setNavStyle(NavStyle.TOP_BAR)
 
             val reloaded = JsonSettingsRepository(store)
             reloaded.load()
@@ -51,6 +54,7 @@ class SettingsRepositoryTest {
             assertFalse(reloaded.state.value.autoPlayNext)
             assertEquals(PosterSize.LARGE, reloaded.state.value.posterSize)
             assertEquals(PosterSize.SMALL, reloaded.state.value.libraryPosterSize)
+            assertEquals(NavStyle.TOP_BAR, reloaded.state.value.navStyle)
             assertEquals("value", (store.read()["custom.key"] as JsonPrimitive).content)
             // The file is written indented, so it can be read and edited by hand.
             assertTrue(File(path).readText().contains('\n'))

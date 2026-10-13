@@ -81,18 +81,20 @@ class StremioMetadataRepository(
     ): List<MetaPreview>? {
         val addonClient = clientFor(baseUrl)
         return try {
-            val catalog = pickCatalog(manifest.catalogs, type) ?: return null
-
-            val supportsGenre = catalog.extra.any { it.name == "genre" }
-            val hasGenre = !genre.isNullOrEmpty()
-            if (hasGenre && !supportsGenre) return null
-
-            val extra = if (hasGenre) mapOf("genre" to genre) else null
-            val items =
-                addonClient
-                    .fetchCatalog(type, catalog.id, extra)
-                    .filter { it.id != id }
-            items.ifEmpty { null }
+            val catalog = pickCatalog(manifest.catalogs, type, genre) ?: return null
+            val supportsGenre = !genre.isNullOrEmpty() && catalog.extra.any { it.name == "genre" }
+            // Prefer a genre match, but fall back to the generic catalog so a
+            // title is never left without a "similar" row.
+            val byGenre =
+                if (supportsGenre) {
+                    runCatchingCancellable {
+                        addonClient.fetchCatalog(type, catalog.id, mapOf("genre" to genre))
+                    }.getOrDefault(emptyList())
+                } else {
+                    emptyList()
+                }
+            val items = byGenre.ifEmpty { addonClient.fetchCatalog(type, catalog.id, null) }
+            items.filter { it.id != id }.ifEmpty { null }
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
             throw cancellation
         } catch (_: Exception) {
@@ -102,9 +104,31 @@ class StremioMetadataRepository(
 
     private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
 
-    /** First catalog of [type], which is good enough for a "similar" row. */
+    /**
+     * Catalog to use for a "similar" row.
+     *
+     * Prefers one that can filter by [genre], and skips catalogs that need an
+     * extra we cannot provide (a search term, a list of ids, ...), because those
+     * cannot be fetched on their own. Falls back to any usable catalog of
+     * [type].
+     */
     private fun pickCatalog(
         catalogs: List<AddonCatalog>,
         type: String,
-    ): AddonCatalog? = catalogs.firstOrNull { it.type == type }
+        genre: String?,
+    ): AddonCatalog? {
+        val usable = catalogs.filter { it.type == type && canFetch(it, genre) }
+        if (usable.isEmpty()) return null
+        if (genre.isNullOrEmpty()) return usable.first()
+        return usable.firstOrNull { catalog -> catalog.extra.any { it.name == "genre" } } ?: usable.first()
+    }
+
+    /** Whether [catalog] can be fetched without an extra we do not have. */
+    private fun canFetch(
+        catalog: AddonCatalog,
+        genre: String?,
+    ): Boolean =
+        catalog.extra.none { extra ->
+            extra.isRequired && !(extra.name == "genre" && !genre.isNullOrEmpty())
+        }
 }

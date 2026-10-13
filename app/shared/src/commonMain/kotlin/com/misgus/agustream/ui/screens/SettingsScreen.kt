@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
+import com.misgus.agustream.core.repository.NavStyle
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.ui.components.PillButton
@@ -47,6 +48,7 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppRadii
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.launch
 
@@ -87,6 +89,8 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
                 onPosterSizeChange = { value -> save { settings.setPosterSize(value) } },
                 libraryPosterSize = state.libraryPosterSize,
                 onLibraryPosterSizeChange = { value -> save { settings.setLibraryPosterSize(value) } },
+                navStyle = state.navStyle,
+                onNavStyleChange = { value -> save { settings.setNavStyle(value) } },
             )
             Spacer(Modifier.height(AppSpacing.lg))
             PlaybackSettingsCard(
@@ -170,6 +174,8 @@ private fun AppearanceCard(
     onPosterSizeChange: (PosterSize) -> Unit,
     libraryPosterSize: PosterSize,
     onLibraryPosterSizeChange: (PosterSize) -> Unit,
+    navStyle: NavStyle,
+    onNavStyleChange: (NavStyle) -> Unit,
 ) {
     SettingsCard(
         title = "Appearance",
@@ -185,15 +191,31 @@ private fun AppearanceCard(
             SettingsChoice(
                 title = "Poster size",
                 subtitle = "Catalogs, Discover and \"More like this\".",
+                options = PosterSize.entries,
                 selected = posterSize,
+                label = { it.label() },
                 onSelect = onPosterSizeChange,
             )
             SettingsChoice(
                 title = "Library poster size",
                 subtitle = "The library grid only.",
+                options = PosterSize.entries,
                 selected = libraryPosterSize,
+                label = { it.label() },
                 onSelect = onLibraryPosterSizeChange,
             )
+            // A phone always uses the bottom bar, so the choice only makes sense
+            // on a wide window.
+            if (LocalWindowSize.current != WindowSize.COMPACT) {
+                SettingsChoice(
+                    title = "Navigation",
+                    subtitle = "Where the section menu lives on a wide window.",
+                    options = NavStyle.entries,
+                    selected = navStyle,
+                    label = { it.label() },
+                    onSelect = onNavStyleChange,
+                )
+            }
         }
     }
 }
@@ -312,22 +334,24 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
 }
 
 @Composable
-private fun SettingsChoice(
+private fun <T> SettingsChoice(
     title: String,
     subtitle: String,
-    selected: PosterSize,
-    onSelect: (PosterSize) -> Unit,
+    options: List<T>,
+    selected: T,
+    label: (T) -> String,
+    onSelect: (T) -> Unit,
 ) {
     Column(Modifier.fillMaxWidth().padding(vertical = AppSpacing.sm)) {
         Text(title, style = MaterialTheme.typography.bodyLarge)
         Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = AppColors.textSecondary)
         Spacer(Modifier.height(AppSpacing.sm))
         Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-            PosterSize.entries.forEach { option ->
+            options.forEach { option ->
                 FilterChip(
                     selected = option == selected,
                     onClick = { onSelect(option) },
-                    label = { Text(option.label()) },
+                    label = { Text(label(option)) },
                 )
             }
         }
@@ -339,6 +363,12 @@ private fun PosterSize.label(): String =
         PosterSize.SMALL -> "Small"
         PosterSize.DEFAULT -> "Default"
         PosterSize.LARGE -> "Large"
+    }
+
+private fun NavStyle.label(): String =
+    when (this) {
+        NavStyle.TOP_BAR -> "Top bar"
+        NavStyle.RAIL -> "Left rail"
     }
 
 @Composable

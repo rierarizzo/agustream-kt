@@ -61,6 +61,15 @@ val LocalWindowSize = staticCompositionLocalOf { WindowSize.EXPANDED }
 val LocalWindowWidth = staticCompositionLocalOf { Dp.Infinity }
 
 /**
+ * Height of the app window in dp.
+ *
+ * A surface that cannot measure its own viewport — one inside a vertical scroll,
+ * where the incoming height constraint is unbounded — reads it to cap its size.
+ * Defaults to [Dp.Infinity], which leaves such a caller uncapped.
+ */
+val LocalWindowHeight = staticCompositionLocalOf { Dp.Infinity }
+
+/**
  * Height of the status bar (and any display cutout), in dp.
  *
  * Zero on desktop, where no system chrome draws over the window. Android runs
