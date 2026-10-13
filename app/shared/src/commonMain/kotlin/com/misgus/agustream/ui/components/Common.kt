@@ -23,9 +23,9 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -153,13 +154,18 @@ fun Message(
 }
 
 /**
- * Title row above a horizontal rail of posters, with an optional "See all".
+ * Title row above a horizontal rail of posters, with an optional [subtitle] and
+ * a "see all" icon button.
  *
- * Shared by Home and Discover so the rails keep the same rhythm.
+ * Shared by Home and Search so the rails keep the same rhythm. The header is as
+ * tall as its title: the optional trailing icon is centred on it and allowed to
+ * overflow into the padding, so the gap to the content below does not depend on
+ * whether the button is there.
  */
 @Composable
 fun SectionHeader(
     title: String,
+    subtitle: String? = null,
     onSeeAll: (() -> Unit)? = null,
 ) {
     val screenPadding = LocalWindowSize.current.screenPadding
@@ -169,27 +175,48 @@ fun SectionHeader(
                 .fillMaxWidth()
                 .padding(start = screenPadding, end = screenPadding, top = AppSpacing.lg, bottom = AppSpacing.md),
         content = {
-            Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.sectionHeading())
+            Row {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false).alignByBaseline().sectionHeading(),
+                )
+                if (subtitle != null) {
+                    Spacer(Modifier.width(AppSpacing.sm))
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.alignByBaseline(),
+                    )
+                }
+            }
             if (onSeeAll != null) {
-                TextButton(onClick = onSeeAll) {
-                    Text(stringResource(Res.string.action_see_all))
-                    Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(AppIconSize.sm).mirrorInRtl())
+                IconButton(onClick = onSeeAll) {
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = stringResource(Res.string.action_see_all),
+                        modifier = Modifier.size(AppIconSize.lg).mirrorInRtl(),
+                    )
                 }
             }
         },
     ) { measurables, constraints ->
-        // The header is as tall as its title; the optional "See all" is centred on
-        // it and allowed to overflow into the padding. That way the gap to the
-        // content below is the same with and without the button, instead of the
-        // button's 48dp touch target stretching the row.
+        // The icon is measured unconstrained so its 48dp touch target never widens
+        // the header; it is centred on the title and overflows into the padding.
         val button = measurables.getOrNull(1)?.measure(Constraints())
         val buttonWidth = button?.width ?: 0
-        val titleLayout =
-            measurables[0].measure(constraints.copy(minWidth = 0, maxWidth = constraints.maxWidth - buttonWidth))
+        val titleMaxWidth = (constraints.maxWidth - buttonWidth).coerceAtLeast(0)
+        val titleLayout = measurables[0].measure(constraints.copy(minWidth = 0, maxWidth = titleMaxWidth))
         layout(constraints.maxWidth, titleLayout.height) {
-            titleLayout.place(0, 0)
+            val rtl = layoutDirection == LayoutDirection.Rtl
+            titleLayout.place(x = if (rtl) constraints.maxWidth - titleLayout.width else 0, y = 0)
             button?.place(
-                x = constraints.maxWidth - button.width,
+                x = if (rtl) 0 else constraints.maxWidth - button.width,
                 y = (titleLayout.height - button.height) / 2,
             )
         }

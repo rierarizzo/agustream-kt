@@ -6,6 +6,7 @@ import agustream.app.shared.generated.resources.catalog_empty_message
 import agustream.app.shared.generated.resources.catalog_error_title
 import agustream.app.shared.generated.resources.empty_nothing_to_show
 import agustream.app.shared.generated.resources.error_try_again_later
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -98,7 +99,7 @@ fun CatalogScreen(
         if (shouldLoadMore) viewModel.loadMore()
     }
 
-    Column(Modifier.fillMaxSize().statusBarsPadding()) {
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         Row(
             modifier = Modifier.padding(start = windowSize.screenPadding, top = windowSize.screenPadding, end = windowSize.screenPadding),
             verticalAlignment = Alignment.CenterVertically,

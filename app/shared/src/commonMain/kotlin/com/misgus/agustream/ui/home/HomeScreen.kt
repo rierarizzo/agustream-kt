@@ -49,6 +49,7 @@ import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.SectionHeader
 import com.misgus.agustream.ui.components.SyncingIndicator
 import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.contentTypeLabel
 import com.misgus.agustream.ui.components.motionBorder
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.toUserMessage
@@ -196,7 +197,11 @@ private fun HomeContent(
                         }
                     }
                     state.rows.forEach { row ->
-                        SectionHeader(title = row.title, onSeeAll = { onOpenCatalog(row.ref) })
+                        SectionHeader(
+                            title = row.title,
+                            subtitle = contentTypeLabel(row.ref.type),
+                            onSeeAll = { onOpenCatalog(row.ref) },
+                        )
                         LazyRow(
                             modifier = Modifier.height(posterSize.railHeight(windowSize)),
                             contentPadding = PaddingValues(horizontal = windowSize.screenPadding),

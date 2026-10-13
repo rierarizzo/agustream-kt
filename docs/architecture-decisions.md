@@ -161,9 +161,10 @@ engine, the filesystem and the player touch platform source sets through
   — and the rows are pulled up over its faded bottom, so the first row stays on
   screen instead of being cut. A floating window, or a Continue watching first
   row, keeps the natural height and lets the rows flow. Section headers keep a
-  fixed height too: the title sets it and the "See all" button is centred on it
-  and overflows into the padding, so the gap to the row below is the same with
-  and without the button. Compact
+  fixed height too: the title sets it and the trailing see-all icon is centred
+  on it and overflows into the padding, so the gap to the row below is the same
+  with and without the button; an optional subtitle (the catalog's Movies /
+  Series) sits on the title's baseline. Compact
   windows also use a tighter screen padding (16dp) and grid gap, and the detail
   actions are icon-only (with a `contentDescription`) at the call-to-action's
   height, so the row lines up.
@@ -215,9 +216,10 @@ engine, the filesystem and the player touch platform source sets through
   chevron; arrows use the `AutoMirrored` icons.
 - **Navigation** is a small typed stack (`ContentNavigator` + `ContentRoute`)
   rendered inside the shell content area. Sections keep the navigation
-  visible; a pushed route (detail, catalog) hides it, so an immersive hero such
-  as the detail one fills the whole window — the same behaviour as the Flutter
-  nested `Navigator`, without adding a navigation library. The chrome mixes
+  visible; a pushed route (detail, catalog) hides it and paints its own
+  background, so an immersive hero such as the detail one fills the whole window
+  without the section underneath showing through — the same behaviour as the
+  Flutter nested `Navigator`, without adding a navigation library. The chrome mixes
   Material and custom: a compact window gets a `NavigationBar` with icon-only
   `NavigationBarItem`s; a wide window a left navigation rail with custom
   icon-only items. The rail drops the labels to stay narrow, centers the
