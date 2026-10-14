@@ -477,6 +477,41 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   `activity-compose` dependency in `app/shared`. Do it before the Android target
   is treated as shippable.
 
+### UI components
+
+Follow-ups from the review of the component layer (`ActionButton`,
+`AppTextField`/`AppSearchField`, `AppIconButton`).
+
+- **Extract the focus ring.** `ActionButton` and `AppIconButton` repeat the same
+  `motionBorder({ if (focused) colour else transparent }, AppSizes.focusRing,
+  AppCorner.small)` block. Move it to `Modifier.focusRing(interaction, colour)`
+  in `Interaction.kt`, next to `motionBorder`, so every focusable control shares
+  one ring and the two cannot drift.
+- **Route every overlay alpha through `AppAlpha`.** `AppScrim` mixes named
+  alphas (`MEDIA_SCRIM_*`, `HERO_IMAGE_DIM`) with inline ones for the hero
+  gradients (`0.92`, `0.6`, `0.2`, `0.45`, `0.78`, `0.55`). Move the hero stops
+  to `AppAlpha` so all opacity has a single owner.
+- **Shrink the magic sizes.** `ActionButton` hard-codes the outline border
+  (`1.dp`) and the progress stroke (`2.dp`); add them to the `AppSizes` scale.
+- **Decouple the hero fit from `SectionHeader`.** `HOME_SECTION_HEADER_HEIGHT`
+  (`76.dp`) rebuilds, by hand, the header height that `Common.kt` owns
+  (`AppSpacing.lg` + `AppSpacing.md` + title + gap). If the header padding
+  changes, the hero fit silently drifts. Publish the height from the header and
+  read it in both places.
+- **Derive the disabled colours per button style.** `ActionButton` passes
+  `containerColor`/`contentColor` but not their disabled variants, so a disabled
+  or loading button falls back to the default token colours; the explicit
+  `color = content` on the label and icon also overrides the disabled content
+  colour. Derive `disabledContainerColor`/`disabledContentColor` per
+  `ActionButtonStyle`, and let `LocalContentColor` govern the content.
+- **Decide the field height.** `AppTextField` keeps Material's 56dp while
+  buttons use `AppSizes.controlHeight` (48dp). Either expose an
+  `AppSizes.fieldHeight` and document the difference, or align them.
+- **Use or trim the unused surface.** `ActionButtonStyle.Outline`/`Text`,
+  `AppIconButton.scrim` and `AppTextField.supportingText` are unused today. Keep
+  them only where a real call site is planned, so the API does not grow dead
+  branches.
+
 ### Player performance
 
 - **OpenGL render backend.** As noted in the player section, the current
