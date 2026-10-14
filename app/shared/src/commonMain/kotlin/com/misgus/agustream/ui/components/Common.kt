@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
@@ -197,13 +195,12 @@ fun SectionHeader(
                 }
             }
             if (onSeeAll != null) {
-                IconButton(onClick = onSeeAll) {
-                    Icon(
-                        imageVector = AppIcons.Filled.ChevronRight,
-                        contentDescription = stringResource(Res.string.action_see_all),
-                        modifier = Modifier.size(AppIconSize.md).mirrorInRtl(),
-                    )
-                }
+                AppIconButton(
+                    icon = AppIcons.Filled.ChevronRight,
+                    contentDescription = stringResource(Res.string.action_see_all),
+                    onClick = onSeeAll,
+                    iconModifier = Modifier.mirrorInRtl(),
+                )
             }
         },
     ) { measurables, constraints ->

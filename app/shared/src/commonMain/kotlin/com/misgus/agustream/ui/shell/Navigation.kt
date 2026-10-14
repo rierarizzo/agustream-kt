@@ -110,13 +110,14 @@ fun BottomNav(
                 NavigationBarItem(
                     selected = section == selected,
                     onClick = { onSelected(section) },
-                    // Match the rail's selected treatment (translucent on-surface
-                    // fill) instead of Material's default secondary container.
+                    // Match the rail's selected treatment (amber brand tint on a
+                    // faint amber fill) instead of Material's default secondary
+                    // container.
                     colors =
                         NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.onSurface,
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.NAV_SELECTED),
+                            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = AppAlpha.NAV_SELECTED),
                         ),
                     icon = {
                         Icon(
@@ -131,7 +132,7 @@ fun BottomNav(
     }
 }
 
-/** One section in the rail: an icon-only target with a translucent selected fill. */
+/** One section in the rail: an icon-only target with the amber selected treatment. */
 @Composable
 private fun RailNavItem(
     section: AppSection,
@@ -145,13 +146,13 @@ private fun RailNavItem(
             interaction,
             base =
                 if (selected) {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.NAV_SELECTED)
+                    MaterialTheme.colorScheme.primary.copy(alpha = AppAlpha.NAV_SELECTED)
                 } else {
                     Color.Transparent
                 },
         )
     val contentColor =
-        if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
     Box(
         modifier =
             Modifier

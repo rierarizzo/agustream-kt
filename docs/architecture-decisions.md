@@ -316,8 +316,11 @@ so the atomic read/write/delete logic lives once.
   icon-only items. The rail drops the labels to stay narrow, centers the
   profile avatar and the section items in the window, and paints the page
   background instead of a panel colour, so it blends into the content; the
-  selected item is a translucent on-surface fill, with the hover/press state
-  layer blended over it so a selected item never loses its fill.
+  selected item is the amber brand tint over a faint amber fill (the same
+  `selected` treatment as `AppIconButton` and `ActionButton`), with the
+  hover/press state layer blended over it so a selected item never loses its
+  fill. Selection reads from the first frame instead of appearing only once the
+  item is focused.
 - **Search owns the discover feed.** It has a free-text search across every
   catalog that declares the `search` extra, debounced, run in parallel and
   deduped across addons, split into Movies / Series / Other rails; and — while
@@ -355,17 +358,27 @@ so the atomic read/write/delete logic lives once.
   (`indication = null`) and signal hover with the scale/border animation
   instead, so a hovered poster is not greyed. Settings panels use the Material
   `Card`. A small component layer in `ui/components` keeps the Material defaults
-  off the screen: `ActionButton` picks its container and content from an
-  `ActionButtonStyle` weight (Filled on the inverse surface, Accent on the amber
-  `primary`/`onPrimary` for the billboards' "Watch Now", Tonal on a translucent
-  on-surface fill, Outline on `outline`, Text label-only); `AppTextField` pins
-  the form fields to `shapes.small`, a `surfaceContainerLow` container and an
-  amber-on-focus border, with an `AppSearchField` variant (leading magnifier,
-  clear action) for Search and streams; and `AppIconButton` gives the media
-  controls a 48dp target, a state layer, an optional `mediaScrim` and the same
-  focus ring. Every control reads scheme roles and the shared tokens only, and
-  draws an `AppSizes.focusRing`-wide ring when focused, so none is styled at the
-  call site. The near-black page background (`#0B0803`) is the single source of
+  off the screen: `ActionButton` picks its container, content and disabled
+  colours from an `ActionButtonStyle` weight (Filled on the inverse surface,
+  Accent on the amber `primary`/`onPrimary` for the billboards' "Watch Now",
+  Tonal on a translucent on-surface fill, Outline on `outline`, Text
+  label-only), leaves the content colour to the button's own `LocalContentColor`
+  so a disabled label dims with its container, pins elevation to zero (the app
+  is flat), caps the label to one ellipsised line, and steps the whole control
+  down slightly while pressed; a `selected` flag turns the low-emphasis weights
+  amber for the season picker, and an optional `trailingIcon` carries the filter
+  dropdown arrow. `AppTextField` pins the form fields to `shapes.small`, a
+  `surfaceContainerLow` container and an amber-on-focus border, with an
+  `AppSearchField` variant (leading magnifier, clear action) for Search and
+  streams. `AppIconButton` is the one icon control — media headers, the player
+  (back, play/pause, seek, subtitles, audio, fullscreen and the centred play
+  button), the detail screen's save/rate/watched toggles and the text fields'
+  clear/password actions — so every one gets the 48dp target, the state layer,
+  an optional `mediaScrim`, the amber `selected` tint, a load dim and the same
+  focus ring; no screen calls a raw Material `IconButton`, `TextButton` or
+  `OutlinedButton`. Every control reads scheme roles and the shared tokens only,
+  and draws an `AppSizes.focusRing`-wide ring when focused, so none is styled at
+  the call site. The near-black page background (`#0B0803`) is the single source of
   truth: the scheme, the native window background and every page-fade gradient
   end on it. The
   app is deliberately **dark-only** — no light scheme and no dynamic colour —
@@ -516,19 +529,12 @@ not a one-file change. They are grouped by the axis they change, not by effort.
 Follow-ups from the review of the component layer (`ActionButton`,
 `AppTextField`/`AppSearchField`, `AppIconButton`).
 
-- **Derive the disabled colours per button style.** `ActionButton` passes
-  `containerColor`/`contentColor` but not their disabled variants, so a disabled
-  or loading button falls back to the default token colours; the explicit
-  `color = content` on the label and icon also overrides the disabled content
-  colour. Derive `disabledContainerColor`/`disabledContentColor` per
-  `ActionButtonStyle`, and let `LocalContentColor` govern the content.
 - **Decide the field height.** `AppTextField` keeps Material's 56dp while
   buttons use `AppSizes.controlHeight` (48dp). Either expose an
   `AppSizes.fieldHeight` and document the difference, or align them.
-- **Use or trim the unused surface.** `ActionButtonStyle.Outline`/`Text`,
-  `AppIconButton.scrim` and `AppTextField.supportingText` are unused today. Keep
-  them only where a real call site is planned, so the API does not grow dead
-  branches.
+- **Trim the remaining unused surface.** `AppTextField.supportingText` is still
+  unused today; keep it only where a real call site is planned, so the API does
+  not grow dead branches.
 
 ### Player performance
 

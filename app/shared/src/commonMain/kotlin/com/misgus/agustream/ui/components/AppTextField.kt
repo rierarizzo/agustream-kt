@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -92,13 +91,12 @@ fun AppSearchField(
         trailingIcon =
             if (value.isNotEmpty()) {
                 {
-                    IconButton(onClick = { onValueChange("") }) {
-                        Icon(
-                            AppIcons.Filled.Close,
-                            contentDescription = clearDescription,
-                            modifier = Modifier.size(AppIconSize.md),
-                        )
-                    }
+                    AppIconButton(
+                        icon = AppIcons.Filled.Close,
+                        contentDescription = clearDescription,
+                        onClick = { onValueChange("") },
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             } else {
                 null

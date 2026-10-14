@@ -31,8 +31,9 @@ internal object BrandPalette {
     val surfaceHigh = Color(0xFF1F1F24)
 
     /**
-     * Attention colour (amber): selection, active states and badges. It is not a
-     * call-to-action colour — primary CTAs use the white pill button.
+     * Brand / attention colour (amber): selection, active states, badges and
+     * the featured call to action on a media billboard. Off media, the default
+     * primary call to action is the high-contrast white pill (`inverseSurface`).
      */
     val accent = Color(0xFFF0A020)
     val onAccent = Color(0xFF1A1200)
@@ -151,6 +152,9 @@ object AppScale {
     /** Scale a poster grows to on hover or focus. */
     const val HOVER = 1.04f
 
+    /** Press-down scale for interactive controls: a small, quick feedback step. */
+    const val PRESS = 0.97f
+
     /** Scale a dialog starts at before it grows into place. */
     const val DIALOG_ENTER = 0.96f
 }
@@ -198,14 +202,14 @@ object AppSynopsis {
 /**
  * Shared icon sizes.
  *
- * [md] is Material 3's standard 24dp and is the default for navigation, text
- * fields and list affordances; [sm] is for compact, inline and in-button
- * glyphs; [lg] is for prominent controls that sit over artwork.
+ * [md] is Material 3's standard 24dp and is the default for icon controls,
+ * navigation, text fields and list affordances; [sm] is for compact, inline and
+ * in-button glyphs. Keeping the two roles distinct stops an in-button glyph from
+ * being sized like a standalone control.
  */
 object AppIconSize {
     val sm: Dp = 20.dp
     val md: Dp = 24.dp
-    val lg: Dp = 28.dp
 }
 
 /** Reusable overlay alphas, so scrims and shadows stay consistent. */
@@ -249,13 +253,14 @@ object AppAlpha {
     /** Player top and bottom control scrims. */
     const val PLAYER_SCRIM = 0.8f
 
-    /** Play button backdrop over video. */
-    const val PLAYER_BUTTON = 0.45f
-
     /** Interaction feedback for custom surfaces. */
     const val INTERACT_HOVER = 0.08f
     const val INTERACT_FOCUS = 0.18f
     const val INTERACT_PRESSED = 0.16f
+
+    /** Disabled fill and content, per Material's disabled state spec. */
+    const val DISABLED_CONTAINER = 0.12f
+    const val DISABLED_CONTENT = 0.38f
 
     /** Translucent fill behind the selected top-navigation item. */
     const val NAV_SELECTED = 0.12f

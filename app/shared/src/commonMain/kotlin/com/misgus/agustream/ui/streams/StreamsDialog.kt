@@ -31,8 +31,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -262,12 +260,11 @@ private fun StreamCard(
                 .padding(AppSpacing.md),
         verticalAlignment = Alignment.Top,
     ) {
-        IconButton(
+        AppIconButton(
+            icon = AppIcons.Filled.PlayArrow,
+            contentDescription = stringResource(Res.string.action_play),
             onClick = onPlay,
-            modifier = Modifier.size(40.dp),
-        ) {
-            Icon(AppIcons.Filled.PlayArrow, contentDescription = stringResource(Res.string.action_play))
-        }
+        )
         Spacer(Modifier.width(AppSpacing.md))
         Column(Modifier.weight(1f)) {
             Text(
@@ -283,11 +280,13 @@ private fun StreamCard(
             Spacer(Modifier.width(AppSpacing.sm))
             Text(it, style = MaterialTheme.typography.bodyMedium)
         }
-        IconButton(onClick = {
-            (stream.url ?: stream.externalUrl)?.let { clipboard.setText(AnnotatedString(it)) }
-        }) {
-            Icon(AppIcons.Outlined.ContentCopy, contentDescription = stringResource(Res.string.streams_copy_link))
-        }
+        AppIconButton(
+            icon = AppIcons.Outlined.ContentCopy,
+            contentDescription = stringResource(Res.string.streams_copy_link),
+            onClick = {
+                (stream.url ?: stream.externalUrl)?.let { clipboard.setText(AnnotatedString(it)) }
+            },
+        )
     }
 }
 

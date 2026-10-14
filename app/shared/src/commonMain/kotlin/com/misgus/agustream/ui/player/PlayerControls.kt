@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -37,8 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.icons.AppIcons
-import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppScrim
@@ -85,20 +84,18 @@ fun PlayerControls(
     Box(Modifier.fillMaxSize().alpha(alpha)) {
         TopBar(state.title, onBack, Modifier.align(Alignment.TopCenter))
         if (!state.playing) {
-            IconButton(
+            AppIconButton(
+                icon = AppIcons.Filled.PlayArrow,
+                contentDescription = stringResource(Res.string.action_play),
                 onClick = onPlayPause,
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .size(64.dp)
-                        .background(AppColors.playerBackground.copy(alpha = AppAlpha.PLAYER_BUTTON), CircleShape),
-            ) {
-                Icon(
-                    AppIcons.Filled.PlayArrow,
-                    contentDescription = stringResource(Res.string.action_play),
-                    modifier = Modifier.size(40.dp),
-                )
-            }
+                tint = AppColors.playerControl,
+                size = 64.dp,
+                iconSize = 40.dp,
+                shape = CircleShape,
+                focusRingCorner = 32.dp,
+                scrim = true,
+                modifier = Modifier.align(Alignment.Center),
+            )
         }
         BottomBar(
             state = state,
@@ -130,13 +127,12 @@ private fun TopBar(
                 .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                AppIcons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(Res.string.action_back),
-                tint = AppColors.playerControl,
-            )
-        }
+        AppIconButton(
+            icon = AppIcons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(Res.string.action_back),
+            onClick = onBack,
+            tint = AppColors.playerControl,
+        )
         Spacer(Modifier.width(AppSpacing.xs))
         Text(
             title,
@@ -184,34 +180,31 @@ private fun BottomBar(
             colors = SliderDefaults.colors(thumbColor = AppColors.playerControl, activeTrackColor = AppColors.playerControl),
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onPlayPause) {
-                Icon(
-                    if (state.playing) AppIcons.Filled.Pause else AppIcons.Filled.PlayArrow,
-                    contentDescription =
-                        if (state.playing) {
-                            stringResource(
-                                Res.string.player_pause,
-                            )
-                        } else {
-                            stringResource(Res.string.action_play)
-                        },
-                    tint = AppColors.playerControl,
-                )
-            }
-            IconButton(onClick = { onSeekBy(SEEK_BACK) }) {
-                Icon(
-                    AppIcons.Filled.Replay10,
-                    contentDescription = stringResource(Res.string.player_back_10),
-                    tint = AppColors.playerControl,
-                )
-            }
-            IconButton(onClick = { onSeekBy(SEEK_FORWARD) }) {
-                Icon(
-                    AppIcons.Filled.Forward10,
-                    contentDescription = stringResource(Res.string.player_forward_10),
-                    tint = AppColors.playerControl,
-                )
-            }
+            AppIconButton(
+                icon = if (state.playing) AppIcons.Filled.Pause else AppIcons.Filled.PlayArrow,
+                contentDescription =
+                    if (state.playing) {
+                        stringResource(
+                            Res.string.player_pause,
+                        )
+                    } else {
+                        stringResource(Res.string.action_play)
+                    },
+                onClick = onPlayPause,
+                tint = AppColors.playerControl,
+            )
+            AppIconButton(
+                icon = AppIcons.Filled.Replay10,
+                contentDescription = stringResource(Res.string.player_back_10),
+                onClick = { onSeekBy(SEEK_BACK) },
+                tint = AppColors.playerControl,
+            )
+            AppIconButton(
+                icon = AppIcons.Filled.Forward10,
+                contentDescription = stringResource(Res.string.player_forward_10),
+                onClick = { onSeekBy(SEEK_FORWARD) },
+                tint = AppColors.playerControl,
+            )
             Spacer(Modifier.width(AppSpacing.sm))
             Text(
                 "${format(state.position)} / ${format(state.duration)}",
@@ -233,27 +226,24 @@ private fun BottomBar(
                     colors = SliderDefaults.colors(thumbColor = AppColors.playerControl, activeTrackColor = AppColors.playerControl),
                 )
             }
-            IconButton(onClick = onSubtitles) {
-                Icon(
-                    AppIcons.Outlined.Subtitles,
-                    contentDescription = stringResource(Res.string.player_subtitles),
-                    tint = AppColors.playerControl,
-                )
-            }
-            IconButton(onClick = onAudio) {
-                Icon(
-                    AppIcons.Outlined.Audiotrack,
-                    contentDescription = stringResource(Res.string.player_audio),
-                    tint = AppColors.playerControl,
-                )
-            }
-            IconButton(onClick = onToggleFullscreen) {
-                Icon(
-                    AppIcons.Filled.Fullscreen,
-                    contentDescription = stringResource(Res.string.player_fullscreen),
-                    tint = AppColors.playerControl,
-                )
-            }
+            AppIconButton(
+                icon = AppIcons.Outlined.Subtitles,
+                contentDescription = stringResource(Res.string.player_subtitles),
+                onClick = onSubtitles,
+                tint = AppColors.playerControl,
+            )
+            AppIconButton(
+                icon = AppIcons.Outlined.Audiotrack,
+                contentDescription = stringResource(Res.string.player_audio),
+                onClick = onAudio,
+                tint = AppColors.playerControl,
+            )
+            AppIconButton(
+                icon = AppIcons.Filled.Fullscreen,
+                contentDescription = stringResource(Res.string.player_fullscreen),
+                onClick = onToggleFullscreen,
+                tint = AppColors.playerControl,
+            )
         }
     }
 }

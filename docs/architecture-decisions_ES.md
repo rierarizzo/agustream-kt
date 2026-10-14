@@ -330,9 +330,11 @@ leer/escribir/borrar vive una sola vez.
   rail de navegación izquierdo con items solo-iconos custom. El rail elimina las
   etiquetas para mantenerse estrecho, centra el avatar de perfil y los items de
   sección en la ventana, y pinta el fondo de página en vez de un color de panel,
-  así que se funde con el contenido; el item seleccionado es un relleno
-  translúcido de on-surface, con la capa de estado hover/press mezclada por
-  encima para que un item seleccionado nunca pierda su relleno.
+  así que se funde con el contenido; el item seleccionado es el tinte ámbar de
+  marca sobre un relleno ámbar tenue (el mismo tratamiento `selected` que
+  `AppIconButton` y `ActionButton`), con la capa de estado hover/press mezclada
+  por encima para que un item seleccionado nunca pierda su relleno. La selección
+  se ve desde el primer frame en vez de aparecer solo cuando el item recibe foco.
 - **Search es dueña del feed de discover.** Tiene una búsqueda de texto libre en
   cada catálogo que declara el extra `search`, con debounce, ejecutada en
   paralelo y deduplicada entre addons, dividida en raíles Movies / Series /
@@ -374,17 +376,28 @@ leer/escribir/borrar vive una sola vez.
   escala/borde, para que un póster con hover no se agrisé. Los paneles de ajustes
   usan el `Card` de Material. Una pequeña capa de componentes en `ui/components`
   mantiene los defaults de Material fuera de la pantalla: `ActionButton` elige su
-  contenedor y contenido de un peso `ActionButtonStyle` (Filled sobre la
-  superficie inversa, Accent sobre el `primary`/`onPrimary` ámbar para el "Watch
-  Now" de los billboards, Tonal sobre un relleno translúcido de on-surface,
-  Outline sobre `outline`, Text solo etiqueta); `AppTextField` fija los campos de
-  formulario a `shapes.small`, un contenedor `surfaceContainerLow` y un borde
-  ámbar al enfocar, con una variante `AppSearchField` (lupa a la izquierda,
-  acción de limpiar) para Search y streams; y `AppIconButton` da a los controles
-  de media un target de 48dp, una capa de estado, un `mediaScrim` opcional y el
-  mismo anillo de foco. Cada control lee solo roles del esquema y tokens
-  compartidos, y dibuja un anillo del ancho `AppSizes.focusRing` cuando está
-  enfocado, así que ninguno se estiliza en el punto de llamada. El fondo de
+  contenedor, contenido y colores deshabilitados de un peso `ActionButtonStyle`
+  (Filled sobre la superficie inversa, Accent sobre el `primary`/`onPrimary`
+  ámbar para el "Watch Now" de los billboards, Tonal sobre un relleno translúcido
+  de on-surface, Outline sobre `outline`, Text solo etiqueta), deja el color de
+  contenido al `LocalContentColor` del propio botón para que una etiqueta
+  deshabilitada se atenúe con su contenedor, fija la elevación a cero (la app es
+  plana), limita la etiqueta a una línea con elipsis, y baja ligeramente todo el
+  control mientras se presiona; un flag `selected` vuelve ámbar los pesos de baja
+  énfasis para el selector de temporadas, y un `trailingIcon` opcional lleva la
+  flecha del filtro desplegable. `AppTextField` fija los campos de formulario a
+  `shapes.small`, un contenedor `surfaceContainerLow` y un borde ámbar al
+  enfocar, con una variante `AppSearchField` (lupa a la izquierda, acción de
+  limpiar) para Search y streams. `AppIconButton` es el único control de icono —
+  cabeceras de media, el reproductor (atrás, play/pausa, avance, subtítulos,
+  audio, pantalla completa y el botón de play centrado), los toggles de
+  guardar/puntuar/visto del detalle y las acciones de limpiar/contraseña de los
+  campos — así que todos reciben el target de 48dp, la capa de estado, un
+  `mediaScrim` opcional, el tinte ámbar `selected`, un atenuado de carga y el
+  mismo anillo de foco; ninguna pantalla llama a un `IconButton`, `TextButton` u
+  `OutlinedButton` de Material en crudo. Cada control lee solo roles del esquema
+  y tokens compartidos, y dibuja un anillo del ancho `AppSizes.focusRing` cuando
+  está enfocado, así que ninguno se estiliza en el punto de llamada. El fondo de
   página casi negro (`#0B0803`) es la única fuente de verdad: el esquema, el
   fondo nativo de la ventana y cada degradado de fundido de página terminan en
   él. La app es deliberadamente **solo oscura** — sin esquema claro ni color
@@ -545,20 +558,12 @@ que cambian, no por esfuerzo.
 Seguimientos de la revisión de la capa de componentes (`ActionButton`,
 `AppTextField`/`AppSearchField`, `AppIconButton`).
 
-- **Derivar los colores deshabilitados por estilo de botón.** `ActionButton` pasa
-  `containerColor`/`contentColor` pero no sus variantes deshabilitadas, así que
-  un botón deshabilitado o cargando cae a los colores por defecto de los tokens;
-  el `color = content` explícito en la etiqueta y el icono también sobrescribe el
-  color de contenido deshabilitado. Deriva
-  `disabledContainerColor`/`disabledContentColor` por `ActionButtonStyle`, y deja
-  que `LocalContentColor` gobierne el contenido.
 - **Decidir la altura del campo.** `AppTextField` mantiene los 56dp de Material
   mientras los botones usan `AppSizes.controlHeight` (48dp). O expón un
   `AppSizes.fieldHeight` y documenta la diferencia, o alínealos.
-- **Usar o recortar la superficie no usada.** `ActionButtonStyle.Outline`/`Text`,
-  `AppIconButton.scrim` y `AppTextField.supportingText` no se usan hoy. Mantenlos
-  solo donde se planee un call site real, para que la API no acumule ramas
-  muertas.
+- **Recortar la superficie no usada restante.** `AppTextField.supportingText`
+  sigue sin usarse hoy; mantenlo solo donde se planee un call site real, para
+  que la API no acumule ramas muertas.
 
 ### Rendimiento del reproductor
 

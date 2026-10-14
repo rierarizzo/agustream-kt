@@ -35,7 +35,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +50,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.MetaPerson
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.model.MetaVideo
+import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.MarqueeText
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.RemoteImage
@@ -261,17 +262,12 @@ internal fun EpisodesSection(
             if (seasons.size > 1) {
                 Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
                     seasons.forEach { value ->
-                        TextButton(onClick = { season = value }) {
-                            Text(
-                                seasonLabel(value),
-                                color =
-                                    if (value == season) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    },
-                            )
-                        }
+                        ActionButton(
+                            text = seasonLabel(value),
+                            onClick = { season = value },
+                            style = ActionButtonStyle.Text,
+                            selected = value == season,
+                        )
                     }
                 }
             }
@@ -397,20 +393,30 @@ internal fun RatingDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = {
-                onSave(if (value == 0) null else value)
-                onDismiss()
-            }) {
-                Text(stringResource(Res.string.action_save))
-            }
+            ActionButton(
+                text = stringResource(Res.string.action_save),
+                onClick = {
+                    onSave(if (value == 0) null else value)
+                    onDismiss()
+                },
+                style = ActionButtonStyle.Text,
+            )
         },
         dismissButton = {
             Row {
-                TextButton(onClick = {
-                    onSave(null)
-                    onDismiss()
-                }) { Text(stringResource(Res.string.action_clear)) }
-                TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) }
+                ActionButton(
+                    text = stringResource(Res.string.action_clear),
+                    onClick = {
+                        onSave(null)
+                        onDismiss()
+                    },
+                    style = ActionButtonStyle.Text,
+                )
+                ActionButton(
+                    text = stringResource(Res.string.action_cancel),
+                    onClick = onDismiss,
+                    style = ActionButtonStyle.Text,
+                )
             }
         },
     )

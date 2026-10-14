@@ -22,12 +22,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,9 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,20 +54,13 @@ import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
 import com.misgus.agustream.ui.components.RemoteImage
-import com.misgus.agustream.ui.components.clickableSurface
-import com.misgus.agustream.ui.components.focusRing
-import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.metadataParts
-import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.detail.DetailUiState
 import com.misgus.agustream.ui.detail.DetailViewModel
 import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.streams.StreamsRequest
-import com.misgus.agustream.ui.theme.AppAlpha
-import com.misgus.agustream.ui.theme.AppCorner
-import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSizes
@@ -394,66 +383,28 @@ private fun ActionRow(
     onRate: () -> Unit,
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-        ActionItem(
+        AppIconButton(
             icon = if (actions.saved) AppIcons.Filled.Favorite else AppIcons.Outlined.FavoriteBorder,
-            label = stringResource(Res.string.detail_my_list),
-            active = actions.saved,
-            enabled = !actions.savedBusy,
-            loading = actions.savedLoading,
+            contentDescription = stringResource(Res.string.detail_my_list),
             onClick = onToggleSaved,
+            enabled = !actions.savedBusy,
+            selected = actions.saved,
+            loading = actions.savedLoading,
         )
-        ActionItem(
+        AppIconButton(
             icon = if (actions.rating != null) AppIcons.Filled.Star else AppIcons.Outlined.StarBorder,
-            label = stringResource(Res.string.detail_rate),
-            active = actions.rating != null,
-            enabled = true,
-            loading = actions.ratingLoading,
+            contentDescription = stringResource(Res.string.detail_rate),
             onClick = onRate,
+            selected = actions.rating != null,
+            loading = actions.ratingLoading,
         )
-        ActionItem(
+        AppIconButton(
             icon = if (actions.watched) AppIcons.Filled.CheckCircle else AppIcons.Outlined.CheckCircle,
-            label = stringResource(Res.string.status_watched),
-            active = actions.watched,
-            enabled = !actions.watchedBusy,
-            loading = actions.watchedLoading,
+            contentDescription = stringResource(Res.string.status_watched),
             onClick = onToggleWatched,
-        )
-    }
-}
-
-@Composable
-private fun ActionItem(
-    icon: ImageVector,
-    label: String,
-    active: Boolean,
-    enabled: Boolean,
-    loading: Boolean,
-    onClick: () -> Unit,
-) {
-    val interaction = rememberInteraction()
-    // While the real state is unknown, dim the action instead of showing it as
-    // "off": it is not that it is not saved, it is that we do not know yet.
-    val contentAlpha by animateFloatAsState(
-        targetValue = if (loading) AppAlpha.ACTION_LOADING else 1f,
-        animationSpec = motionTween(),
-        label = "actionAlpha",
-    )
-    Box(
-        modifier =
-            Modifier
-                .size(AppSizes.controlHeight)
-                .clip(MaterialTheme.shapes.extraSmall)
-                .focusRing(interaction, cornerRadius = AppCorner.extraSmall)
-                .background(interactionHighlight(interaction))
-                .clickableSurface(interaction, onClick, enabled = enabled && !loading)
-                .graphicsLayer { alpha = contentAlpha },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            icon,
-            contentDescription = label,
-            tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(AppIconSize.md),
+            enabled = !actions.watchedBusy,
+            selected = actions.watched,
+            loading = actions.watchedLoading,
         )
     }
 }

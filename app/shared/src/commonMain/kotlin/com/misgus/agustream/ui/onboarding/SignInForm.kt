@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +26,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.misgus.agustream.core.repository.SignInRequest
 import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.AppTextField
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.icons.AppIcons
@@ -96,15 +95,15 @@ fun SignInForm(modifier: Modifier = Modifier) {
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { submit() }),
             trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(
-                        imageVector = if (passwordVisible) AppIcons.Filled.VisibilityOff else AppIcons.Filled.Visibility,
-                        contentDescription =
-                            stringResource(
-                                if (passwordVisible) Res.string.field_password_hide else Res.string.field_password_show,
-                            ),
-                    )
-                }
+                AppIconButton(
+                    icon = if (passwordVisible) AppIcons.Filled.VisibilityOff else AppIcons.Filled.Visibility,
+                    contentDescription =
+                        stringResource(
+                            if (passwordVisible) Res.string.field_password_hide else Res.string.field_password_show,
+                        ),
+                    onClick = { passwordVisible = !passwordVisible },
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             },
             modifier = Modifier.fillMaxWidth(),
         )

@@ -34,9 +34,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,12 +46,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.ContentTypes
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.PosterSize
+import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.AppSearchField
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
@@ -241,18 +240,12 @@ private fun <T> FilterDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(modifier) {
-        OutlinedButton(
+        ActionButton(
+            text = optionLabel(selected),
             onClick = { expanded = true },
-            shape = MaterialTheme.shapes.small,
-            contentPadding = PaddingValues(horizontal = AppSpacing.md, vertical = AppSpacing.xs),
-        ) {
-            Text(
-                text = optionLabel(selected),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Icon(AppIcons.Filled.ArrowDropDown, contentDescription = null)
-        }
+            style = ActionButtonStyle.Outline,
+            trailingIcon = AppIcons.Filled.ArrowDropDown,
+        )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
                 val isSelected = option == selected

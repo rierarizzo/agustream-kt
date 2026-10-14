@@ -16,11 +16,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.misgus.agustream.core.model.Subtitle
 import com.misgus.agustream.core.player.MediaTrack
+import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.theme.AppSpacing
 import org.jetbrains.compose.resources.stringResource
 
@@ -42,7 +43,11 @@ internal fun TrackMenu(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_close)) }
+            ActionButton(
+                text = stringResource(Res.string.action_close),
+                onClick = onDismiss,
+                style = ActionButtonStyle.Text,
+            )
         },
         title = { Text(title) },
         text = {
