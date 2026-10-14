@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.ProgressThresholds
 import com.misgus.agustream.core.model.WatchProgress
@@ -27,6 +26,7 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppScale
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
 import com.misgus.agustream.ui.theme.motionLayer
@@ -76,7 +76,7 @@ fun PosterTile(
                     .fillMaxWidth()
                     .weight(1f)
                     .motionLayer(scale = { scale.value })
-                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
+                    .motionBorder(color = { borderColor.value }, width = AppSizes.borderWidth, cornerRadius = AppCorner.small)
                     .clip(shape),
         ) {
             PosterImage(item.poster, Modifier.fillMaxSize())
@@ -92,7 +92,7 @@ fun PosterTile(
                         Modifier
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .height(3.dp),
+                            .height(AppSizes.progressBarHeight),
                 )
             }
         }

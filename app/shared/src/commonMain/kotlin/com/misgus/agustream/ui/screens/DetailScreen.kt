@@ -68,6 +68,7 @@ import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
 import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.focusRing
 import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.metadataParts
 import com.misgus.agustream.ui.components.rememberInteraction
@@ -76,6 +77,8 @@ import com.misgus.agustream.ui.detail.DetailViewModel
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.streams.StreamsRequest
+import com.misgus.agustream.ui.theme.AppAlpha
+import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppScrim
@@ -350,7 +353,7 @@ private fun HeroContent(
                 Modifier
                     .align(Alignment.BottomStart)
                     .padding(LocalWindowSize.current.screenPadding)
-                    .widthIn(max = 720.dp),
+                    .widthIn(max = AppSizes.contentMaxWidth),
         ) {
             MediaTitle(state.name, state.logo, loading = !state.hasLoaded)
             Spacer(Modifier.height(AppSpacing.md))
@@ -439,7 +442,7 @@ private fun ActionItem(
     // While the real state is unknown, dim the action instead of showing it as
     // "off": it is not that it is not saved, it is that we do not know yet.
     val contentAlpha by animateFloatAsState(
-        targetValue = if (loading) 0.35f else 1f,
+        targetValue = if (loading) AppAlpha.ACTION_LOADING else 1f,
         animationSpec = motionTween(),
         label = "actionAlpha",
     )
@@ -448,6 +451,7 @@ private fun ActionItem(
             Modifier
                 .size(AppSizes.controlHeight)
                 .clip(MaterialTheme.shapes.extraSmall)
+                .focusRing(interaction, cornerRadius = AppCorner.extraSmall)
                 .background(interactionHighlight(interaction))
                 .clickableSurface(interaction, onClick, enabled = enabled && !loading)
                 .graphicsLayer { alpha = contentAlpha },

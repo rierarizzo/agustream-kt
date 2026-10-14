@@ -105,6 +105,9 @@ These exist so the same concern is not re-implemented per screen:
   output; `FrameSource` (in `app/shared/jvmMain`) extends it.
 - **`ContentTypes` / `CatalogExtras` / `ProgressThresholds` / `releaseYear()`**
   (`core/model`) — the protocol vocabulary and thresholds, defined once.
+- **Design tokens** (`theme/Tokens.kt`) — palette, spacing, sizes (including the
+  content/form/message max widths), alphas and scrims. `Modifier.focusRing`
+  (`components/Interaction.kt`) draws the shared keyboard focus ring.
 - **`runCatchingCancellable`** (`core/util`) — `runCatching` that never swallows
   coroutine cancellation.
 

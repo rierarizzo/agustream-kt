@@ -18,11 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppScale
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
 import com.misgus.agustream.ui.theme.motionLayer
@@ -68,7 +68,7 @@ fun MetaPosterCard(
                     .fillMaxWidth()
                     .weight(1f)
                     .motionLayer(scale = { scale.value })
-                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
+                    .motionBorder(color = { borderColor.value }, width = AppSizes.borderWidth, cornerRadius = AppCorner.small)
                     .clip(shape),
         ) {
             PosterImage(preview.poster, Modifier.fillMaxWidth().fillMaxHeight())

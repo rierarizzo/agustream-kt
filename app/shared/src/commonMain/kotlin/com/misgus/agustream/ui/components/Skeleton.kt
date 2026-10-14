@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -29,8 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.core.repository.PosterSize
-import com.misgus.agustream.ui.theme.AppCorner
-import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.POSTER_CARD_ASPECT
@@ -68,12 +65,14 @@ fun SkeletonPosterGrid(
     val progress = rememberShimmerProgress()
     val windowSize = LocalWindowSize.current
     val cellWidth = posterSize.cellWidth(windowSize)
+    val screenPadding = windowSize.screenPadding
+    val spacing = windowSize.gridSpacing
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val columns = columnsThatFit(maxWidth, cellWidth)
+        val columns = columnsThatFit(maxWidth, cellWidth, screenPadding, spacing)
         // `Adaptive` stretches the cells to fill the row, so measure with the real
         // cell width instead of the nominal one to know how tall a row is.
-        val cell = (maxWidth - AppSpacing.xl * 2 - AppSpacing.md * (columns - 1)) / columns
-        val rows = rowsThatFit(maxHeight, cell / POSTER_CARD_ASPECT)
+        val cell = (maxWidth - screenPadding * 2 - spacing * (columns - 1)) / columns
+        val rows = rowsThatFit(maxHeight, cell / POSTER_CARD_ASPECT, screenPadding, spacing)
         LazyVerticalGrid(
             columns = GridCells.Adaptive(cellWidth),
             modifier = Modifier.fillMaxSize(),
@@ -95,18 +94,22 @@ fun SkeletonPosterGrid(
 private fun columnsThatFit(
     width: Dp,
     cellWidth: Dp,
+    screenPadding: Dp,
+    spacing: Dp,
 ): Int {
-    val usable = width - AppSpacing.xl * 2 + AppSpacing.md
-    return maxOf(1, (usable / (cellWidth + AppSpacing.md)).toInt())
+    val usable = width - screenPadding * 2 + spacing
+    return maxOf(1, (usable / (cellWidth + spacing)).toInt())
 }
 
 /** How many [rowHeight] rows are needed to cover [height], including the spacing. */
 private fun rowsThatFit(
     height: Dp,
     rowHeight: Dp,
+    screenPadding: Dp,
+    spacing: Dp,
 ): Int {
-    val usable = height - AppSpacing.xl * 2 + AppSpacing.md
-    return maxOf(1, ceil(usable / (rowHeight + AppSpacing.md)).toInt())
+    val usable = height - screenPadding * 2 + spacing
+    return maxOf(1, ceil(usable / (rowHeight + spacing)).toInt())
 }
 
 /** A placeholder block that shimmers while content loads. */
@@ -114,7 +117,7 @@ private fun rowsThatFit(
 fun SkeletonBox(
     progress: State<Float>,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(AppCorner.small),
+    shape: Shape = MaterialTheme.shapes.small,
 ) {
     val shimmer = shimmerColors()
     if (LocalMotionEnabled.current) {

@@ -141,7 +141,10 @@ so the atomic read/write/delete logic lives once.
   lookup, so neither is reimplemented per screen.
 - **Design tokens are data, not code.** `theme/Tokens.kt` holds the palette,
   spacing, sizes, alphas and scrims; `theme/AppTheme.kt` holds only the Material
-  colour scheme, typography and shapes.
+  colour scheme, typography and shapes. `AppSizes` owns the content/form/message
+  widths and the border/progress sizes, `AppAlpha` owns every overlay opacity,
+  and `Modifier.focusRing` (in `Interaction.kt`) gives every focusable control
+  the same keyboard ring.
 - **Compose lifecycle.** `AgustreamApp` reuses the host's
   `ViewModelStoreOwner` when there is one — an Android `Activity`, so section
   ViewModels survive a configuration change — and falls back to a
@@ -488,17 +491,6 @@ not a one-file change. They are grouped by the axis they change, not by effort.
 Follow-ups from the review of the component layer (`ActionButton`,
 `AppTextField`/`AppSearchField`, `AppIconButton`).
 
-- **Extract the focus ring.** `ActionButton` and `AppIconButton` repeat the same
-  `motionBorder({ if (focused) colour else transparent }, AppSizes.focusRing,
-  AppCorner.small)` block. Move it to `Modifier.focusRing(interaction, colour)`
-  in `Interaction.kt`, next to `motionBorder`, so every focusable control shares
-  one ring and the two cannot drift.
-- **Route every overlay alpha through `AppAlpha`.** `AppScrim` mixes named
-  alphas (`MEDIA_SCRIM_*`, `HERO_IMAGE_DIM`) with inline ones for the hero
-  gradients (`0.92`, `0.6`, `0.2`, `0.45`, `0.78`, `0.55`). Move the hero stops
-  to `AppAlpha` so all opacity has a single owner.
-- **Shrink the magic sizes.** `ActionButton` hard-codes the outline border
-  (`1.dp`) and the progress stroke (`2.dp`); add them to the `AppSizes` scale.
 - **Decouple the hero fit from `SectionHeader`.** `HOME_SECTION_HEADER_HEIGHT`
   (`76.dp`) rebuilds, by hand, the header height that `Common.kt` owns
   (`AppSpacing.lg` + `AppSpacing.md` + title + gap). If the header padding

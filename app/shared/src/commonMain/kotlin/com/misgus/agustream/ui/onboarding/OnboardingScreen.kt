@@ -18,10 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.services.LocalAppServices
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -29,7 +29,7 @@ import com.misgus.agustream.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
 
 /** Max width of the onboarding column, so it stays readable on a wide window. */
-private val ONBOARDING_MAX_WIDTH = 420.dp
+private val ONBOARDING_MAX_WIDTH = AppSizes.formMaxWidth
 
 /**
  * First-run screen: what the app is, and how to sign in.

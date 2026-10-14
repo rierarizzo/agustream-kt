@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -42,6 +41,7 @@ import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.ui.services.AppServices
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
+import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.video.VideoSurface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -140,7 +140,7 @@ fun PlayerScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(AppColors.playerBackground)
                 .focusRequester(focusRequester)
                 .focusable()
                 .pointerInput(Unit) {

@@ -70,6 +70,7 @@ import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
 import com.misgus.agustream.ui.theme.AppMotion
+import com.misgus.agustream.ui.theme.AppScale
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowWidth
@@ -119,7 +120,7 @@ fun StreamsDialog(
                 )
             val enterScale =
                 animateFloatAsState(
-                    targetValue = if (shown) 1f else 0.96f,
+                    targetValue = if (shown) 1f else AppScale.DIALOG_ENTER,
                     animationSpec = motionTween(durationMillis = AppMotion.MEDIUM),
                     label = "dialogScale",
                 )
@@ -280,7 +281,7 @@ private fun StreamCard(
                 style = MaterialTheme.typography.titleMedium,
             )
             secondary?.let {
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(AppSpacing.xxs))
                 Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }

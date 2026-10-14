@@ -12,7 +12,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.misgus.agustream.ui.theme.AppColors
-import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppSizes
 
@@ -36,16 +35,12 @@ fun AppIconButton(
     tint: Color = MaterialTheme.colorScheme.onSurface,
     iconModifier: Modifier = Modifier,
 ) {
-    val scheme = MaterialTheme.colorScheme
     val interaction = rememberInteraction()
     Box(
         modifier =
             modifier
-                .motionBorder(
-                    color = { if (interaction.focused) scheme.primary else Color.Transparent },
-                    width = AppSizes.focusRing,
-                    cornerRadius = AppCorner.small,
-                ).size(AppSizes.minTouchTarget)
+                .focusRing(interaction)
+                .size(AppSizes.minTouchTarget)
                 .clip(MaterialTheme.shapes.small)
                 .background(if (scrim) AppColors.mediaScrim else Color.Transparent)
                 .clickableSurface(interaction, onClick, enabled = enabled),

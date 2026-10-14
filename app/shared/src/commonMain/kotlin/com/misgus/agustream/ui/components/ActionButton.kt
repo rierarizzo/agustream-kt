@@ -16,9 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import com.misgus.agustream.ui.theme.AppAlpha
-import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -93,7 +91,7 @@ fun ActionButton(
         colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
         border =
             if (style == ActionButtonStyle.Outline) {
-                BorderStroke(width = 1.dp, color = scheme.outline)
+                BorderStroke(width = AppSizes.borderWidth, color = scheme.outline)
             } else {
                 null
             },
@@ -101,17 +99,14 @@ fun ActionButton(
         interactionSource = interaction.source,
         modifier =
             modifier
-                .motionBorder(
-                    color = { if (interaction.focused) focusRing else Color.Transparent },
-                    width = AppSizes.focusRing,
-                    cornerRadius = AppCorner.small,
-                ).height(AppSizes.controlHeight),
+                .focusRing(interaction, color = focusRing)
+                .height(AppSizes.controlHeight),
     ) {
         when {
             loading ->
                 CircularProgressIndicator(
                     modifier = Modifier.size(AppIconSize.sm),
-                    strokeWidth = 2.dp,
+                    strokeWidth = AppSizes.progressStroke,
                     color = content,
                 )
             icon != null -> Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(AppIconSize.md))

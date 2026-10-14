@@ -60,6 +60,7 @@ import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppCorner
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.PosterCaption
@@ -207,7 +208,7 @@ internal fun SimilarRow(
                         Modifier
                             .fillMaxWidth()
                             .aspectRatio(2f / 3f)
-                            .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
+                            .motionBorder(color = { borderColor.value }, width = AppSizes.borderWidth, cornerRadius = AppCorner.small)
                             .clip(MaterialTheme.shapes.small),
                     ) {
                         PosterImage(item.poster, Modifier.fillMaxSize())
@@ -353,7 +354,7 @@ private fun EpisodeCard(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
-                .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
+                .motionBorder(color = { borderColor.value }, width = AppSizes.borderWidth, cornerRadius = AppCorner.small)
                 .clip(MaterialTheme.shapes.small),
         ) {
             PosterImage(video.thumbnail, Modifier.fillMaxSize())

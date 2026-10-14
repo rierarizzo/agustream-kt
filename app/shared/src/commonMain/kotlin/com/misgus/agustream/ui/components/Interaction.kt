@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.ui.theme.AppAlpha
+import com.misgus.agustream.ui.theme.AppCorner
+import com.misgus.agustream.ui.theme.AppSizes
 
 /**
  * Hover / focus / pressed state of a custom interactive surface.
@@ -115,3 +117,22 @@ fun Modifier.motionBorder(
             style = Stroke(width = width.toPx()),
         )
     }
+
+/**
+ * Keyboard/D-pad focus ring for a custom interactive surface.
+ *
+ * One definition so every focusable control draws the same ring, instead of
+ * repeating `motionBorder({ if (focused) colour else transparent }, …)`.
+ */
+@Composable
+fun Modifier.focusRing(
+    state: InteractionState,
+    color: Color = MaterialTheme.colorScheme.primary,
+    cornerRadius: Dp = AppCorner.small,
+    width: Dp = AppSizes.focusRing,
+): Modifier =
+    motionBorder(
+        color = { if (state.focused) color else Color.Transparent },
+        width = width,
+        cornerRadius = cornerRadius,
+    )

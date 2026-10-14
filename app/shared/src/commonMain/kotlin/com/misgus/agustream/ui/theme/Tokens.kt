@@ -68,10 +68,18 @@ object AppColors {
     /** Hero carousel dots over artwork: muted grey when idle, white when active. */
     val heroIndicatorInactive = BrandPalette.indicator
     val heroIndicatorActive = BrandPalette.textPrimary
+
+    /**
+     * Player chrome. The video is always black, so the controls are white
+     * regardless of the app theme; these tokens keep that decision in one place.
+     */
+    val playerBackground = Color.Black
+    val playerControl = Color.White
 }
 
-/** Spacing scale, on the Material 8dp system. */
+/** Spacing scale, on the Material 8dp system (plus a 2dp hairline). */
 object AppSpacing {
+    val xxs: Dp = 2.dp
     val xs: Dp = 4.dp
     val sm: Dp = 8.dp
     val md: Dp = 16.dp
@@ -115,12 +123,36 @@ object AppSizes {
 
     /** Width of the focus ring drawn around interactive controls for keyboard/D-pad. */
     val focusRing: Dp = 2.dp
+
+    /** Hairline border around cards, posters and outlined controls. */
+    val borderWidth: Dp = 1.dp
+
+    /** Stroke of an inline progress indicator. */
+    val progressStroke: Dp = 2.dp
+
+    /** Height of the thin progress bar drawn under a poster. */
+    val progressBarHeight: Dp = 3.dp
+
+    /**
+     * Widest a readable column (settings, profile picker, hero copy) grows, so
+     * text does not stretch across a wide window.
+     */
+    val contentMaxWidth: Dp = 720.dp
+
+    /** Widest a single-column form grows (onboarding). */
+    val formMaxWidth: Dp = 420.dp
+
+    /** Widest a centered empty/error message grows. */
+    val messageMaxWidth: Dp = 360.dp
 }
 
 /** Scale factors shared by interactive surfaces. */
 object AppScale {
     /** Scale a poster grows to on hover or focus. */
     const val HOVER = 1.04f
+
+    /** Scale a dialog starts at before it grows into place. */
+    const val DIALOG_ENTER = 0.96f
 }
 
 /**
@@ -154,10 +186,10 @@ object AppLogoSize {
  */
 object AppSynopsis {
     /**
-     * Widest the synopsis grows, capped at the detail billboard's copy column so
-     * both billboards wrap identically.
+     * Widest the synopsis grows, capped at the readable column so both
+     * billboards wrap identically.
      */
-    val maxWidth: Dp = 720.dp
+    val maxWidth: Dp = AppSizes.contentMaxWidth
 
     /** Lines shown on a billboard; the detail screen shows the rest. */
     const val MAX_LINES = 3
@@ -187,6 +219,23 @@ object AppAlpha {
     /** Readability scrim over media, from the strong left edge to the soft right edge. */
     const val MEDIA_SCRIM_STRONG = 0.85f
     const val MEDIA_SCRIM_MEDIUM = 0.35f
+
+    /** Hero synopsis copy over artwork, lighter than body copy. */
+    const val HERO_SYNOPSIS = 0.92f
+
+    /** Opacity of an action whose real state is still being loaded. */
+    const val ACTION_LOADING = 0.35f
+
+    /** Hero gradient stops, from the strong left edge to the soft right edge. */
+    const val HERO_LEFT_STRONG = 0.92f
+    const val HERO_LEFT_MEDIUM = 0.6f
+    const val HERO_LEFT_SOFT = 0.2f
+
+    /** Mid stop of the hero's bottom fade into the page background. */
+    const val HERO_BOTTOM_MID = 0.55f
+
+    /** Top fade that keeps the window controls legible over artwork. */
+    const val HERO_TOP = 0.45f
 
     /** Strong top edge of a short media header, such as a dialog. */
     const val MEDIA_SCRIM_HEADER = 0.6f
@@ -237,9 +286,9 @@ object AppScrim {
     val heroHorizontal: Brush =
         Brush.horizontalGradient(
             0f to BrandPalette.background,
-            0.25f to BrandPalette.background.copy(alpha = 0.92f),
-            0.42f to BrandPalette.background.copy(alpha = 0.6f),
-            0.6f to BrandPalette.background.copy(alpha = 0.2f),
+            0.25f to BrandPalette.background.copy(alpha = AppAlpha.HERO_LEFT_STRONG),
+            0.42f to BrandPalette.background.copy(alpha = AppAlpha.HERO_LEFT_MEDIUM),
+            0.6f to BrandPalette.background.copy(alpha = AppAlpha.HERO_LEFT_SOFT),
             0.78f to BrandPalette.background.copy(alpha = AppAlpha.HERO_IMAGE_DIM),
         )
 
@@ -265,14 +314,14 @@ object AppScrim {
         Brush.verticalGradient(
             0f to Color.Transparent,
             0.45f to Color.Transparent,
-            0.78f to BrandPalette.background.copy(alpha = 0.55f),
+            0.78f to BrandPalette.background.copy(alpha = AppAlpha.HERO_BOTTOM_MID),
             1f to BrandPalette.background,
         )
 
     /** Home billboard top fade, subtle enough to keep the window controls legible. */
     val heroTop: Brush =
         Brush.verticalGradient(
-            0f to BrandPalette.background.copy(alpha = 0.45f),
+            0f to BrandPalette.background.copy(alpha = AppAlpha.HERO_TOP),
             0.2f to Color.Transparent,
         )
 

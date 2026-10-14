@@ -60,6 +60,7 @@ import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppCorner
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowHeight
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -259,7 +260,7 @@ private fun ContinueCard(
                 Modifier
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
-                    .motionBorder(color = { borderColor.value }, width = 1.dp, cornerRadius = AppCorner.small)
+                    .motionBorder(color = { borderColor.value }, width = AppSizes.borderWidth, cornerRadius = AppCorner.small)
                     .clip(MaterialTheme.shapes.small),
         ) {
             PosterImage(backdrop, Modifier.fillMaxSize())
@@ -268,7 +269,7 @@ private fun ContinueCard(
                     progress = { fraction.toFloat() },
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = AppColors.mediaScrim,
-                    modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(3.dp),
+                    modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(AppSizes.progressBarHeight),
                 )
             }
         }

@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
@@ -23,7 +24,7 @@ object AppType {
             MaterialTheme.typography.displayMedium
         }
 
-    /** Title of a full-screen state: onboarding, profile picker, splash. */
+    /** Title of a screen: onboarding, profile picker, splash, catalog, settings. */
     @Composable
     fun screenTitle(): TextStyle =
         if (LocalWindowSize.current == WindowSize.COMPACT) {
@@ -31,6 +32,10 @@ object AppType {
         } else {
             MaterialTheme.typography.headlineLarge
         }
+
+    /** Subtitle next to a section title (e.g. the "Movies"/"Series" tag). */
+    @Composable
+    fun sectionSubtitle(): TextStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
 
     /**
      * Hero synopsis and other long copy over artwork.

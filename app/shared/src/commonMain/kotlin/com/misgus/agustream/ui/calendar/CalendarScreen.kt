@@ -28,7 +28,6 @@ import agustream.app.shared.generated.resources.weekday_tue
 import agustream.app.shared.generated.resources.weekday_wed
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,11 +64,16 @@ import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.PosterImage
+import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.focusRing
 import com.misgus.agustream.ui.components.mirrorInRtl
+import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
+import com.misgus.agustream.ui.theme.AppCorner
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.screenPadding
@@ -186,7 +190,7 @@ private fun MonthHeader(
             )
             if (isLoading) {
                 Spacer(Modifier.width(AppSpacing.sm))
-                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = AppSizes.progressStroke)
             }
         }
         AppIconButton(
@@ -281,7 +285,7 @@ private fun DayCell(
         modifier =
             modifier
                 .clipToBounds()
-                .border(1.dp, borderColor)
+                .border(AppSizes.borderWidth, borderColor)
                 .background(if (entries.isEmpty()) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.surface)
                 .padding(AppSpacing.xs),
     ) {
@@ -293,7 +297,7 @@ private fun DayCell(
             )
         }
         Box(Modifier.weight(1f)) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xxs)) {
                 entries.take(MAX_ENTRIES_PER_DAY).forEach { entry ->
                     EpisodeChip(entry = entry, onTap = { onOpenDetail(entry.item) })
                 }
@@ -314,13 +318,15 @@ private fun EpisodeChip(
     entry: CalendarEntry,
     onTap: () -> Unit,
 ) {
+    val interaction = rememberInteraction()
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.extraSmall)
-                .clickable(onClick = onTap)
-                .padding(2.dp),
+                .focusRing(interaction, cornerRadius = AppCorner.extraSmall)
+                .clickableSurface(interaction, onTap)
+                .padding(AppSpacing.xxs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(

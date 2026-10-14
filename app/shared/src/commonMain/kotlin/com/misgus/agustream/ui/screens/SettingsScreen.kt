@@ -65,7 +65,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.PosterSize
@@ -79,7 +78,9 @@ import com.misgus.agustream.ui.onboarding.SignInForm
 import com.misgus.agustream.ui.platform.openInDefaultApp
 import com.misgus.agustream.ui.platform.pickVideoFile
 import com.misgus.agustream.ui.services.LocalAppServices
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.launch
@@ -110,11 +111,11 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
     ) {
         // A readable column instead of a card stretched across a wide window.
         Column(
-            modifier = Modifier.widthIn(max = SETTINGS_MAX_WIDTH).fillMaxWidth().padding(LocalWindowSize.current.screenPadding),
+            modifier = Modifier.widthIn(max = AppSizes.contentMaxWidth).fillMaxWidth().padding(LocalWindowSize.current.screenPadding),
         ) {
             Text(
                 stringResource(Res.string.settings_title),
-                style = MaterialTheme.typography.headlineLarge,
+                style = AppType.screenTitle(),
                 modifier = Modifier.sectionHeading(),
             )
             Spacer(Modifier.height(AppSpacing.lg))
@@ -414,6 +415,3 @@ private fun SettingsCard(
         }
     }
 }
-
-/** Readable width: the label and the toggle stay close instead of a screen apart. */
-private val SETTINGS_MAX_WIDTH = 720.dp

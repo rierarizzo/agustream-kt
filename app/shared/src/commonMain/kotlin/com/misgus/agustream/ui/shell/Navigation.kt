@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.focusRing
 import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.theme.AppAlpha
@@ -108,6 +110,14 @@ fun BottomNav(
                 NavigationBarItem(
                     selected = section == selected,
                     onClick = { onSelected(section) },
+                    // Match the rail's selected treatment (translucent on-surface
+                    // fill) instead of Material's default secondary container.
+                    colors =
+                        NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.onSurface,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            indicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.NAV_SELECTED),
+                        ),
                     icon = {
                         Icon(
                             imageVector = if (section == selected) section.selectedIcon else section.icon,
@@ -146,6 +156,7 @@ private fun RailNavItem(
         modifier =
             Modifier
                 .size(AppSizes.minTouchTarget)
+                .focusRing(interaction)
                 .clip(MaterialTheme.shapes.small)
                 .background(background)
                 .clickableSurface(interaction, onTap)

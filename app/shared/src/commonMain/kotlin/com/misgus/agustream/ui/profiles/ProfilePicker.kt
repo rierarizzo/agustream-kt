@@ -13,11 +13,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -41,11 +42,13 @@ import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.components.clickableSurface
+import com.misgus.agustream.ui.components.focusRing
 import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.services.LocalAppServices
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
@@ -67,7 +70,7 @@ fun ProfilePicker(modifier: Modifier = Modifier) {
 
     Box(modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.width(720.dp).padding(LocalWindowSize.current.screenPadding),
+            modifier = Modifier.widthIn(max = AppSizes.contentMaxWidth).fillMaxWidth().padding(LocalWindowSize.current.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(stringResource(Res.string.profiles_title), style = AppType.screenTitle(), modifier = Modifier.sectionHeading())
@@ -117,6 +120,7 @@ private fun ProfileTile(
         modifier =
             Modifier
                 .clip(MaterialTheme.shapes.small)
+                .focusRing(interaction)
                 .background(interactionHighlight(interaction))
                 .clickableSurface(interaction, onTap)
                 .padding(AppSpacing.sm),

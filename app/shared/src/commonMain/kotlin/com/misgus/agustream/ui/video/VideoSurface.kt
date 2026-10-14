@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.misgus.agustream.core.player.PlayerService
+import com.misgus.agustream.ui.theme.AppColors
 
 /**
  * Renders the player's video output.
@@ -23,5 +23,5 @@ expect fun VideoSurface(
 /** Fallback surface shown when the engine has no output. */
 @Composable
 internal fun EmptyVideoSurface(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize().background(Color.Black))
+    Box(modifier.fillMaxSize().background(AppColors.playerBackground))
 }

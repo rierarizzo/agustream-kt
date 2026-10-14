@@ -44,7 +44,6 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
@@ -53,7 +52,9 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
@@ -110,7 +111,7 @@ fun SyncingIndicator() {
             Modifier
                 .clip(MaterialTheme.shapes.medium)
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs)
+                .padding(horizontal = AppSpacing.sm + AppSpacing.xxs, vertical = AppSpacing.xs)
                 .semantics { liveRegion = LiveRegionMode.Polite },
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -134,7 +135,7 @@ fun Message(
         contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier = Modifier.widthIn(max = 360.dp),
+            modifier = Modifier.widthIn(max = AppSizes.messageMaxWidth),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
@@ -190,7 +191,7 @@ fun SectionHeader(
                     Spacer(Modifier.width(AppSpacing.sm))
                     Text(
                         subtitle,
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                        style = AppType.sectionSubtitle(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

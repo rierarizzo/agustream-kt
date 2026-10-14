@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppLogoSize
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppSynopsis
@@ -139,7 +140,7 @@ fun HeroSynopsis(
         maxLines = AppSynopsis.MAX_LINES,
         overflow = TextOverflow.Ellipsis,
         style = AppType.heroBody(),
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.HERO_SYNOPSIS),
         modifier = modifier.widthIn(max = AppSynopsis.maxWidth),
     )
 }

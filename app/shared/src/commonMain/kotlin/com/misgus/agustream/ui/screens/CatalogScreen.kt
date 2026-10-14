@@ -54,6 +54,7 @@ import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.agustream.ui.theme.cellWidth
@@ -117,7 +118,7 @@ fun CatalogScreen(
                     ref.name,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = AppType.screenTitle(),
                     modifier = Modifier.sectionHeading(),
                 )
                 Text(ref.addonName, style = MaterialTheme.typography.bodyMedium)
