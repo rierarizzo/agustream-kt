@@ -19,7 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.misgus.agustream.fonts.generated.resources.ibm_plex_sans_bold
+import com.misgus.agustream.fonts.generated.resources.ibm_plex_sans_medium
+import com.misgus.agustream.fonts.generated.resources.ibm_plex_sans_regular
+import com.misgus.agustream.fonts.generated.resources.ibm_plex_sans_semibold
 import org.jetbrains.compose.resources.Font
+import com.misgus.agustream.fonts.generated.resources.Res as FontsRes
 
 /**
  * Raw brand palette.
@@ -152,11 +157,11 @@ object AppLogoSize {
  *
  * A hero synopsis is a teaser, not reading copy: it shows [MAX_LINES] lines at
  * most, with the rest behind "More info", and a [maxWidth] that keeps the
- * measure around 60 characters (45–90 is the legibility range).
+ * measure around 65 characters (45–90 is the legibility range).
  */
 object AppSynopsis {
-    /** Widest the synopsis grows; keeps the measure around 60 characters. */
-    val maxWidth: Dp = 520.dp
+    /** Widest the synopsis grows; keeps the measure around 65 characters. */
+    val maxWidth: Dp = 580.dp
 
     /** Lines shown on a billboard; the detail screen shows the rest. */
     const val MAX_LINES = 3
@@ -333,11 +338,11 @@ object AppScrim {
 object PosterCaption {
     /** Movie / series title under the artwork. */
     @Composable
-    fun title(): TextStyle = MaterialTheme.typography.titleSmall
+    fun title(): TextStyle = MaterialTheme.typography.titleSmall.copy(fontSize = 15.sp, lineHeight = 21.sp)
 
     /** Year, release info or episode tag under the title. */
     @Composable
-    fun meta(): TextStyle = MaterialTheme.typography.bodySmall
+    fun meta(): TextStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp, lineHeight = 17.sp, fontWeight = FontWeight.Medium)
 }
 
 /**
@@ -407,48 +412,63 @@ private val darkScheme =
     )
 
 /**
- * Applies the Inter typeface to every Material3 typography slot.
+ * Applies [font] to every Material3 typography slot.
  *
  * Building the full scale (instead of only a handful of slots) keeps components
  * that reach for other roles — dialogs, text fields, chips — on the same
  * typeface and weight hierarchy. No slot carries a colour: text colour comes
  * from the colour scheme at the call site, exactly as Material intends.
  */
-private fun interTypography(inter: FontFamily): Typography {
+private fun appTypography(font: FontFamily): Typography {
     val base = Typography()
     return base.copy(
-        displayLarge = base.displayLarge.copy(fontFamily = inter, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        displayMedium = base.displayMedium.copy(fontFamily = inter, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        displaySmall = base.displaySmall.copy(fontFamily = inter, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        headlineLarge = base.headlineLarge.copy(fontFamily = inter, fontWeight = FontWeight.Bold, letterSpacing = (-0.25).sp),
-        headlineMedium = base.headlineMedium.copy(fontFamily = inter, fontWeight = FontWeight.Bold, letterSpacing = (-0.25).sp),
-        headlineSmall = base.headlineSmall.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
-        titleLarge = base.titleLarge.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
-        titleMedium = base.titleMedium.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
-        titleSmall = base.titleSmall.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
-        bodyLarge = base.bodyLarge.copy(fontFamily = inter, fontWeight = FontWeight.Normal),
-        bodyMedium = base.bodyMedium.copy(fontFamily = inter, fontWeight = FontWeight.Normal),
-        bodySmall = base.bodySmall.copy(fontFamily = inter, fontWeight = FontWeight.Normal),
-        labelLarge = base.labelLarge.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
-        labelMedium = base.labelMedium.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
-        labelSmall = base.labelSmall.copy(fontFamily = inter, fontWeight = FontWeight.SemiBold),
+        displayLarge = base.displayLarge.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+        displayMedium = base.displayMedium.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+        displaySmall = base.displaySmall.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+        headlineLarge = base.headlineLarge.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.25).sp),
+        headlineMedium = base.headlineMedium.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.25).sp),
+        headlineSmall = base.headlineSmall.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
+        titleLarge = base.titleLarge.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
+        titleMedium = base.titleMedium.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
+        titleSmall = base.titleSmall.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
+        bodyLarge = base.bodyLarge.copy(fontFamily = font, fontWeight = FontWeight.Normal),
+        bodyMedium = base.bodyMedium.copy(fontFamily = font, fontWeight = FontWeight.Normal),
+        bodySmall = base.bodySmall.copy(fontFamily = font, fontWeight = FontWeight.Normal),
+        labelLarge = base.labelLarge.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
+        labelMedium = base.labelMedium.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
+        labelSmall = base.labelSmall.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
     )
 }
 
-/** The app's dark Material3 theme, with the Inter typeface and the MD3 shapes. */
+/** Typeface in use. Flip to `false` to compare against Inter. */
+private const val USE_IBM_PLEX_SANS = true
+
+@Composable
+private fun interFontFamily(): FontFamily =
+    FontFamily(
+        Font(Res.font.inter_regular, FontWeight.Normal),
+        Font(Res.font.inter_medium, FontWeight.Medium),
+        Font(Res.font.inter_semibold, FontWeight.SemiBold),
+        Font(Res.font.inter_bold, FontWeight.Bold),
+    )
+
+@Composable
+private fun ibmPlexSansFontFamily(): FontFamily =
+    FontFamily(
+        Font(FontsRes.font.ibm_plex_sans_regular, FontWeight.Normal),
+        Font(FontsRes.font.ibm_plex_sans_medium, FontWeight.Medium),
+        Font(FontsRes.font.ibm_plex_sans_semibold, FontWeight.SemiBold),
+        Font(FontsRes.font.ibm_plex_sans_bold, FontWeight.Bold),
+    )
+
+/** The app's dark Material3 theme, with the IBM Plex Sans typeface and the MD3 shapes. */
 @Composable
 fun AgustreamTheme(content: @Composable () -> Unit) {
-    val inter =
-        FontFamily(
-            Font(Res.font.inter_regular, FontWeight.Normal),
-            Font(Res.font.inter_medium, FontWeight.Medium),
-            Font(Res.font.inter_semibold, FontWeight.SemiBold),
-            Font(Res.font.inter_bold, FontWeight.Bold),
-        )
+    val fontFamily = if (USE_IBM_PLEX_SANS) ibmPlexSansFontFamily() else interFontFamily()
 
     MaterialTheme(
         colorScheme = darkScheme,
-        typography = interTypography(inter),
+        typography = appTypography(fontFamily),
         shapes = AppShapes,
         content = content,
     )

@@ -45,6 +45,7 @@ kotlin {
         }
         commonMain.dependencies {
             api(project(":core"))
+            implementation(project(":app:fonts"))
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)

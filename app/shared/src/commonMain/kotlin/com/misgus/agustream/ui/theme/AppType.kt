@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
@@ -36,8 +37,8 @@ object AppType {
     @Composable
     fun heroBody(): TextStyle =
         if (LocalWindowSize.current == WindowSize.COMPACT) {
-            MaterialTheme.typography.bodyLarge
+            MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
         } else {
-            MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp)
+            MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp, fontWeight = FontWeight.Medium)
         }
 }

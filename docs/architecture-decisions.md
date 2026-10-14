@@ -17,7 +17,8 @@ or the playback engine directly.
 ```
 :core      pure domain (models, repository contracts, watched rules, player contract)
 :data      implementations (Stremio addons, Nuvio/Supabase, local JSON store)
-:app:shared  Compose UI + ViewModels (depends only on :core)
+:app:fonts   IBM Plex Sans assets, exposed as Compose Resources
+:app:shared  Compose UI + ViewModels (depends on :core and :app:fonts)
 :app:desktopApp  composition root: libmpv player, window control, main()
 :app:androidApp  Android composition root (no-op player for now)
 ```
@@ -191,19 +192,23 @@ engine, the filesystem and the player touch platform source sets through
   vignette. On a phone the billboard spans the full width, sized to the
   artwork's aspect ratio. The copy column is
   bottom-anchored 100dp above the hero edge, up to 840dp wide, and shares the
-  sections' left padding. The synopsis is a teaser — capped tighter (520dp,
-  about 60 characters), three lines at most, the rest behind "More info". On a
+  sections' left padding. The synopsis is a teaser — capped tighter (580dp,
+  about 65 characters), three lines at most, the rest behind "More info". On a
   wide window the rail floats over the content,
   which reserves its width, so the navigation never overlaps it.
-- **Typography.** Inter is bundled through Compose Resources, so every target
-  renders the same typeface, and text is written in `sp` so Android's system
-  font size keeps working. `LocalDensity` is deliberately never overridden: that
-  is the common hack, and it lies to every component about the font scale.
+- **Typography.** IBM Plex Sans is bundled through Compose Resources, isolated
+  in its own `:app:fonts` module so the assets live in their own folder; Inter
+  stays in `:app:shared` so the two typefaces can be swapped for comparison.
+  Every target renders the same typeface, and text is written in `sp` so
+  Android's system font size keeps working. `LocalDensity` is deliberately
+  never overridden: that is the common hack, and it lies to every component
+  about the font scale.
   Material's `display*` roles are sized for a big screen, so `AppType` steps
   them down one role on a compact window (hero title, screen titles, hero
   synopsis); desktop and tablet keep the full scale. No type slot carries a
   colour: text colour comes from the colour scheme at the call site, as Material
-  intends, and `PosterCaption` is just the `titleSmall` / `bodySmall` roles.
+  intends; `PosterCaption` steps `titleSmall` / `bodySmall` up 1sp with the meta
+  weight at Medium, and the section subtitle sits at Medium too.
 - **Localisation.** Every user-facing string lives in
   `composeResources/values/strings.xml` and is read with
   `stringResource(Res.string.key)`, so adding a locale is a new `values-*` folder
@@ -249,9 +254,9 @@ engine, the filesystem and the player touch platform source sets through
 - **Theme** follows Material 3. `AgustreamTheme` supplies the full
   `darkColorScheme` (every role, including the surface-container tiers,
   `outline`/`outlineVariant`, `inverse*`, `tertiary` and the error containers),
-  the Inter typeface loaded from Compose Resources, and a small, square-ish
-  shape scale (`AppCorner` feeds `MaterialTheme.shapes`: 2/4/6/8/12dp; the app
-  reads square, not rounded). The UI reads
+  the IBM Plex Sans typeface loaded from Compose Resources, and a small,
+  square-ish shape scale (`AppCorner` feeds `MaterialTheme.shapes`:
+  2/4/6/8/12dp; the app reads square, not rounded). The UI reads
   semantic colours from `MaterialTheme.colorScheme`; the raw brand palette is
   private and only fills the scheme, so stock Material3 components and custom
   surfaces stay on the same colours. `AppColors` keeps only `mediaScrim`, a
