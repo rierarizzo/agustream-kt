@@ -17,7 +17,7 @@ or the playback engine directly.
 ```
 :core      pure domain (models, repository contracts, watched rules, player contract)
 :data      implementations (Stremio addons, Nuvio/Supabase, local JSON store)
-:app:fonts   IBM Plex Sans assets, exposed as Compose Resources
+:app:fonts   alternate typeface (IBM Plex Sans) assets as Compose Resources
 :app:shared  Compose UI + ViewModels (depends on :core and :app:fonts)
 :app:desktopApp  composition root: libmpv player, window control, main()
 :app:androidApp  Android composition root (no-op player for now)
@@ -157,11 +157,13 @@ engine, the filesystem and the player touch platform source sets through
   billboard is capped on an expanded window so the content stays close, and the
   streams dialog clamps to the app window because it opens its own. On a wide,
   maximized window whose first row is a plain catalog row, the Home billboard is
-  sized so exactly one full row of content lands at the bottom of the viewport —
-  a taller row shrinks it, a shorter one grows it, so the second row never peeks
-  — and the rows are pulled up over its faded bottom, so the first row stays on
-  screen instead of being cut. A floating window, or a Continue watching first
-  row, keeps the natural height and lets the rows flow. Section headers keep a
+  sized from the viewport so one full row of content fits — a taller row shrinks
+  it, a shorter one grows it — and then cut by `HERO_BOTTOM_CROP` (20%), so the
+  row sits a little higher and the next row can peek. The sections start right
+  below the billboard, with no overlap: the old upward pull over the hero's
+  faded bottom is gone, so a row can also be cut by the viewport edge. A
+  floating window, or a Continue watching first row, keeps the natural height
+  and lets the rows flow. Section headers keep a
   fixed height too: the title sets it and the trailing see-all icon is centred
   on it and overflows into the padding, so the gap to the row below is the same
   with and without the button; an optional subtitle (the catalog's Movies /
@@ -173,8 +175,12 @@ engine, the filesystem and the player touch platform source sets through
   hero render title, metadata, synopsis and genres through the same composables
   (`MediaTitle`, `MetadataRow`, `HeroSynopsis`, `HeroGenres` and the
   `metadataParts` builder, all in `ui/components/MediaHero.kt`), so the two
-  screens cannot drift in type, colour, separators or order. Both read title to
-  metadata to actions to synopsis. They differ only where the content does: the
+  screens cannot drift in type, colour, separators or measure: the
+  synopsis is capped at `AppSynopsis.maxWidth` inside `HeroSynopsis`, and
+  `AppType.heroBody` sizes and weights it (17sp / 15sp on a phone, Normal) on
+  both. Only the running order differs by screen: the Home billboard reads
+  title, metadata, synopsis then actions, while the detail billboard keeps
+  actions above the synopsis. They also differ where the content does: the
   Home billboard folds genres into the metadata line (`release • genres •
   ★ rating`) while the detail hero keeps the runtime there and shows genres
   under the synopsis; and the Home copy uses a tighter vertical rhythm because it
@@ -196,21 +202,29 @@ engine, the filesystem and the player touch platform source sets through
   pinned to the top-right corner of the frame, and is cropped at the bottom
   (`Crop`, top-aligned) because the frame is sized a touch shorter, so widening
   the artwork does not stretch the billboard taller and the sections below keep
-  their place. It is washed by `BrandPalette.background` gradients: a left fade
-  that dissolves the artwork's left edge under the copy, a bottom fade that
-  melts into
-  "Continue watching" without a seam, a subtle top fade, and a right-edge
-  vignette. On a phone the billboard spans the full width, sized to the
+  their place. The frame is cut a further 20% (`HERO_BOTTOM_CROP`), so the hero
+  does not tower and the sections below start higher. It is washed by
+  `BrandPalette.background` gradients: a left fade that dissolves the artwork's
+  left edge under the copy, a long bottom fade (clear over the upper half, then
+  a gentle two-segment ramp) that melts into "Continue watching" without a hard
+  seam, a subtle top fade, a right-edge vignette, and a flat
+  `AppAlpha.HERO_IMAGE_DIM` kept over the artwork so it reads darker than the
+  raw image. On a phone the billboard spans the full width, sized to the
   artwork's aspect ratio. The copy column is
   bottom-anchored 100dp above the hero edge, up to 840dp wide, and shares the
-  sections' left padding. The synopsis is a teaser — capped tighter (580dp,
-  about 65 characters), three lines at most, the rest behind "More info". On a
+  sections' left padding. The synopsis is a teaser — capped at the shared
+  720dp measure (`AppSynopsis.maxWidth`, about 80 characters), three lines at
+  most, the rest behind "More info". The same cap lives in `HeroSynopsis`, so
+  Home and Detail wrap the description at the same width. The carousel
+  paginator is a row of equal dots, centred on the billboard's bottom edge:
+  white for the active page and grey for the rest. On a
   wide window the rail floats over the content,
   which reserves its width, so the navigation never overlaps it.
-- **Typography.** IBM Plex Sans is bundled through Compose Resources, isolated
-  in its own `:app:fonts` module so the assets live in their own folder; Inter
-  stays in `:app:shared` so the two typefaces can be swapped for comparison.
-  Every target renders the same typeface, and text is written in `sp` so
+- **Typography.** Inter is bundled through Compose Resources in `:app:shared`
+  and is the typeface rendered. IBM Plex Sans stays isolated in its own
+  `:app:fonts` module so the two typefaces can be swapped for comparison through
+  `USE_IBM_PLEX_SANS` in `AgustreamTheme`. Every target renders the same
+  typeface, and text is written in `sp` so
   Android's system font size keeps working. `LocalDensity` is deliberately
   never overridden: that is the common hack, and it lies to every component
   about the font scale.
@@ -220,7 +234,8 @@ engine, the filesystem and the player touch platform source sets through
   runs lighter than stock (`Bold` to `Medium`, `SemiBold` to `Normal`), so
   headings sit at Medium while titles, labels and body sit at Normal; `body*`
   bottoms out at `Normal` because no lighter weight is bundled, so a genuinely
-  thinner body needs `ibm_plex_sans_light.ttf` added to `:app:fonts`. No type
+  thinner body needs `inter_light.ttf` added to `:app:shared` (or
+  `ibm_plex_sans_light.ttf` to `:app:fonts` while comparing). No type
   slot carries a colour: text colour comes from the colour scheme at the call
   site, as Material intends. The reading palette is white-based —
   `BrandPalette.textPrimary` is `#FFFFFF` and the secondary roles
@@ -274,21 +289,23 @@ engine, the filesystem and the player touch platform source sets through
 - **Theme** follows Material 3. `AgustreamTheme` supplies the full
   `darkColorScheme` (every role, including the surface-container tiers,
   `outline`/`outlineVariant`, `inverse*`, `tertiary` and the error containers),
-  the IBM Plex Sans typeface loaded from Compose Resources, and a small,
+  the Inter typeface loaded from Compose Resources, and a small,
   square-ish shape scale (`AppCorner` feeds `MaterialTheme.shapes`:
   2/4/6/8/12dp; the app reads square, not rounded). The UI reads
   semantic colours from `MaterialTheme.colorScheme`; the raw brand palette is
   private and only fills the scheme, so stock Material3 components and custom
-  surfaces stay on the same colours. `AppColors` keeps only `mediaScrim`, a
-  media overlay with no scheme role, and `AppSizes.controlHeight` /
+  surfaces stay on the same colours. `AppColors` keeps the media overlays the
+  scheme has no role for: `mediaScrim` and the hero carousel indicator (grey
+  when idle, white when active). `AppSizes.controlHeight` /
   `minTouchTarget` keep interactive targets at Material's 48dp minimum. Custom
   clickable surfaces draw the Material ripple state layer (`clickableSurface`),
   so focus and press feedback stays visible, and carry a button role so a custom
   surface is announced correctly. Poster tiles opt out of that state layer
   (`indication = null`) and signal hover with the scale/border animation
   instead, so a hovered poster is not greyed. Settings panels use the Material
-  `Card`, and the primary call to action uses the inverse surface / on-surface
-  roles. The near-black page background (`#0B0803`) is the single source of
+  `Card`; `ActionButton` renders the primary call to action on the inverse
+  surface / on-surface roles, and its `accent` variant on the amber
+  `primary` / `onPrimary` roles, used by the billboards' "Watch Now". The near-black page background (`#0B0803`) is the single source of
   truth: the scheme, the native window background and every page-fade gradient
   end on it. The
   app is deliberately **dark-only** — no light scheme and no dynamic colour —

@@ -2,9 +2,8 @@ package com.misgus.agustream.ui.home
 
 import agustream.app.shared.generated.resources.Res
 import agustream.app.shared.generated.resources.action_more_info
-import agustream.app.shared.generated.resources.action_play
+import agustream.app.shared.generated.resources.action_watch_now
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,12 +17,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Info
@@ -53,11 +53,10 @@ import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
 import com.misgus.agustream.ui.components.metadataParts
-import com.misgus.agustream.ui.theme.AppAlpha
+import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppLogoSize
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
-import com.misgus.agustream.ui.theme.AppSynopsis
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
@@ -74,6 +73,12 @@ private const val HERO_IMAGE_WIDTH_FRACTION = 0.75f
  */
 private const val HERO_DESKTOP_HEIGHT_FRACTION = 0.7f
 
+/**
+ * Share of the desktop billboard height cut from the bottom, so the hero does
+ * not tower over the page and the sections below move up with it.
+ */
+private const val HERO_BOTTOM_CROP = 0.2f
+
 /** Aspect ratio used until the artwork has decoded, so the frame has a height. */
 private const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
 
@@ -84,19 +89,19 @@ private val HERO_CONTENT_MAX_WIDTH = 840.dp
 private val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
 
 /**
- * Vertical rhythm of the copy column. The order it spaces (title, metadata,
- * actions, synopsis, genres) matches the detail billboard; the values are
- * tighter, since the home copy sits over cropped artwork.
+ * Vertical rhythm of the copy column, in order: title, metadata, synopsis,
+ * actions. The synopsis sits above the actions here, while the detail billboard
+ * keeps actions first; the values are tighter, since the home copy sits over
+ * cropped artwork.
  */
 private val HERO_LOGO_METADATA_SPACE = 12.dp
-private val HERO_METADATA_ACTIONS_SPACE = 18.dp
-private val HERO_ACTIONS_SYNOPSIS_SPACE = 18.dp
+private val HERO_METADATA_SYNOPSIS_SPACE = 18.dp
+private val HERO_SYNOPSIS_ACTIONS_SPACE = 18.dp
 
-/** Carousel paginator: inset from the right edge, dot size, gap and animation. */
-private val HERO_PAGINATOR_END_MARGIN = 30.dp
-private val HERO_PAGINATOR_ACTIVE_WIDTH = 30.dp
-private val HERO_PAGINATOR_DOT = 6.dp
+/** Carousel paginator: dot size, gap, bottom inset and colour animation. */
+private val HERO_PAGINATOR_DOT_SIZE = 10.dp
 private val HERO_PAGINATOR_GAP = 8.dp
+private val HERO_PAGINATOR_BOTTOM_MARGIN = 24.dp
 private const val HERO_PAGINATOR_ANIMATION_MS = 250
 
 /**
@@ -179,8 +184,10 @@ internal fun WideHero(
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         // The caller may pass a height that leaves room for a row below; otherwise
-        // the frame follows the artwork's aspect ratio.
-        val frameHeight = height ?: desktopHeroHeight(maxWidth, aspect)
+        // the frame follows the artwork's aspect ratio. Either way the bottom
+        // [HERO_BOTTOM_CROP] is cut, so the frame reads shorter and the sections
+        // below start higher.
+        val frameHeight = (height ?: desktopHeroHeight(maxWidth, aspect)) * (1f - HERO_BOTTOM_CROP)
         // Decode the full artwork at its display width; if the frame ends up
         // taller than the artwork's aspect, decode to the frame height so `Crop`
         // does not upscale.
@@ -236,12 +243,8 @@ private fun HeroCarousel(
                 pagerState = pagerState,
                 modifier =
                     Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(
-                            end = HERO_PAGINATOR_END_MARGIN,
-                            // Sit on the actions' baseline, like the sample.
-                            bottom = HERO_CONTENT_BOTTOM_MARGIN,
-                        ),
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = HERO_PAGINATOR_BOTTOM_MARGIN),
             )
         }
     }
@@ -332,9 +335,18 @@ private fun BoxScope.HeroCopy(
         )
         Spacer(Modifier.height(HERO_LOGO_METADATA_SPACE))
         MetadataRow(metadataParts(item.releaseInfo, genres = item.genres, rating = item.imdbRating))
-        Spacer(Modifier.height(HERO_METADATA_ACTIONS_SPACE))
+        Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))
+        item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
+            HeroSynopsis(text = synopsis)
+            Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-            ActionButton(text = stringResource(Res.string.action_play), icon = Icons.Default.PlayArrow, onClick = onPlay)
+            ActionButton(
+                text = stringResource(Res.string.action_watch_now),
+                icon = Icons.Default.PlayArrow,
+                onClick = onPlay,
+                accent = true,
+            )
             ActionButton(
                 text = stringResource(Res.string.action_more_info),
                 icon = Icons.Outlined.Info,
@@ -342,14 +354,10 @@ private fun BoxScope.HeroCopy(
                 primary = false,
             )
         }
-        item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
-            Spacer(Modifier.height(HERO_ACTIONS_SYNOPSIS_SPACE))
-            HeroSynopsis(text = synopsis, modifier = Modifier.widthIn(max = AppSynopsis.maxWidth))
-        }
     }
 }
 
-/** Carousel paginator: a growing pill for the active page, dots for the rest. */
+/** Carousel paginator: an equal dot per page, grey when idle and white when active. */
 @Composable
 private fun HeroPaginator(
     pageCount: Int,
@@ -363,17 +371,12 @@ private fun HeroPaginator(
     ) {
         for (index in 0 until pageCount) {
             val selected = index == pagerState.currentPage
-            val width by animateDpAsState(
-                targetValue = if (selected) HERO_PAGINATOR_ACTIVE_WIDTH else HERO_PAGINATOR_DOT,
-                animationSpec = motionTween(HERO_PAGINATOR_ANIMATION_MS),
-                label = "heroIndicatorWidth",
-            )
             val color by animateColorAsState(
                 targetValue =
                     if (selected) {
-                        MaterialTheme.colorScheme.onSurface
+                        AppColors.heroIndicatorActive
                     } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = AppAlpha.HERO_INDICATOR)
+                        AppColors.heroIndicatorInactive
                     },
                 animationSpec = motionTween(HERO_PAGINATOR_ANIMATION_MS),
                 label = "heroIndicatorColor",
@@ -381,9 +384,8 @@ private fun HeroPaginator(
             Box(
                 modifier =
                     Modifier
-                        .width(width)
-                        .height(HERO_PAGINATOR_DOT)
-                        .clip(RoundedCornerShape(HERO_PAGINATOR_DOT / 2))
+                        .size(HERO_PAGINATOR_DOT_SIZE)
+                        .clip(CircleShape)
                         .background(color),
             )
         }

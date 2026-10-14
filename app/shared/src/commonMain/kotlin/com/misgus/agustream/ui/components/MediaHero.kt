@@ -119,7 +119,8 @@ fun metadataParts(
  * Hero synopsis: a teaser of at most [AppSynopsis.MAX_LINES] lines.
  *
  * [loading] keeps [minLines] reserved without showing the preview copy, so the
- * layout does not jump when the real synopsis arrives.
+ * layout does not jump when the real synopsis arrives. The measure is capped
+ * here, so Home and Detail wrap the description at the same width.
  */
 @Composable
 fun HeroSynopsis(
@@ -135,7 +136,7 @@ fun HeroSynopsis(
         overflow = TextOverflow.Ellipsis,
         style = AppType.heroBody(),
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
-        modifier = modifier,
+        modifier = modifier.widthIn(max = AppSynopsis.maxWidth),
     )
 }
 

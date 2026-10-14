@@ -34,8 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -154,17 +152,17 @@ private fun HomeContent(
             // of the viewport: a taller row shrinks it, a shorter one grows it (so
             // the second row never peeks). Only for a plain catalog row on a wide,
             // maximized window; Continue watching and the phone keep the natural
-            // height and let the rows flow.
+            // height and let the rows flow. The sections start right below the
+            // hero, with no overlap, so a row can also be cut by the viewport edge.
             val viewportHeight = LocalWindowHeight.current
             val heroHeight =
                 if (compact || !isMaximized || state.continueWatching.isNotEmpty()) {
                     null
                 } else {
                     val firstRowHeight = posterSize.railHeight(windowSize)
-                    (viewportHeight - HOME_SECTION_HEADER_HEIGHT - firstRowHeight + HOME_CONTENT_LIFT)
+                    (viewportHeight - HOME_SECTION_HEADER_HEIGHT - firstRowHeight)
                         .coerceAtLeast(HOME_HERO_MIN_HEIGHT)
                 }
-            val liftPx = if (compact) 0 else with(LocalDensity.current) { HOME_CONTENT_LIFT.roundToPx() }
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
             ) {
@@ -182,7 +180,7 @@ private fun HomeContent(
                         // No billboard to tuck under the status bar: reserve its height.
                         Spacer(Modifier.height(safeTopInset))
                 }
-                Column(modifier = Modifier.pullUp(liftPx)) {
+                Column {
                     if (state.continueWatching.isNotEmpty()) {
                         SectionHeader(title = stringResource(Res.string.home_continue_watching))
                         LazyRow(
@@ -287,15 +285,6 @@ private val ContinueHeight = 248.dp
 private val CompactContinueHeight = 184.dp
 
 /**
- * How far the rows below the hero are raised on a wide window, so they sit
- * closer to (or over) the hero's faded bottom. `0.dp` restores the old spacing;
- * larger values pull the rows up and overlap the hero. The practical ceiling is
- * the hero copy's bottom margin (100dp): past it the rows would cover the
- * title, synopsis and actions. The phone keeps the default flow.
- */
-private val HOME_CONTENT_LIFT = 96.dp
-
-/**
  * Height of a section header plus a little breathing room, for the hero fit math:
  * the title line and the row paddings (`AppSpacing.lg` + `AppSpacing.md`), plus a
  * small gap so the poster year is not flush against the bottom edge. The header
@@ -305,22 +294,6 @@ private val HOME_SECTION_HEADER_HEIGHT = 76.dp
 
 /** Floor for the hero height, so a short window cannot shrink it under its copy. */
 private val HOME_HERO_MIN_HEIGHT = 480.dp
-
-/**
- * Lifts the content by [px] pixels and shrinks the reported height by the same
- * amount, so it overlaps the previous sibling instead of leaving a gap.
- */
-private fun Modifier.pullUp(px: Int): Modifier =
-    if (px == 0) {
-        this
-    } else {
-        layout { measurable, constraints ->
-            val placeable = measurable.measure(constraints)
-            layout(placeable.width, (placeable.height - px).coerceAtLeast(0)) {
-                placeable.place(0, -px)
-            }
-        }
-    }
 
 /** Extracts the four-digit year from a Stremio `releaseInfo` string. */
 internal fun yearOf(releaseInfo: String?): String? = Regex("(?:1[89]\\d\\d|20\\d\\d)").find(releaseInfo ?: "")?.value

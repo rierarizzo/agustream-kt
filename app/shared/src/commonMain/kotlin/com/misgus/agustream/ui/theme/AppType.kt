@@ -3,7 +3,6 @@ package com.misgus.agustream.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
@@ -33,12 +32,19 @@ object AppType {
             MaterialTheme.typography.headlineLarge
         }
 
-    /** Hero synopsis and other long copy over artwork. */
+    /**
+     * Hero synopsis and other long copy over artwork.
+     *
+     * Both billboards share this style, so the description reads at the same
+     * weight and size on Home and Detail; the measure is shared by
+     * `HeroSynopsis` too. It sits one point under `bodyLarge` (17sp / 15sp on a
+     * phone), with a Normal weight, so the teaser reads lighter than body copy.
+     */
     @Composable
     fun heroBody(): TextStyle =
         if (LocalWindowSize.current == WindowSize.COMPACT) {
-            MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+            MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, lineHeight = 23.sp)
         } else {
-            MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, lineHeight = 26.sp, fontWeight = FontWeight.Medium)
+            MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, lineHeight = 25.sp)
         }
 }

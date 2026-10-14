@@ -2,7 +2,7 @@ package com.misgus.agustream.ui.screens
 
 import agustream.app.shared.generated.resources.Res
 import agustream.app.shared.generated.resources.action_back
-import agustream.app.shared.generated.resources.action_play
+import agustream.app.shared.generated.resources.action_watch_now
 import agustream.app.shared.generated.resources.detail_error_library
 import agustream.app.shared.generated.resources.detail_error_rating
 import agustream.app.shared.generated.resources.detail_error_watched
@@ -394,9 +394,10 @@ private fun HeroContent(
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg),
             ) {
                 ActionButton(
-                    text = stringResource(Res.string.action_play),
+                    text = stringResource(Res.string.action_watch_now),
                     icon = Icons.Default.PlayArrow,
                     onClick = onPlay,
+                    accent = true,
                 )
                 ActionRow(
                     saved = saved,

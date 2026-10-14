@@ -65,6 +65,9 @@ private object BrandPalette {
     /** Release year / metadata under a poster title. */
     val posterYear = Color(0xFFFFFFFF).copy(alpha = 0.60f)
 
+    /** Idle hero carousel dot: a neutral grey that reads over artwork. */
+    val indicator = Color(0xFF9E9E9E)
+
     val divider = Color(0xFF26262B)
 }
 
@@ -77,6 +80,10 @@ private object BrandPalette {
 object AppColors {
     /** Dark scrim over media, used behind badges and progress tracks. */
     val mediaScrim = Color.Black.copy(alpha = 0.54f)
+
+    /** Hero carousel dots over artwork: muted grey when idle, white when active. */
+    val heroIndicatorInactive = BrandPalette.indicator
+    val heroIndicatorActive = BrandPalette.textPrimary
 }
 
 /** Spacing scale, on the Material 8dp system. */
@@ -158,12 +165,16 @@ object AppLogoSize {
  * Layout for a hero synopsis.
  *
  * A hero synopsis is a teaser, not reading copy: it shows [MAX_LINES] lines at
- * most, with the rest behind "More info", and a [maxWidth] that keeps the
- * measure around 65 characters (45–90 is the legibility range).
+ * most, with the rest behind "More info", and a [maxWidth] shared by both
+ * billboards, so the copy column is the same width on Home and Detail. It
+ * keeps the measure around 80 characters (45–90 is the legibility range).
  */
 object AppSynopsis {
-    /** Widest the synopsis grows; keeps the measure around 65 characters. */
-    val maxWidth: Dp = 580.dp
+    /**
+     * Widest the synopsis grows, capped at the detail billboard's copy column so
+     * both billboards wrap identically.
+     */
+    val maxWidth: Dp = 720.dp
 
     /** Lines shown on a billboard; the detail screen shows the rest. */
     const val MAX_LINES = 3
@@ -184,8 +195,11 @@ object AppAlpha {
     /** Secondary hero action background. */
     const val HERO_ACTION = 0.18f
 
-    /** Inactive hero page indicator. */
-    const val HERO_INDICATOR = 0.35f
+    /**
+     * Flat dim kept over the hero artwork, so it reads darker than the raw
+     * image. Applied as the terminal stop of the hero gradient.
+     */
+    const val HERO_IMAGE_DIM = 0.30f
 
     /** Readability scrim over media, from the strong left edge to the soft right edge. */
     const val MEDIA_SCRIM_STRONG = 0.85f
@@ -233,8 +247,9 @@ object AppScrim {
         )
 
     /**
-     * Home billboard, left-to-right: fully opaque over the copy column and clear
-     * from ~78% on, so the right-aligned artwork stays clean.
+     * Home billboard, left-to-right: fully opaque over the copy column and a
+     * flat [AppAlpha.HERO_IMAGE_DIM] over the rest, so the right-aligned artwork
+     * stays visible but reads a touch darker.
      */
     val heroHorizontal: Brush =
         Brush.horizontalGradient(
@@ -242,30 +257,32 @@ object AppScrim {
             0.25f to BrandPalette.background.copy(alpha = 0.92f),
             0.42f to BrandPalette.background.copy(alpha = 0.6f),
             0.6f to BrandPalette.background.copy(alpha = 0.2f),
-            0.78f to Color.Transparent,
+            0.78f to BrandPalette.background.copy(alpha = AppAlpha.HERO_IMAGE_DIM),
         )
 
     /**
      * Wide desktop billboard, left-to-right: opaque over the left column and
      * the copy, then a short fade that dissolves the artwork's left edge into
-     * the page background. The fade sits further left than it used to, so more
-     * of the image reads.
+     * the page background. The fade ends on a flat [AppAlpha.HERO_IMAGE_DIM]
+     * over the artwork, so the image reads a touch darker without going black.
      */
     val heroWideLeft: Brush =
         Brush.horizontalGradient(
             0f to BrandPalette.background,
             0.25f to BrandPalette.background,
-            0.45f to Color.Transparent,
+            0.45f to BrandPalette.background.copy(alpha = AppAlpha.HERO_IMAGE_DIM),
         )
 
     /**
-     * Home billboard, bottom-up: fully opaque at the bottom edge and clear by 35%
-     * of the height, so the hero dissolves into the section below without a seam.
+     * Home billboard, bottom-up: clear over the upper half and a long, soft fade
+     * into the page background, so the hero dissolves into the section below
+     * without a hard seam. The mid stop keeps the ramp gentle instead of sudden.
      */
     val heroBottom: Brush =
         Brush.verticalGradient(
             0f to Color.Transparent,
-            0.65f to Color.Transparent,
+            0.45f to Color.Transparent,
+            0.78f to BrandPalette.background.copy(alpha = 0.55f),
             1f to BrandPalette.background,
         )
 
@@ -442,8 +459,8 @@ private fun appTypography(font: FontFamily): Typography {
     )
 }
 
-/** Typeface in use. Flip to `false` to compare against Inter. */
-private const val USE_IBM_PLEX_SANS = true
+/** Typeface in use. Set to `true` to compare against IBM Plex Sans. */
+private const val USE_IBM_PLEX_SANS = false
 
 @Composable
 private fun interFontFamily(): FontFamily =
@@ -463,7 +480,7 @@ private fun ibmPlexSansFontFamily(): FontFamily =
         Font(FontsRes.font.ibm_plex_sans_bold, FontWeight.Bold),
     )
 
-/** The app's dark Material3 theme, with the IBM Plex Sans typeface and the MD3 shapes. */
+/** The app's dark Material3 theme, with the Inter typeface and the MD3 shapes. */
 @Composable
 fun AgustreamTheme(content: @Composable () -> Unit) {
     val fontFamily = if (USE_IBM_PLEX_SANS) ibmPlexSansFontFamily() else interFontFamily()

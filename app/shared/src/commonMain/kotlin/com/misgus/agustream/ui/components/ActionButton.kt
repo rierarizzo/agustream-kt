@@ -24,7 +24,8 @@ import com.misgus.agustream.ui.theme.AppSpacing
  * The app's single call-to-action button, used for every action.
  *
  * [primary] is the high-contrast inverse surface with inverse-on-surface
- * content; the secondary variant is a translucent on-surface fill. The content
+ * content; [accent] paints it in the amber brand colour (the scheme's primary
+ * roles); the secondary variant is a translucent on-surface fill. The content
  * colour is applied explicitly to the icon and the label, so it never depends
  * on the surrounding content colour.
  */
@@ -35,14 +36,26 @@ fun ActionButton(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     primary: Boolean = true,
+    accent: Boolean = false,
     enabled: Boolean = true,
     loading: Boolean = false,
 ) {
     val scheme = MaterialTheme.colorScheme
     // The primary call to action is the one high-contrast (light) surface on the
-    // dark UI, which is exactly the Material inverse roles.
-    val container = if (primary) scheme.inverseSurface else scheme.onSurface.copy(alpha = AppAlpha.HERO_ACTION)
-    val content = if (primary) scheme.inverseOnSurface else scheme.onSurface
+    // dark UI, which is exactly the Material inverse roles. The accent variant
+    // reads the amber from the scheme, so the brand colour has one source.
+    val container =
+        when {
+            accent -> scheme.primary
+            primary -> scheme.inverseSurface
+            else -> scheme.onSurface.copy(alpha = AppAlpha.HERO_ACTION)
+        }
+    val content =
+        when {
+            accent -> scheme.onPrimary
+            primary -> scheme.inverseOnSurface
+            else -> scheme.onSurface
+        }
     Button(
         onClick = onClick,
         enabled = enabled && !loading,

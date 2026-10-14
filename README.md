@@ -12,7 +12,7 @@ now; the shared code is multiplatform and the Android app compiles against it.
 
 | Layer | Technology |
 | --- | --- |
-| UI | Compose Multiplatform + Material 3, IBM Plex Sans |
+| UI | Compose Multiplatform + Material 3, Inter |
 | State | `androidx.lifecycle` ViewModel + `StateFlow` |
 | HTTP | Ktor client (CIO on desktop, OkHttp on Android) |
 | JSON | kotlinx.serialization (defensive `JsonElement` parsing) |
@@ -26,7 +26,7 @@ now; the shared code is multiplatform and the Android app compiles against it.
 ```
 app/desktopApp   composition root: window, libmpv player, main()
 app/androidApp   Android composition root
-app/fonts        IBM Plex Sans assets as Compose Resources
+app/fonts        IBM Plex Sans assets as Compose Resources (kept for comparison)
 app/shared       Compose UI and ViewModels
 core             pure domain: models, repository contracts, watched rules
 data             Stremio, Nuvio and local implementations
