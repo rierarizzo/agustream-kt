@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
@@ -160,7 +161,7 @@ private fun Problem(
             text = stringResource(Res.string.action_try_again),
             onClick = onRetry,
             icon = Icons.Default.Refresh,
-            primary = false,
+            style = ActionButtonStyle.Tonal,
         )
     }
 }

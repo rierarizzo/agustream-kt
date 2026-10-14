@@ -55,7 +55,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,6 +71,8 @@ import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.ActionButtonStyle
+import com.misgus.agustream.ui.components.AppTextField
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.onboarding.SignInForm
@@ -187,7 +188,7 @@ private fun AccountCard() {
                     }
                 },
                 icon = Icons.AutoMirrored.Outlined.Logout,
-                primary = false,
+                style = ActionButtonStyle.Tonal,
                 enabled = !signingOut,
                 loading = signingOut,
             )
@@ -294,8 +295,16 @@ private fun ConfigFileCard(
             )
             Spacer(Modifier.height(AppSpacing.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                ActionButton(text = stringResource(Res.string.settings_open_file), onClick = onOpen, primary = false)
-                ActionButton(text = stringResource(Res.string.settings_reload), onClick = onReload, primary = false)
+                ActionButton(
+                    text = stringResource(Res.string.settings_open_file),
+                    onClick = onOpen,
+                    style = ActionButtonStyle.Tonal,
+                )
+                ActionButton(
+                    text = stringResource(Res.string.settings_reload),
+                    onClick = onReload,
+                    style = ActionButtonStyle.Tonal,
+                )
             }
         }
     }
@@ -331,10 +340,10 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
         subtitle = stringResource(Res.string.settings_open_video_subtitle),
     ) {
         Column {
-            OutlinedTextField(
+            AppTextField(
                 value = url,
                 onValueChange = { url = it },
-                label = { Text(stringResource(Res.string.settings_video_url)) },
+                label = stringResource(Res.string.settings_video_url),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -354,7 +363,7 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
                         }
                     },
                     icon = Icons.Outlined.FolderOpen,
-                    primary = false,
+                    style = ActionButtonStyle.Tonal,
                 )
             }
         }

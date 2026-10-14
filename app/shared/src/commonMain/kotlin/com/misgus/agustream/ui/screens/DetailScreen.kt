@@ -36,7 +36,6 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +58,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.ActionButtonStyle
+import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.HeroGenres
 import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
@@ -260,18 +261,14 @@ fun DetailScreen(
             )
 
             // Fixed, so it stays reachable while the page scrolls. It uses the
-            // same plain icon button as the player and the catalog; the fixed
-            // top scrim is what keeps it legible.
-            IconButton(
+            // shared icon button as the player and the catalog; the fixed top
+            // scrim is what keeps it legible.
+            AppIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(Res.string.action_back),
                 onClick = onBack,
                 modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(AppSpacing.md),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(Res.string.action_back),
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
+            )
         }
     }
 
@@ -397,7 +394,7 @@ private fun HeroContent(
                     text = stringResource(Res.string.action_watch_now),
                     icon = Icons.Default.PlayArrow,
                     onClick = onPlay,
-                    accent = true,
+                    style = ActionButtonStyle.Accent,
                 )
                 ActionRow(
                     saved = saved,

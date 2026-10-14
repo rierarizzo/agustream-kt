@@ -4,6 +4,8 @@ import agustream.app.shared.generated.resources.Res
 import agustream.app.shared.generated.resources.action_sign_in
 import agustream.app.shared.generated.resources.field_email
 import agustream.app.shared.generated.resources.field_password
+import agustream.app.shared.generated.resources.field_password_hide
+import agustream.app.shared.generated.resources.field_password_show
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,8 +14,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,8 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import com.misgus.agustream.core.repository.SignInRequest
 import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.AppTextField
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -47,6 +54,7 @@ fun SignInForm(modifier: Modifier = Modifier) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<StringResource?>(null) }
 
@@ -70,24 +78,37 @@ fun SignInForm(modifier: Modifier = Modifier) {
     }
 
     Column(modifier.fillMaxWidth()) {
-        OutlinedTextField(
+        AppTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text(stringResource(Res.string.field_email)) },
+            label = stringResource(Res.string.field_email),
             singleLine = true,
             enabled = !busy,
+            isError = error != null,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(AppSpacing.sm))
-        OutlinedTextField(
+        AppTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text(stringResource(Res.string.field_password)) },
+            label = stringResource(Res.string.field_password),
             singleLine = true,
             enabled = !busy,
-            visualTransformation = PasswordVisualTransformation(),
+            isError = error != null,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { submit() }),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        contentDescription =
+                            stringResource(
+                                if (passwordVisible) Res.string.field_password_hide else Res.string.field_password_show,
+                            ),
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
         )
         error?.let {

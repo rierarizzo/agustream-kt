@@ -138,6 +138,9 @@ object AppSizes {
 
     /** Smallest side of an interactive target, per Material's touch guidance. */
     val minTouchTarget: Dp = 48.dp
+
+    /** Width of the focus ring drawn around interactive controls for keyboard/D-pad. */
+    val focusRing: Dp = 2.dp
 }
 
 /**

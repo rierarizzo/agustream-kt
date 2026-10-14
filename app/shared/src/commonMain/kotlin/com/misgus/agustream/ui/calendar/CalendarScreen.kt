@@ -45,8 +45,6 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,6 +62,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
+import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.components.mirrorInRtl
@@ -168,13 +167,12 @@ private fun MonthHeader(
         modifier = Modifier.fillMaxWidth().padding(horizontal = LocalWindowSize.current.screenPadding, vertical = AppSpacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onPrevious) {
-            Icon(
-                Icons.Default.ChevronLeft,
-                contentDescription = stringResource(Res.string.calendar_prev_month),
-                modifier = Modifier.mirrorInRtl(),
-            )
-        }
+        AppIconButton(
+            icon = Icons.Default.ChevronLeft,
+            contentDescription = stringResource(Res.string.calendar_prev_month),
+            onClick = onPrevious,
+            iconModifier = Modifier.mirrorInRtl(),
+        )
         Row(
             modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.Center,
@@ -191,13 +189,12 @@ private fun MonthHeader(
                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             }
         }
-        IconButton(onClick = onNext) {
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = stringResource(Res.string.calendar_next_month),
-                modifier = Modifier.mirrorInRtl(),
-            )
-        }
+        AppIconButton(
+            icon = Icons.Default.ChevronRight,
+            contentDescription = stringResource(Res.string.calendar_next_month),
+            onClick = onNext,
+            iconModifier = Modifier.mirrorInRtl(),
+        )
     }
 }
 

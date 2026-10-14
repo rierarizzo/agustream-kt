@@ -28,8 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +45,7 @@ import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.catalog.CatalogViewModel
+import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
@@ -104,9 +103,11 @@ fun CatalogScreen(
             modifier = Modifier.padding(start = windowSize.screenPadding, top = windowSize.screenPadding, end = windowSize.screenPadding),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.action_back))
-            }
+            AppIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(Res.string.action_back),
+                onClick = onBack,
+            )
             Spacer(Modifier.size(AppSpacing.sm))
             Column(Modifier.weight(1f)) {
                 Text(

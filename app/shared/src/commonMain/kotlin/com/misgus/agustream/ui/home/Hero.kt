@@ -50,6 +50,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.ArtworkFilterQuality
 import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
@@ -387,13 +388,13 @@ private fun BoxScope.HeroCopy(
                 text = stringResource(Res.string.action_watch_now),
                 icon = Icons.Default.PlayArrow,
                 onClick = onPlay,
-                accent = true,
+                style = ActionButtonStyle.Accent,
             )
             ActionButton(
                 text = stringResource(Res.string.action_more_info),
                 icon = Icons.Outlined.Info,
                 onClick = onOpen,
-                primary = false,
+                style = ActionButtonStyle.Tonal,
             )
         }
     }

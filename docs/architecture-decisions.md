@@ -311,9 +311,18 @@ engine, the filesystem and the player touch platform source sets through
   surface is announced correctly. Poster tiles opt out of that state layer
   (`indication = null`) and signal hover with the scale/border animation
   instead, so a hovered poster is not greyed. Settings panels use the Material
-  `Card`; `ActionButton` renders the primary call to action on the inverse
-  surface / on-surface roles, and its `accent` variant on the amber
-  `primary` / `onPrimary` roles, used by the billboards' "Watch Now". The near-black page background (`#0B0803`) is the single source of
+  `Card`. A small component layer in `ui/components` keeps the Material defaults
+  off the screen: `ActionButton` picks its container and content from an
+  `ActionButtonStyle` weight (Filled on the inverse surface, Accent on the amber
+  `primary`/`onPrimary` for the billboards' "Watch Now", Tonal on a translucent
+  on-surface fill, Outline on `outline`, Text label-only); `AppTextField` pins
+  the form fields to `shapes.small`, a `surfaceContainerLow` container and an
+  amber-on-focus border, with an `AppSearchField` variant (leading magnifier,
+  clear action) for Search and streams; and `AppIconButton` gives the media
+  controls a 48dp target, a state layer, an optional `mediaScrim` and the same
+  focus ring. Every control reads scheme roles and the shared tokens only, and
+  draws an `AppSizes.focusRing`-wide ring when focused, so none is styled at the
+  call site. The near-black page background (`#0B0803`) is the single source of
   truth: the scheme, the native window background and every page-fade gradient
   end on it. The
   app is deliberately **dark-only** — no light scheme and no dynamic colour —

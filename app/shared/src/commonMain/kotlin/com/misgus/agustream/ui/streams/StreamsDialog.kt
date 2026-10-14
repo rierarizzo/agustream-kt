@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui.streams
 
 import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.action_clear
 import agustream.app.shared.generated.resources.action_close
 import agustream.app.shared.generated.resources.action_play
 import agustream.app.shared.generated.resources.action_refresh
@@ -35,13 +36,11 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -64,6 +63,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.model.Stream
+import com.misgus.agustream.ui.components.AppIconButton
+import com.misgus.agustream.ui.components.AppSearchField
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
@@ -142,12 +143,11 @@ fun StreamsDialog(
                         onRefresh = { viewModel.load(force = true) },
                         onClose = onDismiss,
                     )
-                    OutlinedTextField(
+                    AppSearchField(
                         value = state.query,
                         onValueChange = viewModel::setQuery,
-                        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                        placeholder = { Text(stringResource(Res.string.streams_filter)) },
-                        singleLine = true,
+                        placeholder = stringResource(Res.string.streams_filter),
+                        clearDescription = stringResource(Res.string.action_clear),
                         modifier =
                             Modifier
                                 .fillMaxWidth()
@@ -174,12 +174,16 @@ private fun Header(
             modifier = Modifier.align(Alignment.TopEnd).padding(AppSpacing.xs),
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
         ) {
-            IconButton(onClick = onRefresh) {
-                Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.action_refresh))
-            }
-            IconButton(onClick = onClose) {
-                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.action_close))
-            }
+            AppIconButton(
+                icon = Icons.Default.Refresh,
+                contentDescription = stringResource(Res.string.action_refresh),
+                onClick = onRefresh,
+            )
+            AppIconButton(
+                icon = Icons.Default.Close,
+                contentDescription = stringResource(Res.string.action_close),
+                onClick = onClose,
+            )
         }
         Column(
             modifier =

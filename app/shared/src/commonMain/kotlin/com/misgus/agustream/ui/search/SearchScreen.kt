@@ -33,18 +33,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,6 +57,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.PosterSize
+import com.misgus.agustream.ui.components.AppSearchField
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SectionHeader
@@ -180,19 +177,11 @@ private fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
 ) {
-    OutlinedTextField(
+    AppSearchField(
         value = query,
         onValueChange = onQueryChange,
-        singleLine = true,
-        placeholder = { Text(stringResource(Res.string.search_placeholder)) },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.action_clear))
-                }
-            }
-        },
+        placeholder = stringResource(Res.string.search_placeholder),
+        clearDescription = stringResource(Res.string.action_clear),
         modifier =
             Modifier
                 .fillMaxWidth()
