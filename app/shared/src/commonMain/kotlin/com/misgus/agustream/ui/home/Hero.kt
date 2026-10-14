@@ -68,19 +68,6 @@ import kotlin.math.absoluteValue
 /** Share of the window width the desktop artwork occupies. */
 private const val HERO_IMAGE_WIDTH_FRACTION = 0.75f
 
-/**
- * Height of the desktop frame, as a share of the window width: the frame is
- * sized as if the artwork spanned this much width, so the wider artwork above
- * is cropped at the bottom instead of growing the billboard taller.
- */
-private const val HERO_DESKTOP_HEIGHT_FRACTION = 0.7f
-
-/**
- * Share of the desktop billboard height cut from the bottom, so the hero does
- * not tower over the page and the sections below move up with it.
- */
-private const val HERO_BOTTOM_CROP = 0.2f
-
 /** Aspect ratio used until the artwork has decoded, so the frame has a height. */
 private const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
 
@@ -123,17 +110,6 @@ private fun heroHeight(
 ): Dp = maxWidth / aspectRatio
 
 /**
- * Height of the desktop billboard. The artwork spans [HERO_IMAGE_WIDTH_FRACTION]
- * of [maxWidth] and is pinned to the top-right of the frame; the frame is sized
- * from [HERO_DESKTOP_HEIGHT_FRACTION], a touch shorter than the artwork, so the
- * bottom is cropped instead of stretching the billboard taller.
- */
-private fun desktopHeroHeight(
-    maxWidth: Dp,
-    aspectRatio: Float,
-): Dp = (maxWidth * HERO_DESKTOP_HEIGHT_FRACTION) / aspectRatio
-
-/**
  * Compact / Android billboard: in the scroll flow, full-bleed, complete artwork.
  *
  * A phone cannot show the wide desktop composition, so it keeps the simpler
@@ -171,19 +147,19 @@ internal fun Hero(
 
 /**
  * Desktop billboard: in the scroll flow, with the artwork scaled to
- * [HERO_IMAGE_WIDTH_FRACTION] of the window, pinned to the top-right and
- * cropped at the bottom so the billboard does not grow taller.
+ * [HERO_IMAGE_WIDTH_FRACTION] of the window and pinned to the top-right.
  *
- * A single aspect keeps the frame (and the sections below it) stable while the
- * pages swipe; the first decoded artwork sets it.
+ * [height] is a fixed billboard height, so a horizontal resize changes how much
+ * artwork is shown, not how tall the billboard is. A single aspect keeps the
+ * frame (and the sections below it) stable while the pages swipe; the first
+ * decoded artwork sets it.
  */
 @Composable
 internal fun WideHero(
     items: List<MetaPreview>,
     onOpen: (MetaPreview) -> Unit,
     onPlay: (MetaPreview) -> Unit,
-    /** Frame height; `null` uses the artwork's own aspect. */
-    height: Dp? = null,
+    height: Dp,
 ) {
     if (items.isEmpty()) return
     val density = LocalDensity.current
@@ -191,11 +167,7 @@ internal fun WideHero(
     var aspect by remember(items) { mutableStateOf(HERO_FALLBACK_ASPECT_RATIO) }
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        // The caller may pass a height that leaves room for a row below; otherwise
-        // the frame follows the artwork's aspect ratio. Either way the bottom
-        // [HERO_BOTTOM_CROP] is cut, so the frame reads shorter and the sections
-        // below start higher.
-        val frameHeight = (height ?: desktopHeroHeight(maxWidth, aspect)) * (1f - HERO_BOTTOM_CROP)
+        val frameHeight = height
         // Decode the full artwork at its display width; if the frame ends up
         // taller than the artwork's aspect, decode to the frame height so `Crop`
         // does not upscale.

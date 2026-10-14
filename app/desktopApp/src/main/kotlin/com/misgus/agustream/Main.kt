@@ -3,7 +3,6 @@ package com.misgus.agustream
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
@@ -68,8 +67,7 @@ fun main(args: Array<String>) {
 
     application {
         val windowState = rememberWindowState(width = WINDOW_WIDTH, height = WINDOW_HEIGHT)
-        val scope = rememberCoroutineScope()
-        val windowController = remember { ComposeWindowController(windowState, scope) }
+        val windowController = remember { ComposeWindowController(windowState) }
         val services =
             remember {
                 AppServices(

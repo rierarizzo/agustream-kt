@@ -84,16 +84,11 @@ fun HomeScreen(
     val settingsRepository = LocalAppServices.current.settings
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
     val windowSize = LocalWindowSize.current
-    // The hero only fits one full row when the window is maximized; a floating
-    // window can afford to clip it.
-    val window = LocalAppServices.current.window
-    val isMaximized by window.isMaximized.collectAsStateWithLifecycle()
 
     Box(Modifier.fillMaxSize()) {
         HomeContent(
             state = state,
             posterSize = settings.posterSize,
-            isMaximized = isMaximized,
             onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
             onOpenPreview = { navigator.push(ContentRoute.Detail(LibraryItem.fromPreview(it))) },
             onOpenCatalog = { navigator.push(ContentRoute.Catalog(it)) },
@@ -125,7 +120,6 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeUiState,
     posterSize: PosterSize,
-    isMaximized: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
     onOpenPreview: (MetaPreview) -> Unit,
     onOpenCatalog: (CatalogRef) -> Unit,
@@ -150,20 +144,21 @@ private fun HomeContent(
             )
         else -> {
             val compact = windowSize == WindowSize.COMPACT
-            // Size the hero so exactly one full row of content lands at the bottom
-            // of the viewport: a taller row shrinks it, a shorter one grows it (so
-            // the second row never peeks). Only for a plain catalog row on a wide,
-            // maximized window; Continue watching and the phone keep the natural
-            // height and let the rows flow. The sections start right below the
-            // hero, with no overlap, so a row can also be cut by the viewport edge.
-            val viewportHeight = LocalWindowHeight.current
-            val heroHeight =
-                if (compact || !isMaximized || state.continueWatching.isNotEmpty()) {
-                    null
+            // The billboard is sized from the screen, not the window, so resizing
+            // the window on either axis never changes it: it always matches the
+            // height it has on a maximized window.
+            val screenHeight = LocalAppServices.current.window.screenWorkAreaHeight
+            val referenceHeight =
+                if (screenHeight.value.isFinite() && screenHeight > 0.dp) {
+                    screenHeight
                 } else {
-                    val firstRowHeight = posterSize.railHeight(windowSize)
-                    (viewportHeight - HOME_SECTION_HEADER_HEIGHT - firstRowHeight)
-                        .coerceAtLeast(HOME_HERO_MIN_HEIGHT)
+                    LocalWindowHeight.current
+                }
+            val heroHeight =
+                if (referenceHeight.value.isFinite()) {
+                    (referenceHeight * HOME_HERO_SCREEN_FRACTION).coerceAtLeast(HOME_HERO_MIN_HEIGHT)
+                } else {
+                    HOME_HERO_MIN_HEIGHT
                 }
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
@@ -289,14 +284,16 @@ private val ContinueHeight = 248.dp
 private val CompactContinueHeight = 184.dp
 
 /**
- * Height of a section header plus a little breathing room, for the hero fit math:
- * the title line and the row paddings (`AppSpacing.lg` + `AppSpacing.md`), plus a
- * small gap so the poster year is not flush against the bottom edge. The header
- * height is the title's, so the (optional) See all button does not change it.
+ * Share of the screen work-area height the wide billboard occupies.
+ *
+ * The billboard is sized from the screen, not the window, so a horizontal or
+ * vertical resize changes how much artwork is revealed, never how tall the hero
+ * is: it keeps the height it has on a maximized window. A compact window keeps
+ * the aspect-ratio [Hero] instead.
  */
-private val HOME_SECTION_HEADER_HEIGHT = 76.dp
+private const val HOME_HERO_SCREEN_FRACTION = 0.55f
 
-/** Floor for the hero height, so a short window cannot shrink it under its copy. */
+/** Floor for the billboard height, so a short screen cannot shrink it under its copy. */
 private val HOME_HERO_MIN_HEIGHT = 480.dp
 
 /** Extracts the four-digit year from a Stremio `releaseInfo` string. */

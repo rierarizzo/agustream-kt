@@ -201,16 +201,15 @@ leer/escribir/borrar vive una sola vez.
   hero de Home cambia el billboard ancho por el recorte del póster sin el logo
   del título, el billboard de detalle se limita en ventana expandida para que el
   contenido quede cerca, y el diálogo de streams se ajusta a la ventana de la app
-  porque abre la suya. En una ventana ancha y maximizada cuyo primer row es un
-  catálogo normal, el billboard de Home se dimensiona desde el viewport para que
-  quepa una fila completa de contenido — una fila más alta lo encoge, una más
-  baja lo agranda — y luego se recorta con `HERO_BOTTOM_CROP` (20%), para que la
-  fila quede algo más arriba y la siguiente asome. Las secciones empiezan justo
-  debajo del billboard, sin solaparse: el antiguo tirón hacia arriba sobre el
-  fondo difuminado del hero se ha eliminado, así que una fila también puede
-  quedar cortada por el borde del viewport. Una ventana flotante, o un primer row
-  de "Continue watching", mantiene la altura natural y deja fluir las filas. Las
-  cabeceras de sección mantienen también una altura fija: el título la fija y el
+  porque abre la suya. El billboard ancho de Home toma su altura del área de
+  trabajo de la pantalla (`HOME_HERO_SCREEN_FRACTION`, 55% de ella), no de la
+  ventana, así que conserva la altura que tiene en una ventana maximizada:
+  redimensionar en cualquier eje solo revela más o menos artwork, y las
+  secciones de abajo se quedan en su sitio. Las secciones empiezan justo debajo
+  del billboard, sin solaparse: el antiguo tirón hacia arriba sobre el fondo
+  difuminado del hero se ha eliminado, así que una fila también puede quedar
+  cortada por el borde del viewport. Las cabeceras de sección mantienen también
+  una altura fija: el título la fija y el
   icono "ver todo" de la derecha se centra en ella y desborda hacia el padding,
   así que el hueco con la fila de abajo es el mismo con y sin botón; un subtítulo
   opcional (el Movies / Series del catálogo) se apoya en la línea base del
@@ -247,12 +246,10 @@ leer/escribir/borrar vive una sola vez.
   fondo del detalle, el reproductor y las puertas de onboarding/perfil pintan
   tras las barras mientras sus controles se sientan debajo; y el billboard de
   Home se desplaza con el contenido (nunca se fija). En desktop el artwork abarca
-  el 75% del ancho de la ventana, anclado a la esquina superior derecha del
-  marco, y se recorta por abajo (`Crop`, alineado arriba) porque el marco se
-  dimensiona un poco más corto, así que ensanchar el artwork no estira el
-  billboard y las secciones de abajo mantienen su sitio. El marco se recorta otro
-  20% (`HERO_BOTTOM_CROP`), para que el hero no se eleve demasiado y las
-  secciones de abajo empiecen más arriba. Lo lavan degradados de
+  el 75% del ancho de la ventana, anclado a la esquina superior derecha de un
+  marco de altura fija, y se recorta (`Crop`, alineado arriba); ensanchar la
+  ventana revela más artwork en lugar de estirar el billboard, así que las
+  secciones de abajo mantienen su sitio. Lo lavan degradados de
   `BrandPalette.background`: un fundido izquierdo que disuelve el borde izquierdo
   del artwork bajo el copy, un fundido inferior largo (transparente en la mitad
   superior, luego una rampa suave de dos tramos) que se funde con "Continue
@@ -446,7 +443,9 @@ leer/escribir/borrar vive una sola vez.
   ventana AWT), así que el SO la deja crecer y maximizar pero nunca encoger por
   debajo del tamaño con el que empezó. El único comportamiento de ventana
   enrutado por `WindowController` es **pantalla completa**, que posee el
-  reproductor; la colocación anterior se restaura al salir. La app mantiene la
+  reproductor; la colocación anterior se restaura al salir. También expone la
+  altura del área de trabajo de la pantalla, la referencia desde la que se
+  dimensiona el billboard de Home. La app mantiene la
   **decoración nativa de ventana** y solo la tematiza: en Windows opta por el
   modo oscuro inmersivo de DWM y, en Windows 11, pinta el caption, el texto y el
   borde desde `AppWindowChrome` y fuerza esquinas redondeadas
@@ -535,11 +534,6 @@ que cambian, no por esfuerzo.
 Seguimientos de la revisión de la capa de componentes (`ActionButton`,
 `AppTextField`/`AppSearchField`, `AppIconButton`).
 
-- **Desacoplar el ajuste del hero de `SectionHeader`.** `HOME_SECTION_HEADER_HEIGHT`
-  (`76.dp`) reconstruye a mano la altura de cabecera que posee `Common.kt`
-  (`AppSpacing.lg` + `AppSpacing.md` + título + hueco). Si el padding de la
-  cabecera cambia, el ajuste del hero se desvía en silencio. Publica la altura
-  desde la cabecera y léela en ambos sitios.
 - **Derivar los colores deshabilitados por estilo de botón.** `ActionButton` pasa
   `containerColor`/`contentColor` pero no sus variantes deshabilitadas, así que
   un botón deshabilitado o cargando cae a los colores por defecto de los tokens;

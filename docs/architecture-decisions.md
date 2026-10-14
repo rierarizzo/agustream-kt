@@ -190,16 +190,14 @@ so the atomic read/write/delete logic lives once.
   (the user's small / default / large choice still applies), the Home hero swaps
   the wide billboard for the poster crop without the title logo, the detail
   billboard is capped on an expanded window so the content stays close, and the
-  streams dialog clamps to the app window because it opens its own. On a wide,
-  maximized window whose first row is a plain catalog row, the Home billboard is
-  sized from the viewport so one full row of content fits — a taller row shrinks
-  it, a shorter one grows it — and then cut by `HERO_BOTTOM_CROP` (20%), so the
-  row sits a little higher and the next row can peek. The sections start right
-  below the billboard, with no overlap: the old upward pull over the hero's
-  faded bottom is gone, so a row can also be cut by the viewport edge. A
-  floating window, or a Continue watching first row, keeps the natural height
-  and lets the rows flow. Section headers keep a
-  fixed height too: the title sets it and the trailing see-all icon is centred
+  streams dialog clamps to the app window because it opens its own. The wide
+  Home billboard takes its height from the screen work area
+  (`HOME_HERO_SCREEN_FRACTION`, 55% of it), not from the window, so it keeps the
+  height it has on a maximized window: resizing on either axis only reveals more
+  or less of the artwork, and the sections below stay where they are. The
+  sections start right below the billboard with no overlap: the old upward pull over the hero's
+  faded bottom is gone, so a row can also be cut by the viewport edge. Section
+  headers keep a fixed height too: the title sets it and the trailing see-all icon is centred
   on it and overflows into the padding, so the gap to the row below is the same
   with and without the button; an optional subtitle (the catalog's Movies /
   Series) sits on the title's baseline. Compact
@@ -234,11 +232,10 @@ so the atomic read/write/delete logic lives once.
   player and the onboarding/profile gates paint behind the bars while their
   controls sit below them; and the Home billboard scrolls with the content (it
   is never pinned). On desktop the artwork spans 75% of the window width,
-  pinned to the top-right corner of the frame, and is cropped at the bottom
-  (`Crop`, top-aligned) because the frame is sized a touch shorter, so widening
-  the artwork does not stretch the billboard taller and the sections below keep
-  their place. The frame is cut a further 20% (`HERO_BOTTOM_CROP`), so the hero
-  does not tower and the sections below start higher. It is washed by
+  pinned to the top-right corner of a frame with a fixed height, and cropped
+  (`Crop`, top-aligned); widening the window reveals more artwork instead of
+  stretching the billboard taller, so the sections below keep their place. It is
+  washed by
   `BrandPalette.background` gradients: a left fade that dissolves the artwork's
   left edge under the copy, a long bottom fade (clear over the upper half, then
   a gentle two-segment ramp) that melts into "Continue watching" without a hard
@@ -422,7 +419,9 @@ so the atomic read/write/delete logic lives once.
   `minimumSize` on the AWT window), so the OS lets it grow and maximise but
   never shrink below the size it started with.
   The only window behaviour routed through `WindowController` is **fullscreen**,
-  which the player owns; the previous placement is restored on exit. The app
+  which the player owns; the previous placement is restored on exit. It also
+  exposes the screen work-area height, the reference the Home billboard is sized
+  from. The app
   keeps the **native window decoration** and only themes it: on Windows it opts
   into the DWM immersive dark mode and, on Windows 11, paints the caption, the
   text and the border from `AppWindowChrome` and forces rounded corners
@@ -506,11 +505,6 @@ not a one-file change. They are grouped by the axis they change, not by effort.
 Follow-ups from the review of the component layer (`ActionButton`,
 `AppTextField`/`AppSearchField`, `AppIconButton`).
 
-- **Decouple the hero fit from `SectionHeader`.** `HOME_SECTION_HEADER_HEIGHT`
-  (`76.dp`) rebuilds, by hand, the header height that `Common.kt` owns
-  (`AppSpacing.lg` + `AppSpacing.md` + title + gap). If the header padding
-  changes, the hero fit silently drifts. Publish the height from the header and
-  read it in both places.
 - **Derive the disabled colours per button style.** `ActionButton` passes
   `containerColor`/`contentColor` but not their disabled variants, so a disabled
   or loading button falls back to the default token colours; the explicit
