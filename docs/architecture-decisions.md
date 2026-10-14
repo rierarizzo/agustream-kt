@@ -138,7 +138,11 @@ so the atomic read/write/delete logic lives once.
 - **Shared screen behavior.** Data sections extend `AccountScopedViewModel`
   (`ui/common`), which owns the "load when signed in and a profile is chosen,
   clear on sign-out" rule, and use `WatchedBadgeSync` for the watched-badge
-  lookup, so neither is reimplemented per screen.
+  lookup, so neither is reimplemented per screen. Its account observer starts
+  on `Dispatchers.Main`, not `Main.immediate`: the latter runs inline when the
+  ViewModel is built on the main thread, which fired the load hook from the base
+  constructor before the subclass state existed. Forcing a dispatch makes the
+  first emission wait until construction has finished.
 - **Design tokens are data, not code.** `theme/Tokens.kt` holds the palette,
   spacing, sizes, alphas and scrims; `theme/AppTheme.kt` holds only the Material
   colour scheme, typography and shapes. `AppSizes` owns the content/form/message

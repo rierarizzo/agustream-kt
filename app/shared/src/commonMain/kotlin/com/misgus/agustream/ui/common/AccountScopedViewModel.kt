@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.common
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.misgus.agustream.core.repository.AccountRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
@@ -24,7 +25,13 @@ abstract class AccountScopedViewModel(
     protected abstract fun onAccountCleared()
 
     init {
-        viewModelScope.launch {
+        // `viewModelScope` runs on `Dispatchers.Main.immediate`, which executes
+        // inline when the ViewModel is built on the main thread. The subclasses'
+        // state properties are assigned after this constructor, so an inline
+        // first emission would call [onAccountReady] before `_state` exists and
+        // crash with an NPE. `Dispatchers.Main` always reschedules, so the
+        // collection starts once construction has finished.
+        viewModelScope.launch(Dispatchers.Main) {
             account.state.collect { state ->
                 when {
                     !state.isSignedIn -> onAccountCleared()

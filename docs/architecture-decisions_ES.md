@@ -145,7 +145,12 @@ leer/escribir/borrar vive una sola vez.
 - **Comportamiento de pantalla compartido.** Las secciones de datos extienden
   `AccountScopedViewModel` (`ui/common`), que posee la regla "carga cuando hay
   sesión y un perfil elegido, limpia al cerrar sesión", y usan `WatchedBadgeSync`
-  para la búsqueda de badges, así que ninguno se reimplementa por pantalla.
+  para la búsqueda de badges, así que ninguno se reimplementa por pantalla. Su
+  observador de cuenta arranca en `Dispatchers.Main`, no en `Main.immediate`:
+  este último se ejecuta inline cuando el ViewModel se construye en el hilo
+  principal, lo que disparaba el hook de carga desde el constructor de la
+  superclase antes de que existiera el estado de la subclase. Forzar un dispatch
+  hace que la primera emisión espere a que termine la construcción.
 - **Los tokens de diseño son datos, no código.** `theme/Tokens.kt` contiene la
   paleta, el espaciado, los tamaños, los alphas y los scrims; `theme/AppTheme.kt`
   contiene solo el esquema de color de Material, la tipografía y las formas.
