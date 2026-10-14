@@ -24,16 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Forward10
-import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Replay10
-import androidx.compose.material.icons.outlined.Audiotrack
-import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
@@ -102,7 +93,11 @@ fun PlayerControls(
                         .size(64.dp)
                         .background(AppColors.playerBackground.copy(alpha = AppAlpha.PLAYER_BUTTON), CircleShape),
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.action_play), modifier = Modifier.size(40.dp))
+                Icon(
+                    AppIcons.Filled.PlayArrow,
+                    contentDescription = stringResource(Res.string.action_play),
+                    modifier = Modifier.size(40.dp),
+                )
             }
         }
         BottomBar(
@@ -137,7 +132,7 @@ private fun TopBar(
     ) {
         IconButton(onClick = onBack) {
             Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
+                AppIcons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(Res.string.action_back),
                 tint = AppColors.playerControl,
             )
@@ -191,7 +186,7 @@ private fun BottomBar(
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onPlayPause) {
                 Icon(
-                    if (state.playing) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    if (state.playing) AppIcons.Filled.Pause else AppIcons.Filled.PlayArrow,
                     contentDescription =
                         if (state.playing) {
                             stringResource(
@@ -205,14 +200,14 @@ private fun BottomBar(
             }
             IconButton(onClick = { onSeekBy(SEEK_BACK) }) {
                 Icon(
-                    Icons.Default.Replay10,
+                    AppIcons.Filled.Replay10,
                     contentDescription = stringResource(Res.string.player_back_10),
                     tint = AppColors.playerControl,
                 )
             }
             IconButton(onClick = { onSeekBy(SEEK_FORWARD) }) {
                 Icon(
-                    Icons.Default.Forward10,
+                    AppIcons.Filled.Forward10,
                     contentDescription = stringResource(Res.string.player_forward_10),
                     tint = AppColors.playerControl,
                 )
@@ -225,7 +220,7 @@ private fun BottomBar(
             )
             Spacer(Modifier.weight(1f))
             Icon(
-                Icons.AutoMirrored.Filled.VolumeUp,
+                AppIcons.AutoMirrored.Filled.VolumeUp,
                 contentDescription = stringResource(Res.string.player_volume),
                 tint = AppColors.playerControl,
                 modifier = Modifier.size(AppIconSize.md),
@@ -240,21 +235,21 @@ private fun BottomBar(
             }
             IconButton(onClick = onSubtitles) {
                 Icon(
-                    Icons.Outlined.Subtitles,
+                    AppIcons.Outlined.Subtitles,
                     contentDescription = stringResource(Res.string.player_subtitles),
                     tint = AppColors.playerControl,
                 )
             }
             IconButton(onClick = onAudio) {
                 Icon(
-                    Icons.Outlined.Audiotrack,
+                    AppIcons.Outlined.Audiotrack,
                     contentDescription = stringResource(Res.string.player_audio),
                     tint = AppColors.playerControl,
                 )
             }
             IconButton(onClick = onToggleFullscreen) {
                 Icon(
-                    Icons.Default.Fullscreen,
+                    AppIcons.Filled.Fullscreen,
                     contentDescription = stringResource(Res.string.player_fullscreen),
                     tint = AppColors.playerControl,
                 )

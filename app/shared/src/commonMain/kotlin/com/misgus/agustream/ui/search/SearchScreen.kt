@@ -31,10 +31,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -66,6 +62,7 @@ import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.discover.DiscoverFeed
 import com.misgus.agustream.ui.discover.DiscoverViewModel
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
@@ -254,7 +251,7 @@ private fun <T> FilterDropdown(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+            Icon(AppIcons.Filled.ArrowDropDown, contentDescription = null)
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
@@ -287,13 +284,13 @@ private fun SearchResults(
             }
         state.error != null && state.results.isEmpty() ->
             Message(
-                icon = Icons.Outlined.ErrorOutline,
+                icon = AppIcons.Outlined.ErrorOutline,
                 title = stringResource(Res.string.search_failed_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.results.none(matches) && state.hasSearched ->
             Message(
-                icon = Icons.Outlined.Inbox,
+                icon = AppIcons.Outlined.Inbox,
                 title = stringResource(Res.string.search_no_results_title),
                 message = emptyMessage,
             )

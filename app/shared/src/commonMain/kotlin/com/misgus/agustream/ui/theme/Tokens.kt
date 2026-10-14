@@ -195,11 +195,17 @@ object AppSynopsis {
     const val MAX_LINES = 3
 }
 
-/** Shared icon sizes. */
+/**
+ * Shared icon sizes.
+ *
+ * [md] is Material 3's standard 24dp and is the default for navigation, text
+ * fields and list affordances; [sm] is for compact, inline and in-button
+ * glyphs; [lg] is for prominent controls that sit over artwork.
+ */
 object AppIconSize {
-    val sm: Dp = 18.dp
-    val md: Dp = 20.dp
-    val lg: Dp = 24.dp
+    val sm: Dp = 20.dp
+    val md: Dp = 24.dp
+    val lg: Dp = 28.dp
 }
 
 /** Reusable overlay alphas, so scrims and shadows stay consistent. */

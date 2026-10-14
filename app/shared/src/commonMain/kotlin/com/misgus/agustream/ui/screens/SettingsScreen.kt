@@ -47,10 +47,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -74,6 +70,7 @@ import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.AppTextField
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.onboarding.SignInForm
 import com.misgus.agustream.ui.platform.openInDefaultApp
 import com.misgus.agustream.ui.platform.pickVideoFile
@@ -188,7 +185,7 @@ private fun AccountCard() {
                         }
                     }
                 },
-                icon = Icons.AutoMirrored.Outlined.Logout,
+                icon = AppIcons.AutoMirrored.Outlined.Logout,
                 style = ActionButtonStyle.Tonal,
                 enabled = !signingOut,
                 loading = signingOut,
@@ -353,7 +350,7 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
                 ActionButton(
                     text = stringResource(Res.string.settings_play_url),
                     onClick = { onOpenPlayer(PlaybackTarget.raw(url.trim())) },
-                    icon = Icons.Default.PlayArrow,
+                    icon = AppIcons.Filled.PlayArrow,
                     enabled = url.isNotBlank(),
                 )
                 ActionButton(
@@ -363,7 +360,7 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
                             pickVideoFile()?.let { onOpenPlayer(PlaybackTarget.raw(it)) }
                         }
                     },
-                    icon = Icons.Outlined.FolderOpen,
+                    icon = AppIcons.Outlined.FolderOpen,
                     style = ActionButtonStyle.Tonal,
                 )
             }

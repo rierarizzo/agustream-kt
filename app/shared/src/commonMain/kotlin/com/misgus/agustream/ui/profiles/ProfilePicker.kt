@@ -20,9 +20,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +44,7 @@ import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -155,7 +153,7 @@ private fun Problem(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
-            Icons.Outlined.ErrorOutline,
+            AppIcons.Outlined.ErrorOutline,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(36.dp),
@@ -166,7 +164,7 @@ private fun Problem(
         ActionButton(
             text = stringResource(Res.string.action_try_again),
             onClick = onRetry,
-            icon = Icons.Default.Refresh,
+            icon = AppIcons.Filled.Refresh,
             style = ActionButtonStyle.Tonal,
         )
     }

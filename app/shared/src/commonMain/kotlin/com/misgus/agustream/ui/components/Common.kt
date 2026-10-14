@@ -17,10 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +46,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppSizes
@@ -92,7 +89,7 @@ fun WatchedBadge(iconSize: Int = 14) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = Icons.Default.Check,
+            imageVector = AppIcons.Filled.Check,
             contentDescription = stringResource(Res.string.status_watched),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(iconSize.dp),
@@ -202,9 +199,9 @@ fun SectionHeader(
             if (onSeeAll != null) {
                 IconButton(onClick = onSeeAll) {
                     Icon(
-                        imageVector = Icons.Default.ChevronRight,
+                        imageVector = AppIcons.Filled.ChevronRight,
                         contentDescription = stringResource(Res.string.action_see_all),
-                        modifier = Modifier.size(AppIconSize.lg).mirrorInRtl(),
+                        modifier = Modifier.size(AppIconSize.md).mirrorInRtl(),
                     )
                 }
             }
@@ -305,7 +302,7 @@ fun PosterImage(
 private fun PosterFallback() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Icon(
-            imageVector = Icons.Outlined.Movie,
+            imageVector = AppIcons.Outlined.Movie,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )

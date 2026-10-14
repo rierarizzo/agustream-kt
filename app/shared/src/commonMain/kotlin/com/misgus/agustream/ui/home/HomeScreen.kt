@@ -23,9 +23,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -54,6 +51,7 @@ import com.misgus.agustream.ui.components.contentTypeLabel
 import com.misgus.agustream.ui.components.motionBorder
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
@@ -140,13 +138,13 @@ private fun HomeContent(
             Box(Modifier.fillMaxSize())
         state.error != null && state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(
-                icon = Icons.Outlined.ErrorOutline,
+                icon = AppIcons.Outlined.ErrorOutline,
                 title = stringResource(Res.string.home_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(
-                icon = Icons.Outlined.Explore,
+                icon = AppIcons.Outlined.Explore,
                 title = stringResource(Res.string.empty_nothing_to_show),
                 message = stringResource(Res.string.home_empty_message),
             )

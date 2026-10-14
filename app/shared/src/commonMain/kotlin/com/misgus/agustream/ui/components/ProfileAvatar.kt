@@ -6,8 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.core.model.BackendProfile
+import com.misgus.agustream.ui.icons.AppIcons
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -57,7 +56,7 @@ fun ProfileAvatar(
             }
             else ->
                 Icon(
-                    Icons.Outlined.Person,
+                    AppIcons.Outlined.Person,
                     contentDescription = stringResource(Res.string.label_profile),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(size * 0.56f),

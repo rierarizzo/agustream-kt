@@ -27,15 +27,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -74,6 +65,7 @@ import com.misgus.agustream.ui.components.metadataParts
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.detail.DetailUiState
 import com.misgus.agustream.ui.detail.DetailViewModel
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.streams.StreamsRequest
@@ -272,7 +264,7 @@ fun DetailScreen(
             // shared icon button as the player and the catalog; the fixed top
             // scrim is what keeps it legible.
             AppIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                icon = AppIcons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(Res.string.action_back),
                 onClick = onBack,
                 modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(AppSpacing.md),
@@ -365,7 +357,7 @@ private fun HeroContent(
             ) {
                 ActionButton(
                     text = stringResource(Res.string.action_watch_now),
-                    icon = Icons.Default.PlayArrow,
+                    icon = AppIcons.Filled.PlayArrow,
                     onClick = onPlay,
                     style = ActionButtonStyle.Accent,
                 )
@@ -403,7 +395,7 @@ private fun ActionRow(
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         ActionItem(
-            icon = if (actions.saved) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+            icon = if (actions.saved) AppIcons.Filled.Favorite else AppIcons.Outlined.FavoriteBorder,
             label = stringResource(Res.string.detail_my_list),
             active = actions.saved,
             enabled = !actions.savedBusy,
@@ -411,7 +403,7 @@ private fun ActionRow(
             onClick = onToggleSaved,
         )
         ActionItem(
-            icon = if (actions.rating != null) Icons.Filled.Star else Icons.Outlined.StarBorder,
+            icon = if (actions.rating != null) AppIcons.Filled.Star else AppIcons.Outlined.StarBorder,
             label = stringResource(Res.string.detail_rate),
             active = actions.rating != null,
             enabled = true,
@@ -419,7 +411,7 @@ private fun ActionRow(
             onClick = onRate,
         )
         ActionItem(
-            icon = if (actions.watched) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle,
+            icon = if (actions.watched) AppIcons.Filled.CheckCircle else AppIcons.Outlined.CheckCircle,
             label = stringResource(Res.string.status_watched),
             active = actions.watched,
             enabled = !actions.watchedBusy,
@@ -461,7 +453,7 @@ private fun ActionItem(
             icon,
             contentDescription = label,
             tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(AppIconSize.lg),
+            modifier = Modifier.size(AppIconSize.md),
         )
     }
 }

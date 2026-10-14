@@ -12,10 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Login
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +30,7 @@ import com.misgus.agustream.core.repository.SignInRequest
 import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.AppTextField
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import kotlinx.coroutines.CancellationException
@@ -101,7 +98,7 @@ fun SignInForm(modifier: Modifier = Modifier) {
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        imageVector = if (passwordVisible) AppIcons.Filled.VisibilityOff else AppIcons.Filled.Visibility,
                         contentDescription =
                             stringResource(
                                 if (passwordVisible) Res.string.field_password_hide else Res.string.field_password_show,
@@ -123,7 +120,7 @@ fun SignInForm(modifier: Modifier = Modifier) {
         ActionButton(
             text = stringResource(Res.string.action_sign_in),
             onClick = submit,
-            icon = Icons.AutoMirrored.Outlined.Login,
+            icon = AppIcons.AutoMirrored.Outlined.Login,
             enabled = email.isNotBlank() && password.isNotEmpty(),
             loading = busy,
             modifier = Modifier.fillMaxWidth(),

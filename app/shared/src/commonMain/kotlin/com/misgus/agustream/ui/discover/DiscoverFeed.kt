@@ -16,9 +16,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +32,7 @@ import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.POSTER_CARD_ASPECT
@@ -66,7 +64,7 @@ fun DiscoverFeed(
         state.error != null && state.items.isEmpty() ->
             Box(modifier, contentAlignment = Alignment.Center) {
                 Message(
-                    icon = Icons.Outlined.ErrorOutline,
+                    icon = AppIcons.Outlined.ErrorOutline,
                     title = stringResource(Res.string.discover_error_title),
                     message = stringResource(state.error.toUserMessage()),
                 )
@@ -74,7 +72,7 @@ fun DiscoverFeed(
         state.items.isEmpty() ->
             Box(modifier, contentAlignment = Alignment.Center) {
                 Message(
-                    icon = Icons.Outlined.Explore,
+                    icon = AppIcons.Outlined.Explore,
                     title = stringResource(Res.string.discover_empty_title),
                     message = stringResource(Res.string.discover_empty_message),
                 )

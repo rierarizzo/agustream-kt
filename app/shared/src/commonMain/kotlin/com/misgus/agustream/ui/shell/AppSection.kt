@@ -1,17 +1,7 @@
 package com.misgus.agustream.ui.shell
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.misgus.agustream.ui.icons.AppIcons
 
 /**
  * The sections reachable from the navigation.
@@ -23,9 +13,9 @@ enum class AppSection(
     val icon: ImageVector,
     val selectedIcon: ImageVector,
 ) {
-    HOME("Home", Icons.Outlined.Home, Icons.Filled.Home),
-    SEARCH("Search", Icons.Outlined.Search, Icons.Filled.Search),
-    LIBRARY("Library", Icons.Outlined.FavoriteBorder, Icons.Filled.Favorite),
-    CALENDAR("Calendar", Icons.Outlined.CalendarToday, Icons.Filled.CalendarToday),
-    SETTINGS("Settings", Icons.Outlined.Settings, Icons.Filled.Settings),
+    HOME("Home", AppIcons.Outlined.Home, AppIcons.Filled.Home),
+    SEARCH("Search", AppIcons.Outlined.Search, AppIcons.Filled.Search),
+    LIBRARY("Library", AppIcons.Outlined.FavoriteBorder, AppIcons.Filled.Favorite),
+    CALENDAR("Calendar", AppIcons.Outlined.CalendarToday, AppIcons.Filled.CalendarToday),
+    SETTINGS("Settings", AppIcons.Outlined.Settings, AppIcons.Filled.Settings),
 }

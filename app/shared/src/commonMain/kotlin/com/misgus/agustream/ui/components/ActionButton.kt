@@ -109,7 +109,7 @@ fun ActionButton(
                     strokeWidth = AppSizes.progressStroke,
                     color = content,
                 )
-            icon != null -> Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(AppIconSize.md))
+            icon != null -> Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(AppIconSize.sm))
         }
         if (loading || icon != null) Spacer(Modifier.width(AppSpacing.sm))
         Text(text, color = content)

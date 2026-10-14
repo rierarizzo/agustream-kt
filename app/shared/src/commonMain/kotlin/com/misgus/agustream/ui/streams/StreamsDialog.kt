@@ -30,13 +30,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,6 +60,7 @@ import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.AppSearchField
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.PosterImage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
 import com.misgus.agustream.ui.theme.AppMotion
@@ -177,12 +171,12 @@ private fun Header(
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
         ) {
             AppIconButton(
-                icon = Icons.Default.Refresh,
+                icon = AppIcons.Filled.Refresh,
                 contentDescription = stringResource(Res.string.action_refresh),
                 onClick = onRefresh,
             )
             AppIconButton(
-                icon = Icons.Default.Close,
+                icon = AppIcons.Filled.Close,
                 contentDescription = stringResource(Res.string.action_close),
                 onClick = onClose,
             )
@@ -219,12 +213,12 @@ private fun Content(
             }
         state.error != null && !state.hasLoaded ->
             Message(
-                icon = Icons.Outlined.ErrorOutline,
+                icon = AppIcons.Outlined.ErrorOutline,
                 title = stringResource(Res.string.streams_error),
             )
         state.entries.isEmpty() ->
             Message(
-                icon = Icons.Outlined.SearchOff,
+                icon = AppIcons.Outlined.SearchOff,
                 title =
                     if (state.groups.isEmpty()) {
                         stringResource(Res.string.streams_empty)
@@ -272,7 +266,7 @@ private fun StreamCard(
             onClick = onPlay,
             modifier = Modifier.size(40.dp),
         ) {
-            Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.action_play))
+            Icon(AppIcons.Filled.PlayArrow, contentDescription = stringResource(Res.string.action_play))
         }
         Spacer(Modifier.width(AppSpacing.md))
         Column(Modifier.weight(1f)) {
@@ -292,7 +286,7 @@ private fun StreamCard(
         IconButton(onClick = {
             (stream.url ?: stream.externalUrl)?.let { clipboard.setText(AnnotatedString(it)) }
         }) {
-            Icon(Icons.Outlined.ContentCopy, contentDescription = stringResource(Res.string.streams_copy_link))
+            Icon(AppIcons.Outlined.ContentCopy, contentDescription = stringResource(Res.string.streams_copy_link))
         }
     }
 }

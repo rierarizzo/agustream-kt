@@ -153,6 +153,18 @@ leer/escribir/borrar vive una sola vez.
   borde/progreso, `AppAlpha` posee toda la opacidad de overlays, y
   `Modifier.focusRing` (en `Interaction.kt`) da a cada control enfocable el mismo
   anillo de teclado.
+- **Los iconos se vendorizan, no son una dependencia.** `ui/icons/AppIcons.kt`
+  contiene los glifos de Material Symbols que usa la UI como `ImageVector`s
+  (outlined y filled, más las flechas auto-espejadas), generados desde los SVG
+  oficiales con los ejes por defecto. La app ya no depende de
+  `materialIconsExtended` — congelado en 1.7.3 mientras el resto de Compose
+  seguía avanzando — así que solo se empaquetan los glifos usados. La escala
+  `AppIconSize` de `theme/Tokens.kt` es la única fuente del tamaño de icono:
+  `md` (24dp) es el default de Material 3 para navegación, campos y listas,
+  `sm` (20dp) es para glifos compactos y dentro de botones, y `lg` (28dp) es para
+  controles prominentes sobre artwork. Todos los sitios de uso dimensionan cada
+  icono mediante esos tokens, para que el rail, la barra inferior y los campos
+  de texto queden en el mismo tamaño óptico.
 - **Ciclo de vida de Compose.** `AgustreamApp` reutiliza el `ViewModelStoreOwner`
   del host cuando existe — una `Activity` de Android, para que los ViewModels de
   sección sobrevivan a un cambio de configuración — y cae a un owner con scope

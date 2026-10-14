@@ -122,7 +122,7 @@ fun BottomNav(
                         Icon(
                             imageVector = if (section == selected) section.selectedIcon else section.icon,
                             contentDescription = section.label,
-                            modifier = Modifier.size(AppIconSize.lg),
+                            modifier = Modifier.size(AppIconSize.md),
                         )
                     },
                 )
@@ -167,7 +167,7 @@ private fun RailNavItem(
             imageVector = if (selected) section.selectedIcon else section.icon,
             contentDescription = section.label,
             tint = contentColor,
-            modifier = Modifier.size(AppIconSize.sm),
+            modifier = Modifier.size(AppIconSize.md),
         )
     }
 }

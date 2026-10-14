@@ -145,6 +145,17 @@ so the atomic read/write/delete logic lives once.
   widths and the border/progress sizes, `AppAlpha` owns every overlay opacity,
   and `Modifier.focusRing` (in `Interaction.kt`) gives every focusable control
   the same keyboard ring.
+- **Icons are vendored, not a dependency.** `ui/icons/AppIcons.kt` holds the
+  Material Symbols glyphs the UI uses as `ImageVector`s (outlined and filled,
+  plus the auto-mirrored arrows), generated from the official SVGs at the
+  default axes. The app no longer depends on `materialIconsExtended` — frozen at
+  1.7.3 while the rest of Compose kept moving — so only the used glyphs ship.
+  The `AppIconSize` scale in `theme/Tokens.kt` is the single source of icon
+  size: `md` (24dp) is Material 3's default for navigation, fields and list
+  affordances, `sm` (20dp) is for compact and in-button glyphs, and `lg` (28dp)
+  is for prominent controls over artwork. Call sites size every icon through
+  those tokens, so the rail, the bottom bar and the text fields stay on the same
+  optical size.
 - **Compose lifecycle.** `AgustreamApp` reuses the host's
   `ViewModelStoreOwner` when there is one — an Android `Activity`, so section
   ViewModels survive a configuration change — and falls back to a

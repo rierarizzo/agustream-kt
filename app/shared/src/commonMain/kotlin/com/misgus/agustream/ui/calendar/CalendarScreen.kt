@@ -38,11 +38,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -70,6 +65,7 @@ import com.misgus.agustream.ui.components.mirrorInRtl
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppCorner
@@ -112,13 +108,13 @@ private fun CalendarContent(
     when {
         state.error != null && state.entries.isEmpty() ->
             Message(
-                icon = Icons.Outlined.ErrorOutline,
+                icon = AppIcons.Outlined.ErrorOutline,
                 title = stringResource(Res.string.calendar_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.hasLoaded && state.entries.isEmpty() ->
             Message(
-                icon = Icons.Outlined.CalendarMonth,
+                icon = AppIcons.Outlined.CalendarMonth,
                 title = stringResource(Res.string.calendar_no_upcoming),
                 message = stringResource(Res.string.calendar_no_upcoming_message),
             )
@@ -172,7 +168,7 @@ private fun MonthHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AppIconButton(
-            icon = Icons.Default.ChevronLeft,
+            icon = AppIcons.Filled.ChevronLeft,
             contentDescription = stringResource(Res.string.calendar_prev_month),
             onClick = onPrevious,
             iconModifier = Modifier.mirrorInRtl(),
@@ -194,7 +190,7 @@ private fun MonthHeader(
             }
         }
         AppIconButton(
-            icon = Icons.Default.ChevronRight,
+            icon = AppIcons.Filled.ChevronRight,
             contentDescription = stringResource(Res.string.calendar_next_month),
             onClick = onNext,
             iconModifier = Modifier.mirrorInRtl(),

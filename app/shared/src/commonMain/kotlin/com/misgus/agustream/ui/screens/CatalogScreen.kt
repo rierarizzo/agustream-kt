@@ -24,10 +24,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -52,6 +48,7 @@ import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.sectionHeading
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
@@ -108,7 +105,7 @@ fun CatalogScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AppIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                icon = AppIcons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(Res.string.action_back),
                 onClick = onBack,
             )
@@ -143,13 +140,13 @@ private fun CatalogContent(
         state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && !state.hasLoaded ->
             Message(
-                icon = Icons.Outlined.ErrorOutline,
+                icon = AppIcons.Outlined.ErrorOutline,
                 title = stringResource(Res.string.catalog_error_title),
                 message = stringResource(Res.string.error_try_again_later),
             )
         state.items.isEmpty() ->
             Message(
-                icon = Icons.Outlined.Inbox,
+                icon = AppIcons.Outlined.Inbox,
                 title = stringResource(Res.string.empty_nothing_to_show),
                 message = stringResource(Res.string.catalog_empty_message),
             )

@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +26,7 @@ import com.misgus.agustream.ui.components.PosterTile
 import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.SyncingIndicator
 import com.misgus.agustream.ui.components.toUserMessage
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
@@ -76,13 +74,13 @@ private fun LibraryContent(
         state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && !state.hasLoaded ->
             Message(
-                icon = Icons.Outlined.ErrorOutline,
+                icon = AppIcons.Outlined.ErrorOutline,
                 title = stringResource(Res.string.library_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.items.isEmpty() ->
             Message(
-                icon = Icons.Outlined.Inbox,
+                icon = AppIcons.Outlined.Inbox,
                 title = stringResource(Res.string.empty_nothing_to_show),
                 message = stringResource(Res.string.library_empty_message),
             )

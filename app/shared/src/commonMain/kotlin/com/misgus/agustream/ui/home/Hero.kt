@@ -24,9 +24,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +53,7 @@ import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
 import com.misgus.agustream.ui.components.metadataParts
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppLogoSize
 import com.misgus.agustream.ui.theme.AppScrim
@@ -386,13 +384,13 @@ private fun BoxScope.HeroCopy(
         Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             ActionButton(
                 text = stringResource(Res.string.action_watch_now),
-                icon = Icons.Default.PlayArrow,
+                icon = AppIcons.Filled.PlayArrow,
                 onClick = onPlay,
                 style = ActionButtonStyle.Accent,
             )
             ActionButton(
                 text = stringResource(Res.string.action_more_info),
-                icon = Icons.Outlined.Info,
+                icon = AppIcons.Outlined.Info,
                 onClick = onOpen,
                 style = ActionButtonStyle.Tonal,
             )

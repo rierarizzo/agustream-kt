@@ -3,9 +3,6 @@ package com.misgus.agustream.ui.components
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.VisualTransformation
+import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.theme.AppIconSize
 
 /*
@@ -90,13 +88,13 @@ fun AppSearchField(
         onValueChange = onValueChange,
         modifier = modifier,
         placeholder = placeholder,
-        leadingIcon = Icons.Default.Search,
+        leadingIcon = AppIcons.Filled.Search,
         trailingIcon =
             if (value.isNotEmpty()) {
                 {
                     IconButton(onClick = { onValueChange("") }) {
                         Icon(
-                            Icons.Default.Close,
+                            AppIcons.Filled.Close,
                             contentDescription = clearDescription,
                             modifier = Modifier.size(AppIconSize.md),
                         )
