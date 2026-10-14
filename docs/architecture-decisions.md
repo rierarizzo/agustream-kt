@@ -217,7 +217,15 @@ engine, the filesystem and the player touch platform source sets through
   most, the rest behind "More info". The same cap lives in `HeroSynopsis`, so
   Home and Detail wrap the description at the same width. The carousel
   paginator is a row of equal dots, centred on the billboard's bottom edge:
-  white for the active page and grey for the rest. On a
+  white for the active page and grey for the rest. The swipe cross-fades rather
+  than slides: each page cancels the pager's horizontal offset in a
+  `graphicsLayer` and its alpha follows the same offset, so one billboard
+  dissolves through the page background into the next. The copy (title,
+  metadata, synopsis, actions) slides a little against the swipe
+  (`HERO_CONTENT_SLIDE_MAX`, 64dp) so the direction reads, while the artwork
+  only cross-fades. The focused page is raised with `zIndex`, so its buttons own
+  the hits; the faded neighbours sit at the same place and would otherwise
+  capture the click. On a
   wide window the rail floats over the content,
   which reserves its width, so the navigation never overlaps it.
 - **Typography.** Inter is bundled through Compose Resources in `:app:shared`

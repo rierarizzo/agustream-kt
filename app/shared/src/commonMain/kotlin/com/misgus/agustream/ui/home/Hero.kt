@@ -38,10 +38,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -62,6 +64,7 @@ import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.absoluteValue
 
 /** Share of the window width the desktop artwork occupies. */
 private const val HERO_IMAGE_WIDTH_FRACTION = 0.75f
@@ -97,6 +100,12 @@ private val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
 private val HERO_LOGO_METADATA_SPACE = 12.dp
 private val HERO_METADATA_SYNOPSIS_SPACE = 18.dp
 private val HERO_SYNOPSIS_ACTIONS_SPACE = 18.dp
+
+/**
+ * Widest the hero copy (not the artwork) slides during a page change. Small on
+ * purpose: just enough to read the swipe direction, not a full-screen slide.
+ */
+private val HERO_CONTENT_SLIDE_MAX = 64.dp
 
 /** Carousel paginator: dot size, gap, bottom inset and colour animation. */
 private val HERO_PAGINATOR_DOT_SIZE = 10.dp
@@ -222,20 +231,42 @@ private fun HeroCarousel(
     val compact = LocalWindowSize.current == WindowSize.COMPACT
     val density = LocalDensity.current
 
-    Box(Modifier.fillMaxWidth().height(height)) {
+    Box(Modifier.fillMaxWidth().height(height).background(MaterialTheme.colorScheme.background)) {
         HorizontalPager(
             state = pagerState,
             beyondViewportPageCount = 1,
             key = { page -> items[page].id },
         ) { page ->
-            HeroSlide(
-                item = items[page],
-                compact = compact,
-                wide = wide,
-                onBackdropAspect = { ratio -> onBackdropAspect(page, ratio) },
-                onOpen = { onOpen(items[page]) },
-                onPlay = { onPlay(items[page]) },
-            )
+            // Cross-fade instead of slide: the pager's horizontal offset is
+            // cancelled and the page's alpha follows the same offset, so one
+            // billboard dissolves through the page background into the next
+            // while the swipe still scrubs the transition.
+            val signedOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+            val distance = signedOffset.absoluteValue
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        // The focused page draws on top, so its buttons own the
+                        // hits: the faded neighbours sit at the same place and
+                        // would otherwise capture the click (alpha does not
+                        // affect hit-testing).
+                        .zIndex(-distance)
+                        .graphicsLayer {
+                            translationX = signedOffset * size.width
+                            alpha = (1f - distance).coerceIn(0f, 1f)
+                        },
+            ) {
+                HeroSlide(
+                    item = items[page],
+                    compact = compact,
+                    wide = wide,
+                    signedOffset = signedOffset,
+                    onBackdropAspect = { ratio -> onBackdropAspect(page, ratio) },
+                    onOpen = { onOpen(items[page]) },
+                    onPlay = { onPlay(items[page]) },
+                )
+            }
         }
         if (items.size > 1) {
             HeroPaginator(
@@ -264,11 +295,15 @@ private fun HeroSlide(
     item: MetaPreview,
     compact: Boolean,
     wide: Boolean,
+    signedOffset: Float,
     onBackdropAspect: (Float) -> Unit,
     onOpen: () -> Unit,
     onPlay: () -> Unit,
 ) {
     val backdrop = if (compact) item.poster ?: item.background else item.background ?: item.poster
+    // The artwork cross-fades, but the copy slides a little against the swipe,
+    // so the user can read whether the change is going forward or back.
+    val slidePx = with(LocalDensity.current) { HERO_CONTENT_SLIDE_MAX.toPx() }
     // The background shows through if the artwork never loads, so a slow or
     // missing image never leaves a bright gap.
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -306,7 +341,13 @@ private fun HeroSlide(
         Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
         Box(Modifier.fillMaxSize().background(AppScrim.heroTop))
         Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
-        HeroCopy(item, compact, onOpen, onPlay)
+        HeroCopy(
+            item = item,
+            compact = compact,
+            onOpen = onOpen,
+            onPlay = onPlay,
+            modifier = Modifier.graphicsLayer { translationX = -signedOffset * slidePx },
+        )
     }
 }
 
@@ -317,10 +358,11 @@ private fun BoxScope.HeroCopy(
     compact: Boolean,
     onOpen: () -> Unit,
     onPlay: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier =
-            Modifier
+            modifier
                 .align(Alignment.BottomStart)
                 .padding(
                     start = LocalWindowSize.current.screenPadding,
