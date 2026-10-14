@@ -2,6 +2,7 @@ package com.misgus.agustream.data.addons
 
 import com.misgus.agustream.core.model.AddonCatalog
 import com.misgus.agustream.core.model.AddonManifest
+import com.misgus.agustream.core.model.CatalogExtras
 import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.AddonRepository
@@ -22,14 +23,14 @@ class StremioMetadataRepository(
     private val addons: AddonRepository,
     private val client: HttpClient,
 ) : MetadataRepository {
-    private val clients = mutableMapOf<String, StremioAddonClient>()
+    private val clients = AddonClientPool(client)
 
     override suspend fun detail(
         type: String,
         id: String,
     ): MetaDetail? {
         for (baseUrl in candidates()) {
-            val meta = runCatchingCancellable { clientFor(baseUrl).fetchMeta(type, id) }.getOrNull()
+            val meta = runCatchingCancellable { clients.clientFor(baseUrl).fetchMeta(type, id) }.getOrNull()
             if (meta != null) return meta
         }
         return null
@@ -69,7 +70,7 @@ class StremioMetadataRepository(
 
     /** One addon's manifest, or `null` when it is unreachable. */
     private suspend fun manifestFor(url: String): Pair<String, AddonManifest?> =
-        url to runCatchingCancellable { clientFor(url).fetchManifest() }.getOrNull()
+        url to runCatchingCancellable { clients.clientFor(url).fetchManifest() }.getOrNull()
 
     /** Returns the similar titles, or `null` when this addon cannot provide them. */
     private suspend fun tryCatalog(
@@ -79,16 +80,16 @@ class StremioMetadataRepository(
         id: String,
         genre: String?,
     ): List<MetaPreview>? {
-        val addonClient = clientFor(baseUrl)
+        val addonClient = clients.clientFor(baseUrl)
         return try {
             val catalog = pickCatalog(manifest.catalogs, type, genre) ?: return null
-            val supportsGenre = !genre.isNullOrEmpty() && catalog.extra.any { it.name == "genre" }
+            val supportsGenre = !genre.isNullOrEmpty() && catalog.extra.any { it.name == CatalogExtras.GENRE }
             // Prefer a genre match, but fall back to the generic catalog so a
             // title is never left without a "similar" row.
             val byGenre =
                 if (supportsGenre) {
                     runCatchingCancellable {
-                        addonClient.fetchCatalog(type, catalog.id, mapOf("genre" to genre))
+                        addonClient.fetchCatalog(type, catalog.id, mapOf(CatalogExtras.GENRE to genre))
                     }.getOrDefault(emptyList())
                 } else {
                     emptyList()
@@ -101,8 +102,6 @@ class StremioMetadataRepository(
             null
         }
     }
-
-    private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
 
     /**
      * Catalog to use for a "similar" row.
@@ -120,7 +119,7 @@ class StremioMetadataRepository(
         val usable = catalogs.filter { it.type == type && canFetch(it, genre) }
         if (usable.isEmpty()) return null
         if (genre.isNullOrEmpty()) return usable.first()
-        return usable.firstOrNull { catalog -> catalog.extra.any { it.name == "genre" } } ?: usable.first()
+        return usable.firstOrNull { catalog -> catalog.extra.any { it.name == CatalogExtras.GENRE } } ?: usable.first()
     }
 
     /** Whether [catalog] can be fetched without an extra we do not have. */
@@ -129,6 +128,6 @@ class StremioMetadataRepository(
         genre: String?,
     ): Boolean =
         catalog.extra.none { extra ->
-            extra.isRequired && !(extra.name == "genre" && !genre.isNullOrEmpty())
+            extra.isRequired && !(extra.name == CatalogExtras.GENRE && !genre.isNullOrEmpty())
         }
 }

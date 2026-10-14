@@ -21,17 +21,16 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.LibraryItem
+import com.misgus.agustream.core.model.ProgressThresholds
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppMotion
+import com.misgus.agustream.ui.theme.AppScale
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
 import com.misgus.agustream.ui.theme.motionLayer
 import com.misgus.agustream.ui.theme.motionTween
-
-/** Scale a poster grows to on hover or focus. */
-private const val HOVER_SCALE = 1.04f
 
 /**
  * One poster in the library grid.
@@ -55,10 +54,11 @@ fun PosterTile(
         )
     val shape = MaterialTheme.shapes.small
     val fraction = progress?.fraction
-    val inProgress = !watched && fraction != null && fraction > 0.02 && fraction < 0.95
+    val inProgress =
+        !watched && fraction != null && fraction > ProgressThresholds.IN_PROGRESS_MIN && fraction < ProgressThresholds.IN_PROGRESS_MAX
     val scale =
         animateFloatAsState(
-            targetValue = if (interaction.active) HOVER_SCALE else 1f,
+            targetValue = if (interaction.active) AppScale.HOVER else 1f,
             animationSpec = motionTween(durationMillis = AppMotion.FAST),
             label = "posterScale",
         )

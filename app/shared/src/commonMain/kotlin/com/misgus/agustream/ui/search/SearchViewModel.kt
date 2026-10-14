@@ -1,12 +1,13 @@
 package com.misgus.agustream.ui.search
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.misgus.agustream.core.model.CatalogExtras
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.repository.CatalogRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
+import com.misgus.agustream.ui.common.AccountScopedViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -36,9 +37,9 @@ data class SearchUiState(
  * results are deduped across addons by `type:id`.
  */
 class SearchViewModel(
-    private val account: AccountRepository,
+    account: AccountRepository,
     private val catalogs: CatalogRepository,
-) : ViewModel() {
+) : AccountScopedViewModel(account) {
     private val _state = MutableStateFlow(SearchUiState())
     val state: StateFlow<SearchUiState> = _state.asStateFlow()
 
@@ -50,13 +51,9 @@ class SearchViewModel(
 
     private var requestId = 0
 
-    init {
-        viewModelScope.launch {
-            account.state.collect { accountState ->
-                if (!accountState.isSignedIn) clear()
-            }
-        }
-    }
+    override fun onAccountReady() = Unit
+
+    override fun onAccountCleared() = clear()
 
     /** Updates the query and schedules a debounced search. */
     fun onQueryChange(query: String) {
@@ -87,7 +84,7 @@ class SearchViewModel(
                         .map { ref ->
                             async {
                                 runCatchingCancellable {
-                                    catalogs.items(ref, mapOf("search" to query))
+                                    catalogs.items(ref, mapOf(CatalogExtras.SEARCH to query))
                                 }.getOrDefault(emptyList())
                             }
                         }.awaitAll()

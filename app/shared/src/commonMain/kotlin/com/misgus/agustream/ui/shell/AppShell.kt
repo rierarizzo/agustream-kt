@@ -1,5 +1,8 @@
 package com.misgus.agustream.ui.shell
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.error_playback_unavailable
+import agustream.app.shared.generated.resources.error_source_unplayable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -41,6 +44,7 @@ import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Persistent app chrome: the navigation and the content area.
@@ -70,6 +74,8 @@ fun AppShell() {
     val snackbarHost = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var streamsRequest by remember { mutableStateOf<StreamsRequest?>(null) }
+    val playbackUnavailable = stringResource(Res.string.error_playback_unavailable)
+    val sourceUnplayable = stringResource(Res.string.error_source_unplayable)
 
     // The system back leaves a pushed route before it leaves the app. A dialog
     // or the player is composed on top, so it gets the event first.
@@ -109,9 +115,7 @@ fun AppShell() {
                                     streamsRequest = request
                                 } else {
                                     scope.launch {
-                                        snackbarHost.showSnackbar(
-                                            "Playback is not available on this target yet.",
-                                        )
+                                        snackbarHost.showSnackbar(playbackUnavailable)
                                     }
                                 }
                             },
@@ -172,9 +176,7 @@ fun AppShell() {
                     )
                 } else {
                     scope.launch {
-                        snackbarHost.showSnackbar(
-                            "This source cannot be played yet (torrent or external link).",
-                        )
+                        snackbarHost.showSnackbar(sourceUnplayable)
                     }
                 }
             },

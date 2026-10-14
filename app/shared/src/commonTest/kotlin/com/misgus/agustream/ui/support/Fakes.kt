@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui.support
 
 import com.misgus.agustream.core.model.Addon
+import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPreview
@@ -46,7 +47,7 @@ class FakeAccountRepository(
 
     override suspend fun loadProfiles() = Unit
 
-    override suspend fun selectProfile(profile: com.misgus.agustream.core.model.BackendProfile) {
+    override suspend fun selectProfile(profile: BackendProfile) {
         _state.value = _state.value.copy(activeProfile = profile)
     }
 }

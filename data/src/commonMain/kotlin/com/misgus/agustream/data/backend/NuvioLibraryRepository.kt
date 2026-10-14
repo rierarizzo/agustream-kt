@@ -54,10 +54,7 @@ class NuvioLibraryRepository(
 
     private val profileFilter: String get() = "profile_id=eq.${requireProfileId()}"
 
-    private fun requireProfileId(): Int =
-        account.state.value.activeProfile
-            ?.profileId
-            ?: throw BackendException("No profile selected")
+    private fun requireProfileId(): Int = account.requireProfileId()
 
     private fun requireUserId(): String {
         val userId = auth.session?.userId

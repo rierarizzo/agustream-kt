@@ -137,10 +137,7 @@ class NuvioProgressRepository(
         _changes.value += 1
     }
 
-    private fun requireProfileId(): Int =
-        account.state.value.activeProfile
-            ?.profileId
-            ?: throw BackendException("No profile selected")
+    private fun requireProfileId(): Int = account.requireProfileId()
 
     private companion object {
         const val CHUNK_SIZE = 40

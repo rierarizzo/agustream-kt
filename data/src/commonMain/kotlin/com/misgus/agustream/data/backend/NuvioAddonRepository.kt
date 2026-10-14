@@ -1,6 +1,5 @@
 package com.misgus.agustream.data.backend
 
-import com.misgus.agustream.core.BackendException
 import com.misgus.agustream.core.model.Addon
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.AddonRepository
@@ -28,10 +27,8 @@ class NuvioAddonRepository(
     private var cachedAddons: List<Addon>? = null
 
     override suspend fun all(): List<Addon> {
-        val profile =
-            account.state.value.activeProfile
-                ?: throw BackendException("No profile selected")
-        val profileId = profile.profileId ?: throw BackendException("No profile selected")
+        val profile = account.requireActiveProfile()
+        val profileId = account.requireProfileId()
         val profileKey = profile.id
         cachedAddons?.takeIf { cachedProfileKey == profileKey }?.let { return it }
         // Serialize the fetch so concurrent callers share one request.

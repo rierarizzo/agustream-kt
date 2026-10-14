@@ -15,10 +15,14 @@ plugins {
 subprojects {
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
     extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        // Generated sources (Compose resources, etc.) are not ours to style.
+        // Generated sources (Compose resources, etc.) are not ours to style. The
+        // predicate form keeps the exclusion working on Windows, where the
+        // Ant-style patterns do not match backslash paths.
         filter {
-            exclude("**/build/**")
-            exclude("**/generated/**")
+            exclude { element ->
+                val path = element.file.path.replace('\\', '/')
+                "/build/" in path || "/generated/" in path
+            }
         }
     }
 }

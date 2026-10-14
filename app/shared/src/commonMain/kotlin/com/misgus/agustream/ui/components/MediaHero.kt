@@ -1,5 +1,7 @@
 package com.misgus.agustream.ui.components
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.media_rating
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -19,6 +21,7 @@ import com.misgus.agustream.ui.theme.AppSynopsis
 import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
+import org.jetbrains.compose.resources.stringResource
 
 /*
  * Shared copy pieces for a media billboard.
@@ -102,6 +105,7 @@ fun MetadataRow(parts: List<String>) {
  * them; when absent the remaining parts keep their relative order. The detail
  * billboard shows genres under the synopsis instead, so it does not pass them.
  */
+@Composable
 fun metadataParts(
     releaseInfo: String?,
     runtime: String? = null,
@@ -112,7 +116,7 @@ fun metadataParts(
         releaseInfo?.takeIf { it.isNotEmpty() }?.let { add(it) }
         if (genres.isNotEmpty()) add(genres.joinToString(", "))
         runtime?.takeIf { it.isNotEmpty() }?.let { add(it) }
-        rating?.let { add("★ ${ratingText(it)}") }
+        rating?.let { add(stringResource(Res.string.media_rating, ratingText(it))) }
     }
 
 /**

@@ -1,7 +1,10 @@
 package com.misgus.agustream.ui.platform
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.dialog_open_video
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.getString
 import java.awt.FileDialog
 import java.awt.Frame
 import javax.swing.SwingUtilities
@@ -15,11 +18,12 @@ private val videoExtensions = setOf("mp4", "mkv", "webm", "mov", "avi", "m4v")
  * blocking modal call runs there while this coroutine waits on the IO
  * dispatcher.
  */
-actual suspend fun pickVideoFile(): String? =
-    withContext(Dispatchers.IO) {
+actual suspend fun pickVideoFile(): String? {
+    val title = getString(Res.string.dialog_open_video)
+    return withContext(Dispatchers.IO) {
         var selected: String? = null
         SwingUtilities.invokeAndWait {
-            val dialog = FileDialog(null as Frame?, "Open video", FileDialog.LOAD)
+            val dialog = FileDialog(null as Frame?, title, FileDialog.LOAD)
             dialog.setFilenameFilter { _, name ->
                 name.substringAfterLast('.', "").lowercase() in videoExtensions
             }
@@ -30,6 +34,7 @@ actual suspend fun pickVideoFile(): String? =
         }
         selected
     }
+}
 
 /** Opens the file with the OS default app through AWT's [java.awt.Desktop]. */
 actual suspend fun openInDefaultApp(path: String): Boolean =

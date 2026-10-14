@@ -44,6 +44,7 @@ import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.components.sectionHeading
+import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppType
@@ -79,11 +80,12 @@ fun ProfilePicker(modifier: Modifier = Modifier) {
             Spacer(Modifier.height(AppSpacing.xl))
 
             val isFirstLoad = state.isLoadingProfiles && state.profiles.isEmpty()
+            val profilesError = state.profilesError
             when {
                 isFirstLoad -> CircularProgressIndicator()
-                state.profilesError != null ->
+                profilesError != null ->
                     Problem(
-                        message = state.profilesError.toString(),
+                        message = stringResource(profilesError.toUserMessage()),
                         onRetry = { scope.launch { account.loadProfiles() } },
                     )
                 state.profiles.isEmpty() ->

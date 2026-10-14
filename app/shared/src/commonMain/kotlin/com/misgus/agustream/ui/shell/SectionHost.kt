@@ -1,5 +1,7 @@
 package com.misgus.agustream.ui.shell
 
+import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.error_playback_unavailable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -16,6 +18,7 @@ import com.misgus.agustream.ui.search.SearchViewModel
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.streams.StreamsRequest
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Content of the shell: shows [selected].
@@ -98,13 +101,14 @@ fun SectionHost(
         AppSection.SETTINGS -> {
             val snackbar = LocalSnackbarHost.current
             val scope = rememberCoroutineScope()
+            val playbackUnavailable = stringResource(Res.string.error_playback_unavailable)
             SettingsScreen(
                 onOpenPlayer = { target ->
                     if (services.playbackSupported) {
                         navigator.push(ContentRoute.Player(target))
                     } else {
                         scope.launch {
-                            snackbar?.showSnackbar("Playback is not available on this target yet.")
+                            snackbar?.showSnackbar(playbackUnavailable)
                         }
                     }
                 },

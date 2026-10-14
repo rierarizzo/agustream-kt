@@ -1,5 +1,6 @@
 package com.misgus.agustream.data.store
 
+import com.misgus.agustream.data.appJson
 import com.misgus.agustream.data.objOrNull
 import com.misgus.agustream.data.platform.configDirectory
 import com.misgus.agustream.data.platform.deleteFile
@@ -12,12 +13,13 @@ import kotlinx.serialization.json.JsonObject
 
 /** Well-known paths inside the app config directory. */
 object AppPaths {
-    val configDir: String get() = configDirectory()
-    val sessionFile: String get() = "$configDir/session.json"
-    val localStoreDir: String get() = "$configDir/local"
-    val watchedSeriesCacheFile: String get() = "$configDir/watched_series.json"
-    val ratingsFile: String get() = "$configDir/ratings.json"
-    val settingsFile: String get() = "$configDir/settings.json"
+    /** Resolved once; the config directory does not change during a run. */
+    val configDir: String by lazy { configDirectory() }
+    val sessionFile: String by lazy { "$configDir/session.json" }
+    val localStoreDir: String by lazy { "$configDir/local" }
+    val watchedSeriesCacheFile: String by lazy { "$configDir/watched_series.json" }
+    val ratingsFile: String by lazy { "$configDir/ratings.json" }
+    val settingsFile: String by lazy { "$configDir/settings.json" }
 }
 
 /**
@@ -56,7 +58,7 @@ class FileSessionStore(
         withContext(ioDispatcher) {
             val text = readTextFile(path) ?: return@withContext null
             runCatching {
-                com.misgus.agustream.data.appJson
+                appJson
                     .parseToJsonElement(text)
                     .objOrNull()
             }.getOrNull()

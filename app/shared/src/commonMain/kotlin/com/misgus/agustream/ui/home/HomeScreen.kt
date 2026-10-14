@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui.home
 
 import agustream.app.shared.generated.resources.Res
+import agustream.app.shared.generated.resources.detail_episode_code
 import agustream.app.shared.generated.resources.empty_nothing_to_show
 import agustream.app.shared.generated.resources.home_continue_watching
 import agustream.app.shared.generated.resources.home_empty_message
@@ -40,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
+import com.misgus.agustream.core.model.releaseYear
+import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.MetaPosterCard
@@ -126,7 +129,7 @@ private fun HomeContent(
     isMaximized: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
     onOpenPreview: (MetaPreview) -> Unit,
-    onOpenCatalog: (com.misgus.agustream.core.repository.CatalogRef) -> Unit,
+    onOpenCatalog: (CatalogRef) -> Unit,
     onPlayPreview: (MetaPreview) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
@@ -230,11 +233,13 @@ private fun ContinueCard(
 ) {
     val item = entry.item
     val progress = entry.progress
+    val season = progress.season
+    val episodeNumber = progress.episode
     val episode =
-        if (progress.season == null || progress.episode == null) {
+        if (season == null || episodeNumber == null) {
             null
         } else {
-            "S${progress.season}E${progress.episode}"
+            stringResource(Res.string.detail_episode_code, season, episodeNumber)
         }
     val backdrop = item.background ?: item.poster
 
@@ -296,4 +301,4 @@ private val HOME_SECTION_HEADER_HEIGHT = 76.dp
 private val HOME_HERO_MIN_HEIGHT = 480.dp
 
 /** Extracts the four-digit year from a Stremio `releaseInfo` string. */
-internal fun yearOf(releaseInfo: String?): String? = Regex("(?:1[89]\\d\\d|20\\d\\d)").find(releaseInfo ?: "")?.value
+internal fun yearOf(releaseInfo: String?): String? = releaseYear(releaseInfo)?.toString()

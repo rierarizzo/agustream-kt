@@ -1,7 +1,8 @@
 package com.misgus.agustream.ui.calendar
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.misgus.agustream.core.model.CatalogExtras
+import com.misgus.agustream.core.model.ContentTypes
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaVideo
 import com.misgus.agustream.core.repository.AccountRepository
@@ -9,6 +10,7 @@ import com.misgus.agustream.core.repository.CatalogRepository
 import com.misgus.agustream.core.repository.LibraryRepository
 import com.misgus.agustream.core.repository.MetadataRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
+import com.misgus.agustream.ui.common.AccountScopedViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -54,28 +56,19 @@ data class CalendarUiState(
  * window are kept, and ones without a release date are skipped.
  */
 class CalendarViewModel(
-    private val account: AccountRepository,
+    account: AccountRepository,
     private val library: LibraryRepository,
     private val metadata: MetadataRepository,
     private val catalogs: CatalogRepository,
     /** Injectable clock so the window is deterministic in tests. */
     private val today: () -> LocalDate = { Clock.System.todayIn(TimeZone.currentSystemDefault()) },
-) : ViewModel() {
+) : AccountScopedViewModel(account) {
     private val _state = MutableStateFlow(CalendarUiState())
     val state: StateFlow<CalendarUiState> = _state.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            account.state.collect { accountState ->
-                when {
-                    !accountState.isSignedIn -> clear()
-                    // The library belongs to a profile, so wait for one.
-                    accountState.requiresProfile && accountState.activeProfile == null -> Unit
-                    else -> load(force = true)
-                }
-            }
-        }
-    }
+    override fun onAccountReady() = load(force = true)
+
+    override fun onAccountCleared() = clear()
 
     /** Loads the upcoming episodes. Does nothing when loaded, unless [force]. */
     fun load(force: Boolean = false) {
@@ -97,7 +90,7 @@ class CalendarViewModel(
             val series =
                 library
                     .all()
-                    .filter { it.contentType == "series" }
+                    .filter { it.contentType == ContentTypes.SERIES }
                     .distinctBy { it.contentId }
                     .take(MAX_SERIES)
             if (!loadFromCalendarCatalog(series, start, end)) {
@@ -128,12 +121,12 @@ class CalendarViewModel(
         val refs =
             runCatchingCancellable { catalogs.catalogs() }
                 .getOrDefault(emptyList())
-                .filter { it.type == "series" && it.extras.any { extra -> extra.name == CALENDAR_IDS_EXTRA } }
+                .filter { it.type == ContentTypes.SERIES && it.extras.any { extra -> extra.name == CatalogExtras.CALENDAR_VIDEO_IDS } }
         if (refs.isEmpty()) return false
         val byId = series.associateBy { it.contentId }
         val ids = series.map { it.contentId }.filter { it.isNotEmpty() }.distinct()
         if (ids.isEmpty()) return false
-        val extra = mapOf(CALENDAR_IDS_EXTRA to ids.joinToString(","))
+        val extra = mapOf(CatalogExtras.CALENDAR_VIDEO_IDS to ids.joinToString(","))
         for (ref in refs) {
             val details =
                 runCatchingCancellable { catalogs.detailedItems(ref, extra) }
@@ -213,7 +206,6 @@ class CalendarViewModel(
         const val WINDOW_DAYS = 180
         const val MAX_SERIES = 60
         const val CONCURRENCY = 8
-        const val CALENDAR_IDS_EXTRA = "calendarVideosIds"
 
         val ENTRY_ORDER =
             compareBy<CalendarEntry>(

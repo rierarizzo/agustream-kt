@@ -31,6 +31,14 @@ kotlin {
     }
 
     sourceSets {
+        // Shared by the JVM and Android targets: both back the platform layer
+        // with `java.io.File`, so the file helpers live here once.
+        val jvmSharedMain by creating {
+            dependsOn(commonMain.get())
+        }
+        jvmMain.get().dependsOn(jvmSharedMain)
+        androidMain.get().dependsOn(jvmSharedMain)
+
         commonMain.dependencies {
             api(project(":core"))
             implementation(libs.kotlinx.coroutines.core)

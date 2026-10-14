@@ -54,6 +54,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.misgus.agustream.core.model.ContentTypes
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.PosterSize
@@ -87,8 +88,8 @@ enum class MediaTypeFilter {
     fun matches(preview: MetaPreview): Boolean =
         when (this) {
             ALL -> true
-            MOVIES -> preview.type == "movie"
-            SERIES -> preview.type == "series"
+            MOVIES -> preview.type == ContentTypes.MOVIE
+            SERIES -> preview.type == ContentTypes.SERIES
         }
 }
 

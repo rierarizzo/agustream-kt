@@ -31,7 +31,9 @@ the composition root, never the UI.
 `:core` and `:data` are Kotlin Multiplatform (`commonMain` + `jvmMain` +
 `androidMain`). Domain and data code lives in `commonMain`; only the HTTP
 engine, the filesystem and the player touch platform source sets through
-`expect`/`actual` (`data/platform/Platform.kt`).
+`expect`/`actual` (`data/platform/Platform.kt`). The JVM and Android file
+helpers share a `jvmSharedMain` source set (`data/platform/PlatformFileIO.kt`),
+so the atomic read/write/delete logic lives once.
 
 ## Domain (`:core`)
 
@@ -61,9 +63,14 @@ engine, the filesystem and the player touch platform source sets through
   form instead of assuming email + password. Adding OAuth or a magic link means
   a new subtype, not a contract change; a multi-step flow (device pairing) would
   still need a session object on top of this.
+- **Shared vocabulary lives with the models.** `ContentTypes`, `CatalogExtras`,
+  `ProgressThresholds` and `releaseYear()` name the protocol strings and
+  thresholds the domain, data and UI layers compare, so a typo or a drifting
+  literal cannot change behavior.
 - **`PlayerService` is a contract**, with a neutral `PlayerState` and a
-  `videoOutput: Any?` handle so the UI can embed the native surface without
-  depending on the engine.
+  `videoOutput: VideoOutput?` handle so the UI can embed the native surface
+  without depending on the engine. `VideoOutput` is an empty marker; the
+  desktop `FrameSource` extends it.
 
 ## Data (`:data`)
 
@@ -71,6 +78,9 @@ engine, the filesystem and the player touch platform source sets through
 - **kotlinx.serialization** with the `JsonElement` API and small defensive
   coercion helpers (`JsonUtils.kt`), mirroring `json_utils.dart`: third-party
   payloads degrade to `null`/empty instead of throwing.
+- **Addon clients are pooled.** `AddonClientPool` keeps one cached
+  `StremioAddonClient` per addon URL, shared by the four Stremio repositories, so
+  a manifest is fetched once even when catalogs are fetched concurrently.
 - **Stremio**: `StremioAddonClient` plus the four repositories. Same rules as
   the original: metadata is first-wins across addons, streams/subtitles are
   aggregated in parallel, and catalog `extra` values are encoded while keeping
@@ -125,6 +135,13 @@ engine, the filesystem and the player touch platform source sets through
   its state and launches work in `viewModelScope`. The UI collects with
   `collectAsStateWithLifecycle()`, so collection stops when a screen leaves the
   lifecycle.
+- **Shared screen behavior.** Data sections extend `AccountScopedViewModel`
+  (`ui/common`), which owns the "load when signed in and a profile is chosen,
+  clear on sign-out" rule, and use `WatchedBadgeSync` for the watched-badge
+  lookup, so neither is reimplemented per screen.
+- **Design tokens are data, not code.** `theme/Tokens.kt` holds the palette,
+  spacing, sizes, alphas and scrims; `theme/AppTheme.kt` holds only the Material
+  colour scheme, typography and shapes.
 - **Compose lifecycle.** `AgustreamApp` reuses the host's
   `ViewModelStoreOwner` when there is one — an Android `Activity`, so section
   ViewModels survive a configuration change — and falls back to a
@@ -461,21 +478,10 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   real phones. Separately, the Android release build is unoptimised —
   `isMinifyEnabled` is `false` and there is no baseline profile — so it reads as
   much slower than it needs to.
-- **Internationalisation.** Every user-facing string is a Kotlin literal inside
-  a composable; there are no Compose Resources string resources. The migration
-  is mechanical but touches every screen in `ui/`, so it should happen before
-  the string count grows.
 - **Keyboard / D-pad navigation.** `Interaction.kt` covers hover, focus and
   pressed states, and the player has shortcuts, but there is no focus traversal
   across the Home rails and no spatial navigation model. A TV target makes this
   mandatory rather than nice to have.
-- **Android predictive back.** There is no back handling at all: the custom
-  route stack (`ContentNavigator`) has no `BackHandler`, so the system back
-  gesture closes the activity instead of popping a pushed route. It needs a
-  `@Composable expect fun` back handler (no-op on desktop) whose Android actual
-  delegates to `androidx.activity.compose.BackHandler`, plus the
-  `activity-compose` dependency in `app/shared`. Do it before the Android target
-  is treated as shippable.
 
 ### UI components
 

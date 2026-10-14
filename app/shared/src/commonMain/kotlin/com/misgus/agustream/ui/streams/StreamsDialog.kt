@@ -65,6 +65,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.model.Stream
 import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.AppSearchField
+import com.misgus.agustream.ui.components.Message
 import com.misgus.agustream.ui.components.PosterImage
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.RouteViewModelStoreOwner
@@ -218,12 +219,12 @@ private fun Content(
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Icons.Outlined.ErrorOutline,
-                text = stringResource(Res.string.streams_error),
+                title = stringResource(Res.string.streams_error),
             )
         state.entries.isEmpty() ->
             Message(
                 icon = Icons.Outlined.SearchOff,
-                text =
+                title =
                     if (state.groups.isEmpty()) {
                         stringResource(Res.string.streams_empty)
                     } else {
@@ -291,20 +292,6 @@ private fun StreamCard(
             (stream.url ?: stream.externalUrl)?.let { clipboard.setText(AnnotatedString(it)) }
         }) {
             Icon(Icons.Outlined.ContentCopy, contentDescription = stringResource(Res.string.streams_copy_link))
-        }
-    }
-}
-
-@Composable
-private fun Message(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    text: String,
-) {
-    Box(Modifier.fillMaxSize(), Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
-            Spacer(Modifier.height(AppSpacing.md))
-            Text(text, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }

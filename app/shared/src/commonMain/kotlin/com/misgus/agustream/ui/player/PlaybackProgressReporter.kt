@@ -1,5 +1,7 @@
 package com.misgus.agustream.ui.player
 
+import com.misgus.agustream.core.model.ContentTypes
+import com.misgus.agustream.core.model.ProgressThresholds
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.repository.ProgressRepository
@@ -7,6 +9,7 @@ import com.misgus.agustream.core.repository.SettingsRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Saves watch progress for the playing [PlaybackTarget].
@@ -38,7 +41,7 @@ class PlaybackProgressReporter(
                 val fraction =
                     savedPosition.inWholeMilliseconds.toDouble() /
                         savedDuration.inWholeMilliseconds
-                if (fraction < RESUME_MIN_FRACTION || fraction > RESUME_MAX_FRACTION) {
+                if (fraction < ProgressThresholds.RESUME_MIN || fraction > ProgressThresholds.RESUME_MAX) {
                     return@runCatchingCancellable null
                 }
             } else if (savedPosition < Duration.parse("5s")) {
@@ -69,7 +72,7 @@ class PlaybackProgressReporter(
                 WatchProgress(
                     id = "",
                     contentId = target.contentId!!,
-                    contentType = target.contentType ?: "movie",
+                    contentType = target.contentType ?: ContentTypes.MOVIE,
                     videoId = target.videoId,
                     season = target.season,
                     episode = target.episode,
@@ -97,8 +100,6 @@ class PlaybackProgressReporter(
     }
 
     private companion object {
-        val INTERVAL = Duration.parse("10s")
-        const val RESUME_MIN_FRACTION = 0.02
-        const val RESUME_MAX_FRACTION = 0.90
+        val INTERVAL = 10.seconds
     }
 }

@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui.video
 
 import androidx.compose.ui.graphics.ImageBitmap
+import com.misgus.agustream.core.player.VideoOutput
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
  * Compose content, so Compose controls can be layered on top of it (a native
  * heavyweight surface would cover them).
  */
-interface FrameSource {
+interface FrameSource : VideoOutput {
     /** Bumped every time a new frame is ready to be drawn. */
     val frames: StateFlow<Long>
 

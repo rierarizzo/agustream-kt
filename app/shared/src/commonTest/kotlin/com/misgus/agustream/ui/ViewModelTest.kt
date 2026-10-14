@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui
 
 import com.misgus.agustream.core.model.LibraryItem
+import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.watched.WatchedBadgeResolver
 import com.misgus.agustream.ui.home.HomeViewModel
@@ -99,7 +100,7 @@ class HomeViewModelTest {
                     name = "Top",
                 )
             val preview =
-                com.misgus.agustream.core.model.MetaPreview(
+                MetaPreview(
                     id = "tt1",
                     type = "movie",
                     name = "Movie",

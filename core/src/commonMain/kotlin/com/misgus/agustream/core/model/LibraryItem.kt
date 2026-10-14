@@ -26,16 +26,20 @@ data class LibraryItem(
 ) {
     /** Release year, parsed from [releaseInfo] (`2019`, `2019-2023`, ...). */
     val year: Int?
-        get() = YEAR_PATTERN.find(releaseInfo ?: "")?.value?.toIntOrNull()
+        get() = releaseYear(releaseInfo)
 
     companion object {
-        private val YEAR_PATTERN = Regex("(?:1[89]\\d\\d|20\\d\\d)")
-
         /**
          * Builds a library item from a catalog preview, so a title found outside
          * the library opens the same detail screen.
+         *
+         * [addonBaseUrl] is carried over when the caller knows which addon the
+         * preview came from (the detail screen's "more like this" row).
          */
-        fun fromPreview(preview: MetaPreview): LibraryItem =
+        fun fromPreview(
+            preview: MetaPreview,
+            addonBaseUrl: String? = null,
+        ): LibraryItem =
             LibraryItem(
                 id = preview.id,
                 contentId = preview.id,
@@ -49,6 +53,7 @@ data class LibraryItem(
                 releaseInfo = preview.releaseInfo,
                 imdbRating = preview.imdbRating,
                 genres = preview.genres,
+                addonBaseUrl = addonBaseUrl,
             )
     }
 }

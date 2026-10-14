@@ -125,7 +125,7 @@ fun SyncingIndicator() {
 fun Message(
     icon: ImageVector,
     title: String,
-    message: String,
+    message: String? = null,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
 ) {
@@ -140,12 +140,14 @@ fun Message(
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(40.dp))
             Spacer(Modifier.size(AppSpacing.md))
             Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.sectionHeading())
-            Spacer(Modifier.size(AppSpacing.xs))
-            Text(
-                message,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            if (!message.isNullOrEmpty()) {
+                Spacer(Modifier.size(AppSpacing.xs))
+                Text(
+                    message,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
             if (actionLabel != null && onAction != null) {
                 Spacer(Modifier.size(AppSpacing.md))
                 ActionButton(text = actionLabel, onClick = onAction)

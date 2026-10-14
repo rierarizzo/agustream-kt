@@ -4,8 +4,12 @@ import agustream.app.shared.generated.resources.Res
 import agustream.app.shared.generated.resources.action_cancel
 import agustream.app.shared.generated.resources.action_clear
 import agustream.app.shared.generated.resources.action_save
+import agustream.app.shared.generated.resources.detail_episode
 import agustream.app.shared.generated.resources.detail_episodes
 import agustream.app.shared.generated.resources.detail_not_rated
+import agustream.app.shared.generated.resources.detail_rating_value
+import agustream.app.shared.generated.resources.detail_season_short
+import agustream.app.shared.generated.resources.detail_specials
 import agustream.app.shared.generated.resources.detail_you_may_also_like
 import agustream.app.shared.generated.resources.detail_your_rating
 import androidx.compose.animation.animateColorAsState
@@ -295,7 +299,9 @@ private fun orderSeasons(seasons: List<Int>): List<Int> =
 private fun defaultSeason(seasons: List<Int>): Int = seasons.firstOrNull { it == 1 } ?: seasons.first()
 
 /** Season `0` is presented as "Specials"; every other season as `S<n>`. */
-private fun seasonLabel(season: Int): String = if (season == 0) "Specials" else "S$season"
+@Composable
+private fun seasonLabel(season: Int): String =
+    if (season == 0) stringResource(Res.string.detail_specials) else stringResource(Res.string.detail_season_short, season)
 
 private val RELEASE_MONTHS =
     listOf(
@@ -334,7 +340,7 @@ private fun EpisodeCard(
     onTap: () -> Unit,
 ) {
     val number = video.episode ?: video.number
-    val title = video.title ?: "Episode ${number ?: ""}".trim()
+    val title = video.title ?: stringResource(Res.string.detail_episode, number?.toString() ?: "").trim()
     val interaction = rememberInteraction()
     val borderColor =
         animateColorAsState(
@@ -378,7 +384,7 @@ internal fun RatingDialog(
         text = {
             Column {
                 Text(
-                    if (value == 0) stringResource(Res.string.detail_not_rated) else "$value / 10",
+                    if (value == 0) stringResource(Res.string.detail_not_rated) else stringResource(Res.string.detail_rating_value, value),
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Slider(

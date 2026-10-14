@@ -1,5 +1,7 @@
 package com.misgus.agustream.core.watched
 
+import com.misgus.agustream.core.model.ContentTypes
+import com.misgus.agustream.core.model.ProgressThresholds
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.repository.MetadataRepository
 import com.misgus.agustream.core.repository.ProgressRepository
@@ -67,7 +69,7 @@ class WatchedBadgeResolver(
             }
         val completedKeys =
             allProgress.mapNotNullTo(mutableSetOf()) {
-                if ((it.fraction ?: 0.0) >= COMPLETION_THRESHOLD) {
+                if ((it.fraction ?: 0.0) >= ProgressThresholds.COMPLETION) {
                     watchedKey(it.contentId, it.season, it.episode)
                 } else {
                     null
@@ -77,7 +79,7 @@ class WatchedBadgeResolver(
         val watched = mutableSetOf<String>()
         val series = mutableListOf<WatchedCandidate>()
         for (candidate in candidates) {
-            if (!isSeries(candidate.type)) {
+            if (!ContentTypes.isSeries(candidate.type)) {
                 if (watchedKey(candidate.id) in watchedKeys) watched.add(candidate.id)
                 continue
             }
@@ -124,7 +126,7 @@ class WatchedBadgeResolver(
             return SeriesResult(cached.watched, null)
         }
 
-        val meta = metadata.detail("series", candidate.id)
+        val meta = metadata.detail(ContentTypes.SERIES, candidate.id)
         val isWatched =
             meta != null &&
                 hasWatchedAllMainSeasonEpisodes(meta, watchedKeys, completedKeys, today)
@@ -152,31 +154,15 @@ class WatchedBadgeResolver(
                 .filter { it.contentId == seriesId }
                 .map(::serialize)
                 .sorted()
+        // A plain, readable signature: it survives restarts and is easy to
+        // inspect in the cache file, unlike a truncated hash.
         val day = today.toString().substringBefore('T')
-        return "$day#${hash(watchedValues)}#${hash(completedValues)}"
+        return "$day|${watchedValues.joinToString(";")}|${completedValues.joinToString(";")}"
     }
 
     private fun serialize(key: WatchedKey) = "${key.contentId}|${key.season ?: -1}|${key.episode ?: -1}"
 
-    /** Stable FNV-1a (32-bit) hash of a sorted list, so it survives restarts. */
-    private fun hash(values: List<String>): String {
-        var hash = 0x811c9dc5L
-        for (value in values) {
-            for (unit in value.encodeToByteArray()) {
-                hash = hash xor (unit.toLong() and 0xFF)
-                hash = (hash * 0x01000193L) and 0xFFFFFFFFL
-            }
-            hash = hash xor 0x7cL
-            hash = (hash * 0x01000193L) and 0xFFFFFFFFL
-        }
-        return hash.toString(16)
-    }
-
-    private fun isSeries(type: String) = type.trim().lowercase() in SERIES_TYPES
-
     private companion object {
-        const val COMPLETION_THRESHOLD = 0.9
         const val MAX_CONCURRENT_LOOKUPS = 6
-        val SERIES_TYPES = setOf("series", "show", "tv", "tvshow", "anime")
     }
 }

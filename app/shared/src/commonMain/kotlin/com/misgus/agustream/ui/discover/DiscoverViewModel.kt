@@ -1,12 +1,13 @@
 package com.misgus.agustream.ui.discover
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.misgus.agustream.core.model.CatalogExtras
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.repository.CatalogRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
+import com.misgus.agustream.ui.common.AccountScopedViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -43,9 +44,9 @@ data class DiscoverUiState(
  * page.
  */
 class DiscoverViewModel(
-    private val account: AccountRepository,
+    account: AccountRepository,
     private val catalogs: CatalogRepository,
-) : ViewModel() {
+) : AccountScopedViewModel(account) {
     private val _state = MutableStateFlow(DiscoverUiState())
     val state: StateFlow<DiscoverUiState> = _state.asStateFlow()
 
@@ -63,18 +64,9 @@ class DiscoverViewModel(
 
     private var loadJob: Job? = null
 
-    init {
-        viewModelScope.launch {
-            account.state.collect { accountState ->
-                when {
-                    !accountState.isSignedIn -> clear()
-                    // The addons belong to a profile, so wait for one.
-                    accountState.requiresProfile && accountState.activeProfile == null -> Unit
-                    else -> load(force = true)
-                }
-            }
-        }
-    }
+    override fun onAccountReady() = load(force = true)
+
+    override fun onAccountCleared() = clear()
 
     /** Loads the first page of every catalog. Does nothing when loaded, unless [force]. */
     fun load(force: Boolean = false) {
@@ -140,7 +132,7 @@ class DiscoverViewModel(
                     .map { ref ->
                         async {
                             val skip = offsets[ref.key] ?: 0
-                            val extra = if (skip == 0) null else mapOf("skip" to skip.toString())
+                            val extra = if (skip == 0) null else mapOf(CatalogExtras.SKIP to skip.toString())
                             ref to runCatchingCancellable { catalogs.items(ref, extra) }
                         }
                     }.awaitAll()
@@ -157,7 +149,7 @@ class DiscoverViewModel(
             offsets[ref.key] = (offsets[ref.key] ?: 0) + page.size
             // A catalog without `skip` (or one that ignores it and repeats the
             // page) has nothing beyond the first page.
-            if (!ref.extras.any { it.name == "skip" }) exhausted += ref.key
+            if (!ref.extras.any { it.name == CatalogExtras.SKIP }) exhausted += ref.key
             val fresh = page.filter { seen.add("${it.type}:${it.id}") }
             if (fresh.isEmpty()) {
                 exhausted += ref.key

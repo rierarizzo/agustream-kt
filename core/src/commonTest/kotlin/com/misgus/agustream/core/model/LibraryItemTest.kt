@@ -45,4 +45,14 @@ class LibraryItemTest {
         assertEquals("series", built.contentType)
         assertEquals("p", built.poster)
     }
+
+    @Test
+    fun carriesTheAddonBaseUrlWhenProvided() {
+        val preview = MetaPreview(id = "tt3", type = "movie", name = "Film")
+        assertEquals(
+            "https://addon",
+            LibraryItem.fromPreview(preview, addonBaseUrl = "https://addon").addonBaseUrl,
+        )
+        assertNull(LibraryItem.fromPreview(preview).addonBaseUrl)
+    }
 }

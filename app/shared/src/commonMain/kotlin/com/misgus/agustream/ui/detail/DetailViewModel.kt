@@ -2,11 +2,13 @@ package com.misgus.agustream.ui.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.misgus.agustream.core.model.ContentTypes
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPerson
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.model.MetaVideo
+import com.misgus.agustream.core.model.releaseYear
 import com.misgus.agustream.core.repository.MetadataRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
 import kotlinx.coroutines.CancellationException
@@ -15,6 +17,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+/** A role a crew member is credited with. */
+enum class CrewRole {
+    DIRECTOR,
+    WRITER,
+}
+
+/** A crew member and the roles they are credited with. */
+data class CrewMember(
+    val name: String,
+    val roles: Set<CrewRole>,
+)
 
 /** Merged, render-ready state of the detail screen. */
 data class DetailUiState(
@@ -34,7 +48,7 @@ data class DetailUiState(
     val released: String? = null,
     val country: String? = null,
     val cast: List<MetaPerson> = emptyList(),
-    val crew: List<MetaPerson> = emptyList(),
+    val crew: List<CrewMember> = emptyList(),
     val episodes: List<MetaVideo> = emptyList(),
     val similar: List<MetaPreview> = emptyList(),
     val year: Int? = null,
@@ -88,16 +102,12 @@ class DetailViewModel(
     private fun merge(meta: MetaDetail?): DetailUiState {
         val cast = meta?.cast ?: emptyList()
         val crew = buildCrew(meta)
-        val year =
-            YEAR_PATTERN
-                .find((meta?.releaseInfo ?: item.releaseInfo) ?: "")
-                ?.value
-                ?.toIntOrNull()
+        val year = releaseYear(meta?.releaseInfo ?: item.releaseInfo)
         return DetailUiState(
             isLoading = false,
             hasLoaded = true,
             error = _state.value.error,
-            isSeries = item.contentType == "series",
+            isSeries = item.contentType == ContentTypes.SERIES,
             name = nonEmpty(meta?.name) ?: item.name,
             poster = nonEmpty(meta?.poster) ?: item.poster,
             background = nonEmpty(meta?.background) ?: item.background,
@@ -118,9 +128,9 @@ class DetailViewModel(
     }
 
     private fun initialState(): DetailUiState {
-        val year = YEAR_PATTERN.find(item.releaseInfo ?: "")?.value?.toIntOrNull()
+        val year = releaseYear(item.releaseInfo)
         return DetailUiState(
-            isSeries = item.contentType == "series",
+            isSeries = item.contentType == ContentTypes.SERIES,
             name = item.name,
             poster = item.poster,
             background = item.background,
@@ -133,17 +143,13 @@ class DetailViewModel(
         )
     }
 
-    private fun buildCrew(meta: MetaDetail?): List<MetaPerson> {
+    private fun buildCrew(meta: MetaDetail?): List<CrewMember> {
         if (meta == null) return emptyList()
-        val roles = linkedMapOf<String, MutableList<String>>()
-        meta.director.forEach { roles.getOrPut(it) { mutableListOf() }.add("Director") }
-        meta.writer.forEach { roles.getOrPut(it) { mutableListOf() }.add("Writer") }
-        return roles.map { (name, values) -> MetaPerson(name = name, character = values.joinToString(", ")) }
+        val roles = linkedMapOf<String, MutableSet<CrewRole>>()
+        meta.director.forEach { roles.getOrPut(it) { mutableSetOf() }.add(CrewRole.DIRECTOR) }
+        meta.writer.forEach { roles.getOrPut(it) { mutableSetOf() }.add(CrewRole.WRITER) }
+        return roles.map { (name, values) -> CrewMember(name = name, roles = values) }
     }
 
     private fun nonEmpty(value: String?): String? = value?.takeIf { it.isNotEmpty() }
-
-    private companion object {
-        val YEAR_PATTERN = Regex("(?:1[89]\\d\\d|20\\d\\d)")
-    }
 }

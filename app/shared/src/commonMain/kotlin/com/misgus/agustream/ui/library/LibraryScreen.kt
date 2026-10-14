@@ -34,6 +34,7 @@ import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.screenPadding
@@ -96,7 +97,7 @@ private fun LibraryContent(
                 horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
             ) {
                 items(state.items, key = { it.contentId }) { item ->
-                    Box(Modifier.aspectRatio(0.58f)) {
+                    Box(Modifier.aspectRatio(POSTER_CARD_ASPECT)) {
                         PosterTile(
                             item = item,
                             progress = state.progressByContentId[item.contentId],

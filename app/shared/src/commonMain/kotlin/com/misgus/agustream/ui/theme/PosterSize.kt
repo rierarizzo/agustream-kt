@@ -5,7 +5,7 @@ import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.repository.PosterSize
 
 /** Card ratio shared by the poster grids, so a card looks the same everywhere. */
-private const val POSTER_CARD_ASPECT = 0.58f
+const val POSTER_CARD_ASPECT = 0.58f
 
 /** How much a poster shrinks on a compact window (phone). */
 private const val COMPACT_SCALE = 0.45f

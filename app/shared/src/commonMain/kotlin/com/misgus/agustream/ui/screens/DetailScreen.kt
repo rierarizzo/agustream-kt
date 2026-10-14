@@ -3,6 +3,7 @@ package com.misgus.agustream.ui.screens
 import agustream.app.shared.generated.resources.Res
 import agustream.app.shared.generated.resources.action_back
 import agustream.app.shared.generated.resources.action_watch_now
+import agustream.app.shared.generated.resources.detail_episode_generic
 import agustream.app.shared.generated.resources.detail_error_library
 import agustream.app.shared.generated.resources.detail_error_rating
 import agustream.app.shared.generated.resources.detail_error_watched
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.misgus.agustream.core.model.ContentTypes
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.ui.components.ActionButton
@@ -83,7 +85,6 @@ import com.misgus.agustream.ui.theme.AppSynopsis
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
-import com.misgus.agustream.ui.theme.safeBottomInset
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -158,6 +159,7 @@ fun DetailScreen(
             ),
         )
     }
+    val episodeFallback = stringResource(Res.string.detail_episode_generic)
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val viewportHeight = maxHeight
@@ -196,14 +198,22 @@ fun DetailScreen(
                                 .minByOrNull { (it.season ?: 0) * 1000 + (it.episode ?: it.number ?: 0) }
                                 ?: state.episodes.firstOrNull()
                         if (state.isSeries && first != null) {
-                            openStreams("series", first.id, "${state.name} · ${first.title ?: "Episode"}")
+                            openStreams(ContentTypes.SERIES, first.id, "${state.name} · ${first.title ?: episodeFallback}")
                         } else {
                             openStreams(item.contentType, item.contentId, state.name)
                         }
                     },
-                    saved = saved,
-                    savedBusy = !savedKnown || saving,
-                    savedLoading = !savedKnown,
+                    actions =
+                        HeroActionState(
+                            saved = saved,
+                            savedBusy = !savedKnown || saving,
+                            savedLoading = !savedKnown,
+                            watched = watched,
+                            watchedBusy = !watchedKnown,
+                            watchedLoading = !watchedKnown,
+                            rating = rating,
+                            ratingLoading = !ratingKnown,
+                        ),
                     onToggleSaved = {
                         if (saving) return@HeroContent
                         saving = true
@@ -219,9 +229,6 @@ fun DetailScreen(
                             saving = false
                         }
                     },
-                    watched = watched,
-                    watchedBusy = !watchedKnown,
-                    watchedLoading = !watchedKnown,
                     onToggleWatched = {
                         if (!watchedKnown) return@HeroContent
                         watchedKnown = false
@@ -237,8 +244,6 @@ fun DetailScreen(
                             watchedKnown = true
                         }
                     },
-                    rating = rating,
-                    ratingLoading = !ratingKnown,
                     onRate = { showRatingDialog = true },
                 )
 
@@ -284,46 +289,6 @@ fun DetailScreen(
 }
 
 @Composable
-private fun DetailScrollContent(
-    state: DetailUiState,
-    item: LibraryItem,
-    openStreams: (String, String, String) -> Unit,
-    onOpenDetail: (LibraryItem) -> Unit,
-) {
-    if (state.isSeries && state.episodes.isNotEmpty()) {
-        Spacer(Modifier.height(AppSpacing.lg))
-        EpisodesSection(state.episodes) { video ->
-            openStreams("series", video.id, "${state.name} · ${video.title ?: "Episode"}")
-        }
-    }
-
-    val detailEntries =
-        buildList {
-            state.released?.takeIf { it.isNotEmpty() }?.let { add("Released" to it) }
-            state.country?.takeIf { it.isNotEmpty() }?.let { add("Country" to it) }
-        }
-    if (state.cast.isNotEmpty()) {
-        Spacer(Modifier.height(AppSpacing.lg))
-        PeopleRow("Cast", state.cast)
-    }
-    if (state.crew.isNotEmpty()) {
-        Spacer(Modifier.height(AppSpacing.lg))
-        PeopleRow("Crew", state.crew)
-    }
-    if (detailEntries.isNotEmpty()) {
-        Spacer(Modifier.height(AppSpacing.lg))
-        DetailsSection(detailEntries)
-    }
-    if (state.similar.isNotEmpty()) {
-        Spacer(Modifier.height(AppSpacing.lg))
-        SimilarRow(state.similar) { preview ->
-            onOpenDetail(preview.toLibraryItem(item))
-        }
-    }
-    Spacer(Modifier.height(AppSpacing.xl + safeBottomInset))
-}
-
-@Composable
 private fun DetailBackdrop(
     state: DetailUiState,
     fade: Float,
@@ -357,21 +322,26 @@ private fun DetailBackdrop(
     }
 }
 
+/** State of the three icon actions under the hero's call to action. */
+private data class HeroActionState(
+    val saved: Boolean,
+    val savedBusy: Boolean,
+    val savedLoading: Boolean,
+    val watched: Boolean,
+    val watchedBusy: Boolean,
+    val watchedLoading: Boolean,
+    val rating: Int?,
+    val ratingLoading: Boolean,
+)
+
 @Composable
 private fun HeroContent(
     state: DetailUiState,
     height: Dp,
+    actions: HeroActionState,
     onPlay: () -> Unit,
-    saved: Boolean,
-    savedBusy: Boolean,
-    savedLoading: Boolean,
     onToggleSaved: () -> Unit,
-    watched: Boolean,
-    watchedBusy: Boolean,
-    watchedLoading: Boolean,
     onToggleWatched: () -> Unit,
-    rating: Int?,
-    ratingLoading: Boolean,
     onRate: () -> Unit,
 ) {
     Box(Modifier.fillMaxWidth().height(height)) {
@@ -397,16 +367,9 @@ private fun HeroContent(
                     style = ActionButtonStyle.Accent,
                 )
                 ActionRow(
-                    saved = saved,
-                    savedBusy = savedBusy,
-                    savedLoading = savedLoading,
+                    actions = actions,
                     onToggleSaved = onToggleSaved,
-                    watched = watched,
-                    watchedBusy = watchedBusy,
-                    watchedLoading = watchedLoading,
                     onToggleWatched = onToggleWatched,
-                    rating = rating,
-                    ratingLoading = ratingLoading,
                     onRate = onRate,
                 )
             }
@@ -430,41 +393,34 @@ private fun HeroContent(
 /** Icon + label actions under the call to action. */
 @Composable
 private fun ActionRow(
-    saved: Boolean,
-    savedBusy: Boolean,
-    savedLoading: Boolean,
+    actions: HeroActionState,
     onToggleSaved: () -> Unit,
-    watched: Boolean,
-    watchedBusy: Boolean,
-    watchedLoading: Boolean,
     onToggleWatched: () -> Unit,
-    rating: Int?,
-    ratingLoading: Boolean,
     onRate: () -> Unit,
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         ActionItem(
-            icon = if (saved) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+            icon = if (actions.saved) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             label = stringResource(Res.string.detail_my_list),
-            active = saved,
-            enabled = !savedBusy,
-            loading = savedLoading,
+            active = actions.saved,
+            enabled = !actions.savedBusy,
+            loading = actions.savedLoading,
             onClick = onToggleSaved,
         )
         ActionItem(
-            icon = if (rating != null) Icons.Filled.Star else Icons.Outlined.StarBorder,
+            icon = if (actions.rating != null) Icons.Filled.Star else Icons.Outlined.StarBorder,
             label = stringResource(Res.string.detail_rate),
-            active = rating != null,
+            active = actions.rating != null,
             enabled = true,
-            loading = ratingLoading,
+            loading = actions.ratingLoading,
             onClick = onRate,
         )
         ActionItem(
-            icon = if (watched) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle,
+            icon = if (actions.watched) Icons.Filled.CheckCircle else Icons.Outlined.CheckCircle,
             label = stringResource(Res.string.status_watched),
-            active = watched,
-            enabled = !watchedBusy,
-            loading = watchedLoading,
+            active = actions.watched,
+            enabled = !actions.watchedBusy,
+            loading = actions.watchedLoading,
             onClick = onToggleWatched,
         )
     }
@@ -505,22 +461,6 @@ private fun ActionItem(
         )
     }
 }
-
-private fun com.misgus.agustream.core.model.MetaPreview.toLibraryItem(from: LibraryItem): LibraryItem =
-    LibraryItem(
-        id = id,
-        contentId = id,
-        contentType = type.ifEmpty { from.contentType },
-        name = name,
-        poster = poster,
-        background = background,
-        logo = logo,
-        description = description,
-        releaseInfo = releaseInfo,
-        imdbRating = imdbRating,
-        genres = genres,
-        addonBaseUrl = from.addonBaseUrl,
-    )
 
 /** Height of the fixed top scrim, in dp. */
 private val TOP_SCRIM_HEIGHT = 96.dp

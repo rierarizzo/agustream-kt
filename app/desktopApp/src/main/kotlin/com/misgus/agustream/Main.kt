@@ -96,7 +96,7 @@ fun main(args: Array<String>) {
                 exitApplication()
             },
             state = windowState,
-            title = "Agustream",
+            title = WINDOW_TITLE,
         ) {
             // The OS enforces the minimum: the window can grow or maximise but
             // never shrink below the size it opens with. Reapplied when the
@@ -187,6 +187,12 @@ private const val DARK_TITLE_BAR_ATTEMPTS = 20
 /** Size the desktop window opens with, and the smallest it can be resized to. */
 private val WINDOW_WIDTH: Dp = 1280.dp
 private val WINDOW_HEIGHT: Dp = 720.dp
+
+/**
+ * Window title. Kept local because the shared Compose resources are internal to
+ * the `:app:shared` module.
+ */
+private const val WINDOW_TITLE = "Agustream"
 
 /** Delay between dark-title-bar retries, in milliseconds. */
 private const val TITLE_BAR_RETRY_DELAY_MS = 50L

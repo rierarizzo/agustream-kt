@@ -6,7 +6,6 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.Dispatchers
 import java.io.File
-import java.io.IOException
 
 actual val ioDispatcher = Dispatchers.IO
 
@@ -39,43 +38,14 @@ actual fun configDirectory(): String {
     return File(context.filesDir, "Agustream").path
 }
 
-actual fun readTextFile(path: String): String? =
-    runCatching {
-        val file = File(path)
-        if (file.exists()) file.readText(Charsets.UTF_8) else null
-    }.getOrNull()
+actual fun readTextFile(path: String): String? = PlatformFileIO.read(path)
 
-/**
- * Writes [text] to [path] atomically, throwing on failure instead of hiding it.
- *
- * @see com.misgus.agustream.data.platform.writeTextFile
- */
 actual fun writeTextFile(
     path: String,
     text: String,
-) {
-    val file = File(path)
-    file.parentFile?.mkdirs()
-    val temporary = File(file.parentFile, "${file.name}.tmp")
-    temporary.writeText(text, Charsets.UTF_8)
-    if (!temporary.renameTo(file)) {
-        if (file.exists() && !file.delete()) {
-            temporary.delete()
-            throw IOException("Could not replace $path")
-        }
-        if (!temporary.renameTo(file)) {
-            file.writeText(text, Charsets.UTF_8)
-            temporary.delete()
-        }
-    }
-}
+) = PlatformFileIO.write(path, text)
 
-actual fun deleteFile(path: String) {
-    runCatching {
-        val file = File(path)
-        if (file.exists()) file.delete()
-    }
-}
+actual fun deleteFile(path: String) = PlatformFileIO.delete(path)
 
 actual fun hardenFilePermissions(path: String) {
     val file = File(path)

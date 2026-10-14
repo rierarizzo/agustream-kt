@@ -1,6 +1,7 @@
 package com.misgus.agustream.data.addons
 
 import com.misgus.agustream.core.model.Addon
+import com.misgus.agustream.core.model.ContentTypes
 import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.AddonRepository
@@ -22,7 +23,7 @@ class StremioCatalogRepository(
     private val addons: AddonRepository,
     private val client: HttpClient,
 ) : CatalogRepository {
-    private val clients = mutableMapOf<String, StremioAddonClient>()
+    private val clients = AddonClientPool(client)
 
     override suspend fun catalogs(): List<CatalogRef> {
         val installed: List<Addon> = runCatchingCancellable { addons.all() }.getOrDefault(emptyList())
@@ -32,7 +33,7 @@ class StremioCatalogRepository(
         val targets =
             installed.mapNotNull { addon ->
                 val baseUrl = normalizeAddonBaseUrl(addon.url)
-                if (baseUrl.isEmpty()) null else addon to clientFor(baseUrl)
+                if (baseUrl.isEmpty()) null else addon to clients.clientFor(baseUrl)
             }
         return coroutineScope {
             targets
@@ -41,7 +42,7 @@ class StremioCatalogRepository(
                         runCatchingCancellable {
                             val manifest = addonClient.fetchManifest()
                             manifest.catalogs
-                                .filter { it.type == "movie" || it.type == "series" }
+                                .filter { it.type == ContentTypes.MOVIE || it.type == ContentTypes.SERIES }
                                 .map { catalog ->
                                     CatalogRef(
                                         addonName = addon.name ?: manifest.name,
@@ -62,12 +63,10 @@ class StremioCatalogRepository(
     override suspend fun items(
         ref: CatalogRef,
         extra: Map<String, String>?,
-    ): List<MetaPreview> = clientFor(ref.addonBaseUrl).fetchCatalog(ref.type, ref.id, extra)
+    ): List<MetaPreview> = clients.clientFor(ref.addonBaseUrl).fetchCatalog(ref.type, ref.id, extra)
 
     override suspend fun detailedItems(
         ref: CatalogRef,
         extra: Map<String, String>?,
-    ): List<MetaDetail> = clientFor(ref.addonBaseUrl).fetchCatalogDetailed(ref.type, ref.id, extra)
-
-    private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
+    ): List<MetaDetail> = clients.clientFor(ref.addonBaseUrl).fetchCatalogDetailed(ref.type, ref.id, extra)
 }

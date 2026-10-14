@@ -22,13 +22,11 @@ import androidx.compose.ui.unit.dp
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppMotion
+import com.misgus.agustream.ui.theme.AppScale
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.PosterCaption
 import com.misgus.agustream.ui.theme.motionLayer
 import com.misgus.agustream.ui.theme.motionTween
-
-/** Scale a poster grows to on hover or focus. */
-private const val HOVER_SCALE = 1.04f
 
 /**
  * Poster card for a catalog item ([MetaPreview]), used by Home rows.
@@ -53,7 +51,7 @@ fun MetaPosterCard(
         )
     val scale =
         animateFloatAsState(
-            targetValue = if (interaction.active) HOVER_SCALE else 1f,
+            targetValue = if (interaction.active) AppScale.HOVER else 1f,
             animationSpec = motionTween(durationMillis = AppMotion.FAST),
             label = "posterScale",
         )

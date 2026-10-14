@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -44,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.repository.PosterSize
+import com.misgus.agustream.ui.catalog.CatalogUiState
 import com.misgus.agustream.ui.catalog.CatalogViewModel
 import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.Message
@@ -53,6 +55,7 @@ import com.misgus.agustream.ui.components.sectionHeading
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.safeBottomInset
@@ -129,9 +132,9 @@ fun CatalogScreen(
 
 @Composable
 private fun CatalogContent(
-    state: com.misgus.agustream.ui.catalog.CatalogUiState,
+    state: CatalogUiState,
     posterSize: PosterSize,
-    gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
+    gridState: LazyGridState,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
@@ -164,7 +167,7 @@ private fun CatalogContent(
                 horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
             ) {
                 items(state.items, key = { it.id }) { item ->
-                    Box(Modifier.aspectRatio(0.58f)) {
+                    Box(Modifier.aspectRatio(POSTER_CARD_ASPECT)) {
                         MetaPosterCard(
                             preview = item,
                             onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },

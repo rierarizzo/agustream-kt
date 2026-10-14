@@ -1,15 +1,15 @@
 package com.misgus.agustream.ui.library
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.LibraryRepository
 import com.misgus.agustream.core.repository.ProgressRepository
-import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.core.watched.WatchedBadgeResolver
 import com.misgus.agustream.core.watched.WatchedCandidate
+import com.misgus.agustream.ui.common.AccountScopedViewModel
+import com.misgus.agustream.ui.common.WatchedBadgeSync
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -38,28 +38,21 @@ data class LibraryUiState(
  * as the content is there.
  */
 class LibraryViewModel(
-    private val account: AccountRepository,
+    account: AccountRepository,
     private val library: LibraryRepository,
     private val progress: ProgressRepository,
-    private val badges: WatchedBadgeResolver,
-) : ViewModel() {
+    badges: WatchedBadgeResolver,
+) : AccountScopedViewModel(account) {
     private val _state = MutableStateFlow(LibraryUiState())
     val state: StateFlow<LibraryUiState> = _state.asStateFlow()
 
-    private var watchedRequest = 0
+    private val watchedSync = WatchedBadgeSync(badges, account)
+
+    override fun onAccountReady() = load(force = true)
+
+    override fun onAccountCleared() = clear()
 
     init {
-        viewModelScope.launch {
-            account.state.collect { accountState ->
-                when {
-                    !accountState.isSignedIn -> clear()
-                    // Wait for a profile before loading: the library is scoped to
-                    // one, so a load without it would just fail.
-                    accountState.requiresProfile && accountState.activeProfile == null -> Unit
-                    else -> load(force = true)
-                }
-            }
-        }
         // A write elsewhere (e.g. "add to favorites" from the detail screen)
         // must refresh the grid, so the repositories are observable too.
         viewModelScope.launch { library.changes.drop(1).collect { load(force = true) } }
@@ -108,27 +101,19 @@ class LibraryViewModel(
     }
 
     private suspend fun syncWatched(progressEntries: List<WatchProgress>) {
-        val request = ++watchedRequest
         val candidates = _state.value.items.map { WatchedCandidate(it.contentId, it.contentType) }
-        if (candidates.isEmpty()) return
-        _state.update { it.copy(isSyncingWatched = true) }
-        val watched =
-            runCatchingCancellable {
-                badges.resolve(
-                    candidates = candidates,
-                    progressEntries = progressEntries,
-                    profileKey =
-                        account.state.value.activeProfile
-                            ?.profileId
-                            ?.toString() ?: "",
-                )
-            }.getOrDefault(emptySet())
-        if (request != watchedRequest) return
-        _state.update { it.copy(watchedIds = watched, isSyncingWatched = false) }
+        watchedSync.resolve(
+            candidates = candidates,
+            progressEntries = progressEntries,
+            onStart = { _state.update { it.copy(isSyncingWatched = true) } },
+            onResult = { watched ->
+                _state.update { it.copy(watchedIds = watched, isSyncingWatched = false) }
+            },
+        )
     }
 
     private fun clear() {
-        watchedRequest++
+        watchedSync.invalidate()
         _state.value = LibraryUiState()
     }
 

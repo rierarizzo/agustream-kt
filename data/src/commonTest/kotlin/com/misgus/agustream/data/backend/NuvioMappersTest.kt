@@ -1,5 +1,6 @@
 package com.misgus.agustream.data.backend
 
+import com.misgus.agustream.core.model.LibraryItem
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
@@ -51,7 +52,7 @@ class NuvioMappersTest {
     @Test
     fun serializesLibraryRowWithoutNullColumns() {
         val item =
-            com.misgus.agustream.core.model.LibraryItem(
+            LibraryItem(
                 id = "",
                 contentId = "tt1",
                 contentType = "movie",

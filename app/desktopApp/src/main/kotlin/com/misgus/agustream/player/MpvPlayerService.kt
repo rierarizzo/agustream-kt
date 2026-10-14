@@ -4,6 +4,7 @@ import com.misgus.agustream.core.player.MediaTrack
 import com.misgus.agustream.core.player.PlaybackTarget
 import com.misgus.agustream.core.player.PlayerService
 import com.misgus.agustream.core.player.PlayerState
+import com.misgus.agustream.core.player.VideoOutput
 import com.misgus.agustream.player.mpv.LibMpv
 import com.misgus.agustream.player.mpv.LibMpvLoader
 import com.misgus.agustream.player.mpv.MpvEndFileReason
@@ -42,7 +43,7 @@ class MpvPlayerService internal constructor(
 
     private val renderer = MpvVideoRenderer()
 
-    override val videoOutput: Any get() = renderer
+    override val videoOutput: VideoOutput get() = renderer
 
     override val canPlay: Boolean = true
 

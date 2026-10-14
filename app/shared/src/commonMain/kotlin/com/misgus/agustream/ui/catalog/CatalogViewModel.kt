@@ -2,6 +2,7 @@ package com.misgus.agustream.ui.catalog
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.misgus.agustream.core.model.CatalogExtras
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.repository.CatalogRef
 import com.misgus.agustream.core.repository.CatalogRepository
@@ -65,7 +66,7 @@ class CatalogViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoadingMore = true) }
             try {
-                val page = catalogs.items(ref, mapOf("skip" to current.items.size.toString()))
+                val page = catalogs.items(ref, mapOf(CatalogExtras.SKIP to current.items.size.toString()))
                 val seen = current.items.map { it.id }.toMutableSet()
                 val fresh = page.filter { seen.add(it.id) }
                 _state.update {

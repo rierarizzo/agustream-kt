@@ -4,6 +4,7 @@ import agustream.app.shared.generated.resources.Res
 import agustream.app.shared.generated.resources.search_type_movies
 import agustream.app.shared.generated.resources.search_type_series
 import androidx.compose.runtime.Composable
+import com.misgus.agustream.core.model.ContentTypes
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -16,7 +17,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun contentTypeLabel(type: String): String? =
     when (type) {
-        "movie" -> stringResource(Res.string.search_type_movies)
-        "series" -> stringResource(Res.string.search_type_series)
+        ContentTypes.MOVIE -> stringResource(Res.string.search_type_movies)
+        ContentTypes.SERIES -> stringResource(Res.string.search_type_series)
         else -> null
     }

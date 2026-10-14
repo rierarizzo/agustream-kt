@@ -55,6 +55,21 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Duration
 
 /**
+ * Read-only values the player controls render.
+ *
+ * Grouped so the composable takes one state plus callbacks instead of a long
+ * list of positional values.
+ */
+data class PlayerControlsState(
+    val title: String,
+    val playing: Boolean,
+    val position: Duration,
+    val duration: Duration,
+    val volume: Double,
+    val visible: Boolean,
+)
+
+/**
  * Overlay controls for the player: back, title, seek bar, play/pause, time,
  * volume, subtitles, audio and fullscreen.
  *
@@ -63,12 +78,7 @@ import kotlin.time.Duration
  */
 @Composable
 fun PlayerControls(
-    title: String,
-    playing: Boolean,
-    position: Duration,
-    duration: Duration,
-    volume: Double,
-    visible: Boolean,
+    state: PlayerControlsState,
     onPlayPause: () -> Unit,
     onSeek: (Duration) -> Unit,
     onSeekBy: (Duration) -> Unit,
@@ -78,10 +88,10 @@ fun PlayerControls(
     onAudio: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val alpha by animateFloatAsState(if (visible) 1f else 0f, animationSpec = motionTween())
+    val alpha by animateFloatAsState(if (state.visible) 1f else 0f, animationSpec = motionTween())
     Box(Modifier.fillMaxSize().alpha(alpha)) {
-        TopBar(title, onBack, Modifier.align(Alignment.TopCenter))
-        if (!playing) {
+        TopBar(state.title, onBack, Modifier.align(Alignment.TopCenter))
+        if (!state.playing) {
             IconButton(
                 onClick = onPlayPause,
                 modifier =
@@ -94,10 +104,7 @@ fun PlayerControls(
             }
         }
         BottomBar(
-            playing = playing,
-            position = position,
-            duration = duration,
-            volume = volume,
+            state = state,
             onPlayPause = onPlayPause,
             onSeek = onSeek,
             onSeekBy = onSeekBy,
@@ -142,10 +149,7 @@ private fun TopBar(
 
 @Composable
 private fun BottomBar(
-    playing: Boolean,
-    position: Duration,
-    duration: Duration,
-    volume: Double,
+    state: PlayerControlsState,
     onPlayPause: () -> Unit,
     onSeek: (Duration) -> Unit,
     onSeekBy: (Duration) -> Unit,
@@ -155,9 +159,12 @@ private fun BottomBar(
     onAudio: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val totalMs = duration.inWholeMilliseconds
+    val totalMs = state.duration.inWholeMilliseconds
     val maxValue = if (totalMs <= 0) 1f else totalMs.toFloat()
-    val value = position.inWholeMilliseconds.coerceIn(0, if (totalMs <= 0) 0 else totalMs).toFloat()
+    val value =
+        state.position.inWholeMilliseconds
+            .coerceIn(0, if (totalMs <= 0) 0 else totalMs)
+            .toFloat()
 
     Column(
         modifier =
@@ -178,20 +185,27 @@ private fun BottomBar(
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onPlayPause) {
                 Icon(
-                    if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (playing) stringResource(Res.string.player_pause) else stringResource(Res.string.action_play),
+                    if (state.playing) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription =
+                        if (state.playing) {
+                            stringResource(
+                                Res.string.player_pause,
+                            )
+                        } else {
+                            stringResource(Res.string.action_play)
+                        },
                     tint = Color.White,
                 )
             }
-            IconButton(onClick = { onSeekBy(Duration.parse("-10s")) }) {
+            IconButton(onClick = { onSeekBy(SEEK_BACK) }) {
                 Icon(Icons.Default.Replay10, contentDescription = stringResource(Res.string.player_back_10), tint = Color.White)
             }
-            IconButton(onClick = { onSeekBy(Duration.parse("10s")) }) {
+            IconButton(onClick = { onSeekBy(SEEK_FORWARD) }) {
                 Icon(Icons.Default.Forward10, contentDescription = stringResource(Res.string.player_forward_10), tint = Color.White)
             }
             Spacer(Modifier.width(8.dp))
             Text(
-                "${format(position)} / ${format(duration)}",
+                "${format(state.position)} / ${format(state.duration)}",
                 style = MaterialTheme.typography.labelMedium,
                 color = Color.White,
             )
@@ -204,7 +218,7 @@ private fun BottomBar(
             )
             Box(Modifier.width(110.dp)) {
                 Slider(
-                    value = volume.coerceIn(0.0, 100.0).toFloat(),
+                    value = state.volume.coerceIn(0.0, 100.0).toFloat(),
                     onValueChange = { onVolumeChanged(it.toDouble()) },
                     valueRange = 0f..100f,
                     colors = SliderDefaults.colors(thumbColor = Color.White, activeTrackColor = Color.White),

@@ -1,9 +1,9 @@
 package com.misgus.agustream.ui.home
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
+import com.misgus.agustream.core.model.ProgressThresholds
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.repository.AccountRepository
 import com.misgus.agustream.core.repository.CatalogRef
@@ -13,6 +13,8 @@ import com.misgus.agustream.core.repository.ProgressRepository
 import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.core.watched.WatchedBadgeResolver
 import com.misgus.agustream.core.watched.WatchedCandidate
+import com.misgus.agustream.ui.common.AccountScopedViewModel
+import com.misgus.agustream.ui.common.WatchedBadgeSync
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -57,30 +59,20 @@ data class HomeUiState(
  * the background, so the content paints first.
  */
 class HomeViewModel(
-    private val account: AccountRepository,
+    account: AccountRepository,
     private val catalogs: CatalogRepository,
     private val library: LibraryRepository,
     private val progress: ProgressRepository,
-    private val badges: WatchedBadgeResolver,
-) : ViewModel() {
+    badges: WatchedBadgeResolver,
+) : AccountScopedViewModel(account) {
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
-    private var watchedRequest = 0
+    private val watchedSync = WatchedBadgeSync(badges, account)
 
-    init {
-        viewModelScope.launch {
-            account.state.collect { accountState ->
-                when {
-                    !accountState.isSignedIn -> clear()
-                    // A backend with profiles has no safe default: wait until one
-                    // is chosen instead of loading (and failing) without it.
-                    accountState.requiresProfile && accountState.activeProfile == null -> Unit
-                    else -> load(force = true)
-                }
-            }
-        }
-    }
+    override fun onAccountReady() = load(force = true)
+
+    override fun onAccountCleared() = clear()
 
     /** Loads everything. Does nothing when already loaded, unless [force]. */
     fun load(force: Boolean = false) {
@@ -113,7 +105,11 @@ class HomeViewModel(
                     .mapNotNull { entry ->
                         val item = byContent[entry.contentId] ?: return@mapNotNull null
                         val fraction = entry.fraction ?: 0.0
-                        if (fraction <= 0.02 || fraction >= 0.95) return@mapNotNull null
+                        if (fraction <= ProgressThresholds.IN_PROGRESS_MIN ||
+                            fraction >= ProgressThresholds.IN_PROGRESS_MAX
+                        ) {
+                            return@mapNotNull null
+                        }
                         ContinueEntry(item, entry)
                     }.sortedByDescending { it.progress.lastWatched ?: Instant.fromEpochMilliseconds(0) }
                     .take(MAX_CONTINUE)
@@ -158,7 +154,6 @@ class HomeViewModel(
         }
 
     private suspend fun syncWatched(progressEntries: List<WatchProgress>) {
-        val request = ++watchedRequest
         val candidates =
             buildSet {
                 _state.value.rows.forEach { row -> row.items.forEach { add(WatchedCandidate(it.id, it.type)) } }
@@ -166,27 +161,18 @@ class HomeViewModel(
                     add(WatchedCandidate(it.item.contentId, it.item.contentType))
                 }
             }
-        if (candidates.isEmpty()) return
-        _state.update { it.copy(isSyncingWatched = true) }
-        val watched =
-            runCatchingCancellable {
-                badges.resolve(
-                    candidates = candidates,
-                    progressEntries = progressEntries,
-                    profileKey = profileKey(),
-                )
-            }.getOrDefault(emptySet())
-        if (request != watchedRequest) return
-        _state.update { it.copy(watchedIds = watched, isSyncingWatched = false) }
+        watchedSync.resolve(
+            candidates = candidates,
+            progressEntries = progressEntries,
+            onStart = { _state.update { it.copy(isSyncingWatched = true) } },
+            onResult = { watched ->
+                _state.update { it.copy(watchedIds = watched, isSyncingWatched = false) }
+            },
+        )
     }
 
-    private fun profileKey() =
-        account.state.value.activeProfile
-            ?.profileId
-            ?.toString() ?: ""
-
     private fun clear() {
-        watchedRequest++
+        watchedSync.invalidate()
         _state.value = HomeUiState()
     }
 

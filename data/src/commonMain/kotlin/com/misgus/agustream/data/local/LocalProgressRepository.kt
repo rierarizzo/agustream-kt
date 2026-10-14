@@ -1,5 +1,6 @@
 package com.misgus.agustream.data.local
 
+import com.misgus.agustream.core.model.ProgressThresholds
 import com.misgus.agustream.core.model.WatchProgress
 import com.misgus.agustream.core.model.WatchedEntry
 import com.misgus.agustream.core.repository.ProgressRepository
@@ -62,7 +63,7 @@ class LocalProgressRepository(
 
             store.read().map(::watchProgressFromRow).forEach { entry ->
                 if (entry.contentId !in candidates) return@forEach
-                if ((entry.fraction ?: 0.0) < 0.9) return@forEach
+                if ((entry.fraction ?: 0.0) < ProgressThresholds.COMPLETION) return@forEach
                 result +=
                     WatchedEntry(
                         contentId = entry.contentId,

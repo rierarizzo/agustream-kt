@@ -29,6 +29,8 @@
     <string name="error_not_found">The requested content could not be found.</string>
     <string name="error_server">The server reported a problem. Please try again in a moment.</string>
     <string name="error_open_file">Could not open the file with the default app.</string>
+    <string name="error_playback_unavailable">Playback is not available on this target yet.</string>
+    <string name="error_source_unplayable">This source cannot be played yet (torrent or external link).</string>
 
     <!-- Onboarding -->
     <string name="onboarding_tagline">Your library, addons and watch progress, together in one place.</string>
@@ -67,7 +69,7 @@
     <!-- Search -->
     <string name="search_discover">Discover</string>
     <string name="search_placeholder">Search movies and series</string>
-    <string name="search_all_genres">All genres</string>
+    <string name="search_all_genres">All Genres</string>
     <string name="search_failed_title">Search failed</string>
     <string name="search_no_results_title">No results</string>
     <string name="search_nothing_matched">Nothing matched &quot;%1$s&quot;.</string>
@@ -146,6 +148,19 @@
     <string name="detail_you_may_also_like">You May Also Like</string>
     <string name="detail_your_rating">Your rating</string>
     <string name="detail_not_rated">Not rated</string>
+    <string name="detail_rating_value">%1$d / 10</string>
+    <string name="detail_cast">Cast</string>
+    <string name="detail_crew">Crew</string>
+    <string name="detail_released">Released</string>
+    <string name="detail_country">Country</string>
+    <string name="detail_director">Director</string>
+    <string name="detail_writer">Writer</string>
+    <string name="detail_episode">Episode %1$s</string>
+    <string name="detail_episode_generic">Episode</string>
+    <string name="detail_specials">Specials</string>
+    <string name="detail_season_short">S%1$d</string>
+    <string name="detail_episode_code">S%1$dE%2$d</string>
+    <string name="media_rating">★ %1$s</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -177,6 +192,7 @@
     <string name="settings_video_url">Video URL</string>
     <string name="settings_play_url">Play URL</string>
     <string name="settings_open_local">Open local file</string>
+    <string name="dialog_open_video">Open video</string>
     <string name="poster_size_small">Small</string>
     <string name="poster_size_default">Default</string>
     <string name="poster_size_large">Large</string>

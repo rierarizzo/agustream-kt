@@ -1,6 +1,7 @@
 package com.misgus.agustream.core.repository
 
 import com.misgus.agustream.core.model.AddonCatalogExtra
+import com.misgus.agustream.core.model.CatalogExtras
 import com.misgus.agustream.core.model.MetaDetail
 import com.misgus.agustream.core.model.MetaPreview
 
@@ -31,7 +32,7 @@ data class CatalogRef(
     val key: String get() = "$addonBaseUrl|$type|$id"
 
     /** Whether the catalog accepts a free-text `search` parameter. */
-    val searches: Boolean get() = extras.any { it.name == "search" }
+    val searches: Boolean get() = extras.any { it.name == CatalogExtras.SEARCH }
 
     /**
      * Whether the catalog can be fetched with no query parameter.

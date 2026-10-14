@@ -5,7 +5,6 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.Dispatchers
 import java.io.File
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.PosixFilePermissions
@@ -34,46 +33,14 @@ actual fun configDirectory(): String {
     return File(base, "Agustream").path
 }
 
-actual fun readTextFile(path: String): String? =
-    runCatching {
-        val file = File(path)
-        if (file.exists()) file.readText(Charsets.UTF_8) else null
-    }.getOrNull()
+actual fun readTextFile(path: String): String? = PlatformFileIO.read(path)
 
-/**
- * Writes [text] to [path] atomically.
- *
- * The content goes to a sibling temporary file that is then renamed over the
- * target, so an interrupted write cannot leave a truncated document. A failure
- * is thrown instead of swallowed: the caller must know the data was not saved.
- */
 actual fun writeTextFile(
     path: String,
     text: String,
-) {
-    val file = File(path)
-    file.parentFile?.mkdirs()
-    val temporary = File(file.parentFile, "${file.name}.tmp")
-    temporary.writeText(text, Charsets.UTF_8)
-    if (!temporary.renameTo(file)) {
-        // Windows refuses to rename over an existing file; replace it explicitly.
-        if (file.exists() && !file.delete()) {
-            temporary.delete()
-            throw IOException("Could not replace $path")
-        }
-        if (!temporary.renameTo(file)) {
-            file.writeText(text, Charsets.UTF_8)
-            temporary.delete()
-        }
-    }
-}
+) = PlatformFileIO.write(path, text)
 
-actual fun deleteFile(path: String) {
-    runCatching {
-        val file = File(path)
-        if (file.exists()) file.delete()
-    }
-}
+actual fun deleteFile(path: String) = PlatformFileIO.delete(path)
 
 actual fun hardenFilePermissions(path: String) {
     val file = File(path)

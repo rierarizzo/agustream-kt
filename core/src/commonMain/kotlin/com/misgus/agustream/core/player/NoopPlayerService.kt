@@ -18,7 +18,7 @@ class NoopPlayerService(
     private val _state = MutableStateFlow(PlayerState())
     override val state: StateFlow<PlayerState> = _state.asStateFlow()
 
-    override val videoOutput: Any? = null
+    override val videoOutput: VideoOutput? = null
 
     override val canPlay: Boolean = false
 

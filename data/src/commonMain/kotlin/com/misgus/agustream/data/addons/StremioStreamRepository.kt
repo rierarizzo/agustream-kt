@@ -21,7 +21,7 @@ class StremioStreamRepository(
     private val addons: AddonRepository,
     private val client: HttpClient,
 ) : StreamRepository {
-    private val clients = mutableMapOf<String, StremioAddonClient>()
+    private val clients = AddonClientPool(client)
 
     override suspend fun all(
         type: String,
@@ -44,7 +44,7 @@ class StremioStreamRepository(
         val baseUrl = normalizeAddonBaseUrl(addon.url)
         if (baseUrl.isEmpty()) return null
         return try {
-            val streams = clientFor(baseUrl).fetchStreams(type, id)
+            val streams = clients.clientFor(baseUrl).fetchStreams(type, id)
             if (streams.isEmpty()) {
                 null
             } else {
@@ -57,8 +57,6 @@ class StremioStreamRepository(
             null
         }
     }
-
-    private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
 }
 
 internal fun hostOf(url: String): String = url.substringAfter("://", url).substringBefore('/').substringBefore(':')

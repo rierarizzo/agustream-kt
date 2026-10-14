@@ -37,6 +37,7 @@ import com.misgus.agustream.ui.components.SkeletonPosterGrid
 import com.misgus.agustream.ui.components.toUserMessage
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.screenPadding
@@ -129,7 +130,7 @@ private fun DiscoverGrid(
         horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
     ) {
         items(items, key = { "${it.type}:${it.id}" }) { item ->
-            Box(Modifier.aspectRatio(0.58f)) {
+            Box(Modifier.aspectRatio(POSTER_CARD_ASPECT)) {
                 MetaPosterCard(
                     preview = item,
                     onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },

@@ -33,13 +33,11 @@ import com.misgus.agustream.ui.theme.AppCorner
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowSize
+import com.misgus.agustream.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.agustream.ui.theme.cellWidth
 import com.misgus.agustream.ui.theme.gridSpacing
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlin.math.ceil
-
-/** Poster card ratio, mirrored by the real grids. */
-private const val POSTER_ASPECT = 0.58f
 
 /**
  * Shimmer colours from the theme, so the sweep matches the surface it sits on.
@@ -75,7 +73,7 @@ fun SkeletonPosterGrid(
         // `Adaptive` stretches the cells to fill the row, so measure with the real
         // cell width instead of the nominal one to know how tall a row is.
         val cell = (maxWidth - AppSpacing.xl * 2 - AppSpacing.md * (columns - 1)) / columns
-        val rows = rowsThatFit(maxHeight, cell / POSTER_ASPECT)
+        val rows = rowsThatFit(maxHeight, cell / POSTER_CARD_ASPECT)
         LazyVerticalGrid(
             columns = GridCells.Adaptive(cellWidth),
             modifier = Modifier.fillMaxSize(),
@@ -85,7 +83,7 @@ fun SkeletonPosterGrid(
             userScrollEnabled = false,
         ) {
             items(columns * rows) {
-                Box(Modifier.aspectRatio(POSTER_ASPECT)) {
+                Box(Modifier.aspectRatio(POSTER_CARD_ASPECT)) {
                     SkeletonBox(progress = progress, modifier = Modifier.fillMaxSize())
                 }
             }

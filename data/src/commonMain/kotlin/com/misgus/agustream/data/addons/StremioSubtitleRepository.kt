@@ -20,7 +20,7 @@ class StremioSubtitleRepository(
     private val addons: AddonRepository,
     private val client: HttpClient,
 ) : SubtitleRepository {
-    private val clients = mutableMapOf<String, StremioAddonClient>()
+    private val clients = AddonClientPool(client)
 
     override suspend fun all(
         type: String,
@@ -52,13 +52,11 @@ class StremioSubtitleRepository(
         if (baseUrl.isEmpty()) return emptyList()
         return try {
             val name = addon.name ?: hostOf(baseUrl)
-            clientFor(baseUrl).fetchSubtitles(type, id).map { it.withAddon(name) }
+            clients.clientFor(baseUrl).fetchSubtitles(type, id).map { it.withAddon(name) }
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
             throw cancellation
         } catch (_: Exception) {
             emptyList()
         }
     }
-
-    private fun clientFor(baseUrl: String): StremioAddonClient = clients.getOrPut(baseUrl) { StremioAddonClient(baseUrl, client) }
 }

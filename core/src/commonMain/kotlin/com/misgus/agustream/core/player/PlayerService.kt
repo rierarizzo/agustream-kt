@@ -41,13 +41,13 @@ interface PlayerService {
     val state: StateFlow<PlayerState>
 
     /**
-     * Platform handle for the video surface (on desktop, an AWT `Component`),
-     * or `null` while no engine is available.
+     * Platform handle for the video surface (on desktop, a Compose frame
+     * source), or `null` while no engine is available.
      *
      * The UI casts it to the platform type in `jvmMain`, which keeps the UI
      * layer independent from the concrete engine.
      */
-    val videoOutput: Any?
+    val videoOutput: VideoOutput?
 
     /**
      * Whether this engine can actually play media on the current target.
