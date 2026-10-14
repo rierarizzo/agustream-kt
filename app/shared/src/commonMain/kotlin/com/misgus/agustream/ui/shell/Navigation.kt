@@ -30,9 +30,7 @@ import com.misgus.agustream.core.model.BackendProfile
 import com.misgus.agustream.ui.components.ProfileAvatar
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.focusRing
-import com.misgus.agustream.ui.components.interactionHighlight
 import com.misgus.agustream.ui.components.rememberInteraction
-import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppIconSize
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -110,14 +108,13 @@ fun BottomNav(
                 NavigationBarItem(
                     selected = section == selected,
                     onClick = { onSelected(section) },
-                    // Match the rail's selected treatment (amber brand tint on a
-                    // faint amber fill) instead of Material's default secondary
-                    // container.
+                    // Match the rail's selected treatment (amber brand icon, no
+                    // indicator box) instead of Material's default container.
                     colors =
                         NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,
                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = AppAlpha.NAV_SELECTED),
+                            indicatorColor = Color.Transparent,
                         ),
                     icon = {
                         Icon(
@@ -132,7 +129,7 @@ fun BottomNav(
     }
 }
 
-/** One section in the rail: an icon-only target with the amber selected treatment. */
+/** One section in the rail: a bare icon that carries its own state. */
 @Composable
 private fun RailNavItem(
     section: AppSection,
@@ -140,28 +137,22 @@ private fun RailNavItem(
     onTap: () -> Unit,
 ) {
     val interaction = rememberInteraction()
-    val isSelected = selected
-    val background =
-        interactionHighlight(
-            interaction,
-            base =
-                if (selected) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = AppAlpha.NAV_SELECTED)
-                } else {
-                    Color.Transparent
-                },
-        )
+    // No state-layer box: the glyph carries the state (amber when selected,
+    // brighter on hover/focus), so the rail reads as bare icons.
     val contentColor =
-        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        when {
+            selected -> MaterialTheme.colorScheme.primary
+            interaction.active -> MaterialTheme.colorScheme.onSurface
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
     Box(
         modifier =
             Modifier
                 .size(AppSizes.minTouchTarget)
                 .focusRing(interaction)
                 .clip(MaterialTheme.shapes.small)
-                .background(background)
-                .clickableSurface(interaction, onTap)
-                .semantics { this.selected = isSelected },
+                .clickableSurface(interaction, onTap, indication = null)
+                .semantics { this.selected = selected },
         contentAlignment = Alignment.Center,
     ) {
         Icon(

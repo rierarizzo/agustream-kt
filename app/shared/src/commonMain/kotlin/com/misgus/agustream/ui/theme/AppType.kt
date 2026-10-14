@@ -52,4 +52,24 @@ object AppType {
         } else {
             MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, lineHeight = 25.sp)
         }
+
+    /**
+     * Label of a button.
+     *
+     * Material's `labelLarge` is Medium by default, but the app pins every
+     * typography slot to Normal; a button is an action, so it opts back into a
+     * heavier weight here instead of at the call site.
+     */
+    @Composable
+    fun buttonLabel(): TextStyle = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+
+    /**
+     * Label of a primary call to action (the filled and amber buttons).
+     *
+     * One size up and still SemiBold, so "Watch Now" carries the billboard
+     * without shouting like a display heading.
+     */
+    @Composable
+    fun ctaLabel(): TextStyle =
+        MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold)
 }

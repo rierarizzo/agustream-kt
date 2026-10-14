@@ -2,6 +2,7 @@ package com.misgus.agustream.ui.home
 
 import agustream.app.shared.generated.resources.Res
 import agustream.app.shared.generated.resources.detail_episode_code
+import agustream.app.shared.generated.resources.detail_error_library
 import agustream.app.shared.generated.resources.empty_nothing_to_show
 import agustream.app.shared.generated.resources.home_continue_watching
 import agustream.app.shared.generated.resources.home_empty_message
@@ -55,6 +56,7 @@ import com.misgus.agustream.ui.icons.AppIcons
 import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.shell.ContentNavigator
 import com.misgus.agustream.ui.shell.ContentRoute
+import com.misgus.agustream.ui.shell.LocalSnackbarHost
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppCorner
@@ -95,14 +97,28 @@ fun HomeScreen(
     val settingsRepository = LocalAppServices.current.settings
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
     val windowSize = LocalWindowSize.current
+    val snackbar = LocalSnackbarHost.current
+    val savedError = state.savedError
+    val libraryError = stringResource(Res.string.detail_error_library)
+
+    // The ViewModel owns the write; the screen surfaces a failure once and clears it.
+    LaunchedEffect(savedError) {
+        if (savedError != null) {
+            snackbar?.showSnackbar(libraryError)
+            viewModel.consumeSavedError()
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         HomeContent(
             state = state,
             posterSize = settings.posterSize,
+            savedIds = state.savedIds,
+            busyIds = state.savingIds,
             onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
             onOpenPreview = { navigator.push(ContentRoute.Detail(LibraryItem.fromPreview(it))) },
             onOpenCatalog = { navigator.push(ContentRoute.Catalog(it)) },
+            onToggleSaved = viewModel::toggleSaved,
             onPlayPreview = { preview ->
                 onOpenStreams(
                     StreamsRequest(
@@ -131,10 +147,13 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeUiState,
     posterSize: PosterSize,
+    savedIds: Set<String>,
+    busyIds: Set<String>,
     onOpenDetail: (LibraryItem) -> Unit,
     onOpenPreview: (MetaPreview) -> Unit,
     onOpenCatalog: (CatalogRef) -> Unit,
     onPlayPreview: (MetaPreview) -> Unit,
+    onToggleSaved: (MetaPreview) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
     when {
@@ -178,12 +197,22 @@ private fun HomeContent(
                     state.featured.isNotEmpty() && !compact ->
                         WideHero(
                             items = state.featured,
+                            savedIds = savedIds,
+                            busyIds = busyIds,
                             onOpen = onOpenPreview,
                             onPlay = onPlayPreview,
+                            onToggleSaved = onToggleSaved,
                             height = heroHeight,
                         )
                     state.featured.isNotEmpty() ->
-                        Hero(items = state.featured, onOpen = onOpenPreview, onPlay = onPlayPreview)
+                        Hero(
+                            items = state.featured,
+                            savedIds = savedIds,
+                            busyIds = busyIds,
+                            onOpen = onOpenPreview,
+                            onPlay = onPlayPreview,
+                            onToggleSaved = onToggleSaved,
+                        )
                     compact ->
                         // No billboard to tuck under the status bar: reserve its height.
                         Spacer(Modifier.height(safeTopInset))

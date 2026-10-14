@@ -17,6 +17,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.ui.theme.AppAlpha
@@ -122,7 +124,11 @@ fun Modifier.motionBorder(
  * Keyboard/D-pad focus ring for a custom interactive surface.
  *
  * One definition so every focusable control draws the same ring, instead of
- * repeating `motionBorder({ if (focused) colour else transparent }, …)`.
+ * repeating `motionBorder({ if (focused) colour else transparent }, …)`. A
+ * pointer click also grants focus, but a ring on a mouse click reads as noise,
+ * so the ring is drawn only when the input mode is not touch: a remote or a
+ * gamepad keeps a visible target, while the mouse keeps the clean, box-less
+ * look.
  */
 @Composable
 fun Modifier.focusRing(
@@ -130,9 +136,11 @@ fun Modifier.focusRing(
     color: Color = MaterialTheme.colorScheme.primary,
     cornerRadius: Dp = AppCorner.small,
     width: Dp = AppSizes.focusRing,
-): Modifier =
-    motionBorder(
-        color = { if (state.focused) color else Color.Transparent },
+): Modifier {
+    val keyboardFocused = state.focused && LocalInputModeManager.current.inputMode != InputMode.Touch
+    return motionBorder(
+        color = { if (keyboardFocused) color else Color.Transparent },
         width = width,
         cornerRadius = cornerRadius,
     )
+}

@@ -230,6 +230,14 @@ so the atomic read/write/delete logic lives once.
   under the synopsis; and the Home copy uses a tighter vertical rhythm because it
   sits over cropped artwork. Metadata is one builder, so the star, separators
   and rating formatting cannot diverge.
+- **Billboards share their icon actions.** `HeroActionRow` and
+  `HeroActionState` (`ui/components/HeroActions.kt`) render the save, rate,
+  watched and info buttons next to the call to action, so Home and the detail
+  screen cannot drift in icon, size, colour or state. The Home billboard shows
+  save and the icon-only "More info"; the detail screen adds rate and watched.
+  Home's save is optimistic in `HomeViewModel` and reconciled through
+  `LibraryRepository.changes`, so a title saved on either screen shows as saved
+  on both.
 - **Edge-to-edge and system insets.** Android runs the activity edge-to-edge
   (`enableEdgeToEdge`, with light system-bar icons forced because the app always
   paints dark), and the `Scaffold` no longer reserves the system bars
@@ -364,21 +372,29 @@ so the atomic read/write/delete logic lives once.
   Tonal on a translucent on-surface fill, Outline on `outline`, Text
   label-only), leaves the content colour to the button's own `LocalContentColor`
   so a disabled label dims with its container, pins elevation to zero (the app
-  is flat), caps the label to one ellipsised line, and steps the whole control
-  down slightly while pressed; a `selected` flag turns the low-emphasis weights
-  amber for the season picker, and an optional `trailingIcon` carries the filter
-  dropdown arrow. `AppTextField` pins the form fields to `shapes.small`, a
+  is flat), sets the label to a SemiBold `labelLarge` (the type scale pins
+  every slot to Normal, so buttons opt back in), one size up on a call to
+  action, with a glyph that scales by emphasis — 24dp on a call to action, 20dp
+  inline — caps it to one ellipsised
+  line, and steps the whole control down slightly while pressed; a `selected`
+  flag turns the low-emphasis weights amber for the season picker, and an
+  optional `trailingIcon` carries the filter dropdown arrow. `AppTextField` pins the form fields to `shapes.small`, a
   `surfaceContainerLow` container and an amber-on-focus border, with an
   `AppSearchField` variant (leading magnifier, clear action) for Search and
   streams. `AppIconButton` is the one icon control — media headers, the player
   (back, play/pause, seek, subtitles, audio, fullscreen and the centred play
   button), the detail screen's save/rate/watched toggles and the text fields'
-  clear/password actions — so every one gets the 48dp target, the state layer,
-  an optional `mediaScrim`, the amber `selected` tint, a load dim and the same
-  focus ring; no screen calls a raw Material `IconButton`, `TextButton` or
-  `OutlinedButton`. Every control reads scheme roles and the shared tokens only,
-  and draws an `AppSizes.focusRing`-wide ring when focused, so none is styled at
-  the call site. The near-black page background (`#0B0803`) is the single source of
+  clear/password actions — so every one gets the 48dp target, an optional
+  `mediaScrim` and a load dim, and carries its state on the glyph rather than on
+  the surface: no background box or ripple, the icon brightens on hover or focus
+  and turns amber when selected; no screen calls a raw Material
+  `IconButton`, `TextButton` or `OutlinedButton`. Every control reads scheme
+  roles and the shared tokens only, so none is styled at the call site. Focus is
+  reserved for keyboard and D-pad input: the shared `AppSizes.focusRing`-wide
+  ring is drawn only when `LocalInputModeManager` reports a non-touch mode, so a
+  mouse click keeps the clean, box-less look while a remote or a gamepad shows
+  the target, and the icon-only controls (`AppIconButton`, the rail) also
+  brighten their glyph on hover or focus. The near-black page background (`#0B0803`) is the single source of
   truth: the scheme, the native window background and every page-fade gradient
   end on it. The
   app is deliberately **dark-only** — no light scheme and no dynamic colour —

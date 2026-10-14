@@ -244,6 +244,14 @@ leer/escribir/borrar vive una sola vez.
   vertical más ajustado porque se apoya sobre artwork recortado. La metadata es
   un único builder, así que la estrella, los separadores y el formato de la
   valoración no pueden divergir.
+- **Los billboards comparten sus acciones de icono.** `HeroActionRow` y
+  `HeroActionState` (`ui/components/HeroActions.kt`) renderizan los botones de
+  guardar, puntuar, visto e info junto al call to action, así que Home y el
+  detalle no pueden desviarse en icono, tamaño, color ni estado. El billboard de
+  Home muestra guardar y el "More info" solo-icono; el detalle añade puntuar y
+  visto. El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
+  `LibraryRepository.changes`, así que un título guardado en cualquiera de las
+  dos pantallas se ve como guardado en ambas.
 - **Edge-to-edge e insets del sistema.** Android ejecuta la activity edge-to-edge
   (`enableEdgeToEdge`, con iconos de barra de sistema claros forzados porque la
   app siempre pinta oscuro), y el `Scaffold` ya no reserva las barras del sistema
@@ -382,8 +390,13 @@ leer/escribir/borrar vive una sola vez.
   de on-surface, Outline sobre `outline`, Text solo etiqueta), deja el color de
   contenido al `LocalContentColor` del propio botón para que una etiqueta
   deshabilitada se atenúe con su contenedor, fija la elevación a cero (la app es
-  plana), limita la etiqueta a una línea con elipsis, y baja ligeramente todo el
-  control mientras se presiona; un flag `selected` vuelve ámbar los pesos de baja
+  plana), fija la etiqueta a un `labelLarge` en SemiBold (la escala
+  tipográfica fija todos los slots en Normal, así que los botones vuelven a
+  optar por él), un tamaño más en un call to action, con un glifo que escala por
+  énfasis — 24dp en un call
+  action, 20dp inline — la limita a una línea con elipsis, y baja ligeramente
+  todo el control mientras se presiona; un flag `selected` vuelve ámbar los
+  pesos de baja
   énfasis para el selector de temporadas, y un `trailingIcon` opcional lleva la
   flecha del filtro desplegable. `AppTextField` fija los campos de formulario a
   `shapes.small`, un contenedor `surfaceContainerLow` y un borde ámbar al
@@ -392,12 +405,18 @@ leer/escribir/borrar vive una sola vez.
   cabeceras de media, el reproductor (atrás, play/pausa, avance, subtítulos,
   audio, pantalla completa y el botón de play centrado), los toggles de
   guardar/puntuar/visto del detalle y las acciones de limpiar/contraseña de los
-  campos — así que todos reciben el target de 48dp, la capa de estado, un
-  `mediaScrim` opcional, el tinte ámbar `selected`, un atenuado de carga y el
-  mismo anillo de foco; ninguna pantalla llama a un `IconButton`, `TextButton` u
-  `OutlinedButton` de Material en crudo. Cada control lee solo roles del esquema
-  y tokens compartidos, y dibuja un anillo del ancho `AppSizes.focusRing` cuando
-  está enfocado, así que ninguno se estiliza en el punto de llamada. El fondo de
+  campos — así que todos reciben el target de 48dp, un `mediaScrim` opcional y
+  un atenuado de carga, y llevan su estado en el glifo y no en la superficie: sin
+  caja de fondo ni ripple; el ícono se ilumina en hover o foco y se vuelve ámbar
+  al seleccionarse; ninguna pantalla llama a un `IconButton`,
+  `TextButton` u `OutlinedButton` de Material en crudo. Cada control lee solo
+  roles del esquema y tokens compartidos, así que ninguno se estiliza en el punto
+  de llamada. El foco se reserva para teclado y D-pad: el anillo compartido del
+  ancho `AppSizes.focusRing` se dibuja solo cuando `LocalInputModeManager`
+  reporta un modo distinto de touch, así que el clic de mouse conserva el look
+  limpio sin caja mientras un control remoto o un gamepad muestra el target; y
+  los solo-icono (`AppIconButton`, el rail) además iluminan el glifo en hover o
+  foco. El fondo de
   página casi negro (`#0B0803`) es la única fuente de verdad: el esquema, el
   fondo nativo de la ventana y cada degradado de fundido de página terminan en
   él. La app es deliberadamente **solo oscura** — sin esquema claro ni color

@@ -29,12 +29,15 @@ import com.misgus.agustream.ui.theme.motionTween
  * Icon-only action: a header control (back, refresh, close, calendar paging), a
  * player control, or a toggle such as the detail screen's save/rate/watched.
  *
- * Material's `IconButton` has no scrim and no focus ring, so it disappears over
- * a busy header and a keyboard user cannot see where focus is. This one keeps
- * the app's 48dp target, draws the shared state layer and focus ring, dims when
- * disabled or loading, and can sit on a media [scrim] so it stays legible over
- * any image. [selected] gives it the amber brand tint for a toggle, so one
- * component covers every icon case instead of each screen rolling its own.
+ * Material's `IconButton` paints a state-layer box around the glyph, which reads
+ * as a second square on an already square control. This one keeps the app's 48dp
+ * target but lets the glyph carry the state instead: it brightens on hover or
+ * focus, turns amber when [selected], and steps down while pressed, with no
+ * background fill or ripple. A keyboard or D-pad focus still draws the shared
+ * focus ring (a mouse click does not), so a remote has a visible target. It dims
+ * when disabled or loading, and can sit on a media [scrim] so it stays legible
+ * over any image. One component covers every icon case instead of each screen
+ * rolling its own.
  */
 @Composable
 fun AppIconButton(
@@ -46,7 +49,7 @@ fun AppIconButton(
     selected: Boolean = false,
     loading: Boolean = false,
     scrim: Boolean = false,
-    tint: Color = MaterialTheme.colorScheme.onSurface,
+    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     iconSize: Dp = AppIconSize.md,
     size: Dp = AppSizes.minTouchTarget,
     shape: Shape = MaterialTheme.shapes.small,
@@ -59,6 +62,9 @@ fun AppIconButton(
         when {
             !enabled -> tint.copy(alpha = AppAlpha.DISABLED_CONTENT)
             selected -> scheme.primary
+            // The control paints no state-layer box, so the brighter glyph is
+            // the only hover/focus cue.
+            interaction.active -> scheme.onSurface
             else -> tint
         }
     // While the real state is unknown, dim the glyph instead of showing it as
@@ -73,12 +79,9 @@ fun AppIconButton(
         animationSpec = motionTween(AppMotion.FAST),
         label = "iconButtonPressScale",
     )
-    val baseBackground =
-        when {
-            scrim -> AppColors.mediaScrim
-            selected -> scheme.primary.copy(alpha = AppAlpha.NAV_SELECTED)
-            else -> Color.Transparent
-        }
+    // Only the media scrim fills the control; selected and interaction change
+    // the glyph, not the surface.
+    val baseBackground = if (scrim) AppColors.mediaScrim else Color.Transparent
     Box(
         modifier =
             modifier
@@ -86,8 +89,8 @@ fun AppIconButton(
                 .size(size)
                 .motionLayer(scale = { pressScale }, alpha = { loadingAlpha })
                 .clip(shape)
-                .background(interactionHighlight(interaction, base = baseBackground))
-                .clickableSurface(interaction, onClick, enabled = enabled && !loading),
+                .background(baseBackground)
+                .clickableSurface(interaction, onClick, enabled = enabled && !loading, indication = null),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

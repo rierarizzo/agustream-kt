@@ -23,6 +23,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -51,6 +52,9 @@ data class HomeUiState(
     val rows: List<HomeRow> = emptyList(),
     val watchedIds: Set<String> = emptySet(),
     val isSyncingWatched: Boolean = false,
+    val savedIds: Set<String> = emptySet(),
+    val savingIds: Set<String> = emptySet(),
+    val savedError: Throwable? = null,
 )
 
 /**
@@ -72,6 +76,16 @@ class HomeViewModel(
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
     private val watchedSync = WatchedBadgeSync(badges, account)
+
+    init {
+        // A save or a remove made elsewhere (the detail screen, the library)
+        // bumps the repository; keep the billboard's save state in sync without
+        // reloading the catalogs. A refresh is skipped while a write of our own
+        // is in flight, so the optimistic flip is not clobbered by stale reads.
+        viewModelScope.launch {
+            library.changes.drop(1).collect { if (_state.value.savingIds.isEmpty()) refreshSaved() }
+        }
+    }
 
     override fun onAccountReady() = load(force = true)
 
@@ -125,6 +139,7 @@ class HomeViewModel(
                     continueWatching = continueWatching,
                     rows = rows,
                     featured = pickFeatured(rows, MAX_FEATURED, random),
+                    savedIds = libraryItems.map { item -> item.contentId }.toSet(),
                 )
             }
             loaded = true
@@ -172,6 +187,62 @@ class HomeViewModel(
                 _state.update { it.copy(watchedIds = watched, isSyncingWatched = false) }
             },
         )
+    }
+
+    /** Re-reads the saved set, keeping the billboard in sync with other screens. */
+    private suspend fun refreshSaved() {
+        val saved =
+            runCatchingCancellable { library.all() }
+                .getOrNull()
+                ?.map { item -> item.contentId }
+                ?.toSet()
+                ?: return
+        _state.update { it.copy(savedIds = saved) }
+    }
+
+    /**
+     * Adds or removes [item] from the library.
+     *
+     * Optimistic: the flag flips immediately and reverts if the write fails, so
+     * the billboard reacts without waiting for the round-trip. The write is
+     * marked busy meanwhile, so a second tap cannot race it; a failure is
+     * published through [HomeUiState.savedError] for the screen's snackbar.
+     */
+    fun toggleSaved(item: MetaPreview) {
+        val id = item.id
+        if (id in _state.value.savingIds) return
+        val wasSaved = id in _state.value.savedIds
+        _state.update {
+            it.copy(
+                savedIds = if (wasSaved) it.savedIds - id else it.savedIds + id,
+                savingIds = it.savingIds + id,
+                savedError = null,
+            )
+        }
+        viewModelScope.launch {
+            runCatchingCancellable {
+                if (wasSaved) {
+                    library.remove(id)
+                } else {
+                    library.add(LibraryItem.fromPreview(item))
+                }
+            }.onSuccess {
+                _state.update { it.copy(savingIds = it.savingIds - id) }
+            }.onFailure { error ->
+                _state.update {
+                    it.copy(
+                        savedIds = if (wasSaved) it.savedIds + id else it.savedIds - id,
+                        savingIds = it.savingIds - id,
+                        savedError = error,
+                    )
+                }
+            }
+        }
+    }
+
+    /** Clears [HomeUiState.savedError] once the screen has shown it. */
+    fun consumeSavedError() {
+        _state.update { it.copy(savedError = null) }
     }
 
     /**

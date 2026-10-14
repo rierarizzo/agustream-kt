@@ -27,6 +27,7 @@ import com.misgus.agustream.ui.theme.AppMotion
 import com.misgus.agustream.ui.theme.AppScale
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.motionLayer
 import com.misgus.agustream.ui.theme.motionTween
 
@@ -126,6 +127,22 @@ fun ActionButton(
         animationSpec = motionTween(AppMotion.FAST),
         label = "actionPressScale",
     )
+    // A call to action carries a larger glyph than an inline action, so the icon
+    // reads at the same visual weight as the label.
+    val iconSize =
+        if (style == ActionButtonStyle.Outline || style == ActionButtonStyle.Text) {
+            AppIconSize.sm
+        } else {
+            AppIconSize.md
+        }
+    // The primary weights get a label one size up, so the billboard's call to
+    // action reads above the secondary actions next to it.
+    val labelStyle =
+        if (style == ActionButtonStyle.Filled || style == ActionButtonStyle.Accent) {
+            AppType.ctaLabel()
+        } else {
+            AppType.buttonLabel()
+        }
     Button(
         onClick = onClick,
         enabled = enabled && !loading,
@@ -175,17 +192,17 @@ fun ActionButton(
         when {
             loading ->
                 CircularProgressIndicator(
-                    modifier = Modifier.size(AppIconSize.sm),
+                    modifier = Modifier.size(iconSize),
                     strokeWidth = AppSizes.progressStroke,
                     color = LocalContentColor.current,
                 )
-            icon != null -> Icon(icon, contentDescription = null, modifier = Modifier.size(AppIconSize.sm))
+            icon != null -> Icon(icon, contentDescription = null, modifier = Modifier.size(iconSize))
         }
         if (loading || icon != null) Spacer(Modifier.width(AppSpacing.sm))
-        Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis, style = labelStyle)
         if (trailingIcon != null) {
             Spacer(Modifier.width(AppSpacing.xs))
-            Icon(trailingIcon, contentDescription = null, modifier = Modifier.size(AppIconSize.sm))
+            Icon(trailingIcon, contentDescription = null, modifier = Modifier.size(iconSize))
         }
     }
 }

@@ -7,9 +7,6 @@ import agustream.app.shared.generated.resources.detail_episode_generic
 import agustream.app.shared.generated.resources.detail_error_library
 import agustream.app.shared.generated.resources.detail_error_rating
 import agustream.app.shared.generated.resources.detail_error_watched
-import agustream.app.shared.generated.resources.detail_my_list
-import agustream.app.shared.generated.resources.detail_rate
-import agustream.app.shared.generated.resources.status_watched
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +46,8 @@ import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.AppIconButton
+import com.misgus.agustream.ui.components.HeroActionRow
+import com.misgus.agustream.ui.components.HeroActionState
 import com.misgus.agustream.ui.components.HeroGenres
 import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
@@ -306,18 +305,6 @@ private fun DetailBackdrop(
     }
 }
 
-/** State of the three icon actions under the hero's call to action. */
-private data class HeroActionState(
-    val saved: Boolean,
-    val savedBusy: Boolean,
-    val savedLoading: Boolean,
-    val watched: Boolean,
-    val watchedBusy: Boolean,
-    val watchedLoading: Boolean,
-    val rating: Int?,
-    val ratingLoading: Boolean,
-)
-
 @Composable
 private fun HeroContent(
     state: DetailUiState,
@@ -350,7 +337,7 @@ private fun HeroContent(
                     onClick = onPlay,
                     style = ActionButtonStyle.Accent,
                 )
-                ActionRow(
+                HeroActionRow(
                     actions = actions,
                     onToggleSaved = onToggleSaved,
                     onToggleWatched = onToggleWatched,
@@ -371,41 +358,6 @@ private fun HeroContent(
                 HeroGenres(state.genres)
             }
         }
-    }
-}
-
-/** Icon + label actions under the call to action. */
-@Composable
-private fun ActionRow(
-    actions: HeroActionState,
-    onToggleSaved: () -> Unit,
-    onToggleWatched: () -> Unit,
-    onRate: () -> Unit,
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-        AppIconButton(
-            icon = if (actions.saved) AppIcons.Filled.Favorite else AppIcons.Outlined.FavoriteBorder,
-            contentDescription = stringResource(Res.string.detail_my_list),
-            onClick = onToggleSaved,
-            enabled = !actions.savedBusy,
-            selected = actions.saved,
-            loading = actions.savedLoading,
-        )
-        AppIconButton(
-            icon = if (actions.rating != null) AppIcons.Filled.Star else AppIcons.Outlined.StarBorder,
-            contentDescription = stringResource(Res.string.detail_rate),
-            onClick = onRate,
-            selected = actions.rating != null,
-            loading = actions.ratingLoading,
-        )
-        AppIconButton(
-            icon = if (actions.watched) AppIcons.Filled.CheckCircle else AppIcons.Outlined.CheckCircle,
-            contentDescription = stringResource(Res.string.status_watched),
-            onClick = onToggleWatched,
-            enabled = !actions.watchedBusy,
-            selected = actions.watched,
-            loading = actions.watchedLoading,
-        )
     }
 }
 

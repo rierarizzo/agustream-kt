@@ -1,7 +1,6 @@
 package com.misgus.agustream.ui.home
 
 import agustream.app.shared.generated.resources.Res
-import agustream.app.shared.generated.resources.action_more_info
 import agustream.app.shared.generated.resources.action_watch_now
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -49,6 +48,8 @@ import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.ArtworkFilterQuality
+import com.misgus.agustream.ui.components.HeroActionRow
+import com.misgus.agustream.ui.components.HeroActionState
 import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
@@ -128,8 +129,11 @@ private fun heroHeight(
 @Composable
 internal fun Hero(
     items: List<MetaPreview>,
+    savedIds: Set<String>,
+    busyIds: Set<String>,
     onOpen: (MetaPreview) -> Unit,
     onPlay: (MetaPreview) -> Unit,
+    onToggleSaved: (MetaPreview) -> Unit,
 ) {
     if (items.isEmpty()) return
     val density = LocalDensity.current
@@ -146,11 +150,14 @@ internal fun Hero(
             pagerState = pagerState,
             height = height,
             wide = false,
+            savedIds = savedIds,
+            busyIds = busyIds,
             backdropWidthPx = with(density) { maxWidth.roundToPx().coerceAtLeast(1) },
             backdropHeightPx = with(density) { height.roundToPx().coerceAtLeast(1) },
             onBackdropAspect = { page, ratio -> aspects[page] = ratio },
             onOpen = onOpen,
             onPlay = onPlay,
+            onToggleSaved = onToggleSaved,
         )
     }
 }
@@ -167,8 +174,11 @@ internal fun Hero(
 @Composable
 internal fun WideHero(
     items: List<MetaPreview>,
+    savedIds: Set<String>,
+    busyIds: Set<String>,
     onOpen: (MetaPreview) -> Unit,
     onPlay: (MetaPreview) -> Unit,
+    onToggleSaved: (MetaPreview) -> Unit,
     height: Dp,
 ) {
     if (items.isEmpty()) return
@@ -187,11 +197,14 @@ internal fun WideHero(
             pagerState = pagerState,
             height = frameHeight,
             wide = true,
+            savedIds = savedIds,
+            busyIds = busyIds,
             backdropWidthPx = with(density) { (maxWidth * HERO_IMAGE_WIDTH_FRACTION).roundToPx().coerceAtLeast(1) },
             backdropHeightPx = with(density) { artworkHeight.roundToPx().coerceAtLeast(1) },
             onBackdropAspect = { page, ratio -> if (page == 0) aspect = ratio },
             onOpen = onOpen,
             onPlay = onPlay,
+            onToggleSaved = onToggleSaved,
         )
     }
 }
@@ -203,11 +216,14 @@ private fun HeroCarousel(
     pagerState: PagerState,
     height: Dp,
     wide: Boolean,
+    savedIds: Set<String>,
+    busyIds: Set<String>,
     backdropWidthPx: Int,
     backdropHeightPx: Int,
     onBackdropAspect: (Int, Float) -> Unit,
     onOpen: (MetaPreview) -> Unit,
     onPlay: (MetaPreview) -> Unit,
+    onToggleSaved: (MetaPreview) -> Unit,
 ) {
     val compact = LocalWindowSize.current == WindowSize.COMPACT
     val density = LocalDensity.current
@@ -255,10 +271,13 @@ private fun HeroCarousel(
                     item = items[page],
                     compact = compact,
                     wide = wide,
+                    saved = items[page].id in savedIds,
+                    savedBusy = items[page].id in busyIds,
                     signedOffset = signedOffset,
                     onBackdropAspect = { ratio -> onBackdropAspect(page, ratio) },
                     onOpen = { onOpen(items[page]) },
                     onPlay = { onPlay(items[page]) },
+                    onToggleSaved = { onToggleSaved(items[page]) },
                 )
             }
         }
@@ -289,10 +308,13 @@ private fun HeroSlide(
     item: MetaPreview,
     compact: Boolean,
     wide: Boolean,
+    saved: Boolean,
+    savedBusy: Boolean,
     signedOffset: Float,
     onBackdropAspect: (Float) -> Unit,
     onOpen: () -> Unit,
     onPlay: () -> Unit,
+    onToggleSaved: () -> Unit,
 ) {
     val backdrop = if (compact) item.poster ?: item.background else item.background ?: item.poster
     // The artwork cross-fades, but the copy slides a little against the swipe,
@@ -338,8 +360,11 @@ private fun HeroSlide(
         HeroCopy(
             item = item,
             compact = compact,
+            saved = saved,
+            savedBusy = savedBusy,
             onOpen = onOpen,
             onPlay = onPlay,
+            onToggleSaved = onToggleSaved,
             modifier = Modifier.graphicsLayer { translationX = -signedOffset * slidePx },
         )
     }
@@ -350,8 +375,11 @@ private fun HeroSlide(
 private fun BoxScope.HeroCopy(
     item: MetaPreview,
     compact: Boolean,
+    saved: Boolean,
+    savedBusy: Boolean,
     onOpen: () -> Unit,
     onPlay: () -> Unit,
+    onToggleSaved: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -376,18 +404,20 @@ private fun BoxScope.HeroCopy(
             HeroSynopsis(text = synopsis)
             Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        ) {
             ActionButton(
                 text = stringResource(Res.string.action_watch_now),
                 icon = AppIcons.Filled.PlayArrow,
                 onClick = onPlay,
                 style = ActionButtonStyle.Accent,
             )
-            ActionButton(
-                text = stringResource(Res.string.action_more_info),
-                icon = AppIcons.Outlined.Info,
-                onClick = onOpen,
-                style = ActionButtonStyle.Tonal,
+            HeroActionRow(
+                actions = HeroActionState(saved = saved, savedBusy = savedBusy),
+                onToggleSaved = onToggleSaved,
+                onInfo = onOpen,
             )
         }
     }
