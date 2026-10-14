@@ -2,6 +2,7 @@ package com.misgus.agustream.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -9,52 +10,102 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.misgus.agustream.core.repository.AppTheme
 
 /**
- * Raw brand palette.
+ * Raw brand palette of one theme.
  *
- * It is internal on purpose: it feeds `darkScheme` and the scrims only, while
- * the UI reads every semantic colour from `MaterialTheme.colorScheme` roles. That
- * keeps stock Material3 components and custom surfaces on the same colours.
+ * It is internal on purpose: it feeds the Material colour scheme and the scrims
+ * only, while the UI reads every semantic colour from `MaterialTheme.colorScheme`
+ * roles. That keeps stock Material3 components and custom surfaces on the same
+ * colours. Themes are data ([AppThemes]); the composition reads the selected one
+ * through [LocalBrandPalette], so switching themes repaints every surface.
  */
-internal object BrandPalette {
+internal data class BrandPalette(
     /**
      * App background. The single source of truth for the near-black the whole
      * UI sits on and the colour every page fade ends on.
      */
-    val background = Color(0xFF0B0803)
-
+    val background: Color,
     /** Cards, panels and rails. */
-    val surface = Color(0xFF151518)
-
+    val surface: Color,
     /** Hover / selected surfaces. */
-    val surfaceHigh = Color(0xFF1F1F24)
-
+    val surfaceHigh: Color,
     /**
      * Brand / attention colour (amber): selection, active states, badges and
      * the featured call to action on a media billboard. Off media, the default
-     * primary call to action is the high-contrast white pill (`inverseSurface`).
+     * primary call to action is the high-contrast pill (`inverseSurface`).
      */
-    val accent = Color(0xFFF0A020)
-    val onAccent = Color(0xFF1A1200)
-
+    val accent: Color,
+    /** Text and glyphs drawn on [accent]. */
+    val onAccent: Color,
+    /** Deep attention fill (selected chips, container accents). */
+    val accentContainer: Color,
+    /** Text and glyphs drawn on [accentContainer]. */
+    val onAccentContainer: Color,
+    /** The light pill used by the default primary call to action. */
+    val inverseSurface: Color,
+    /** Text and glyphs drawn on [inverseSurface]. */
+    val inverseOnSurface: Color,
     /**
-     * Default text colour: white. Headings and body copy share it; secondary
-     * roles step down through alpha instead of a separate grey.
+     * Default text colour. Headings and body copy share it; secondary roles step
+     * down through alpha instead of a separate grey.
      */
-    val textPrimary = Color(0xFFFFFFFF)
-
-    /** Metadata, captions and secondary copy: white, dimmed so hierarchy survives. */
-    val textSecondary = Color(0xFFFFFFFF).copy(alpha = 0.70f)
-
+    val textPrimary: Color,
+    /** Metadata, captions and secondary copy, dimmed so hierarchy survives. */
+    val textSecondary: Color,
     /** Release year / metadata under a poster title. */
-    val posterYear = Color(0xFFFFFFFF).copy(alpha = 0.60f)
-
+    val posterYear: Color,
     /** Idle hero carousel dot: a neutral grey that reads over artwork. */
-    val indicator = Color(0xFF9E9E9E)
+    val indicator: Color,
+    /** Hairline separators between surfaces. */
+    val divider: Color,
+)
 
-    val divider = Color(0xFF26262B)
+/**
+ * Registry of the brand palettes, keyed by the persisted [AppTheme].
+ *
+ * A new theme is one value plus a `when` branch; nothing else in the UI changes,
+ * because every call site reads [LocalBrandPalette] or a scheme role.
+ */
+internal object AppThemes {
+    /**
+     * Warm coffee/amber palette: dark near-black background, amber accent, burnt
+     * orange container and cream text. The app default.
+     */
+    val Coffee =
+        BrandPalette(
+            background = Color(0xFF0B0803),
+            surface = Color(0xFF151518),
+            surfaceHigh = Color(0xFF1F1F24),
+            accent = Color(0xFFF4AE52),
+            onAccent = Color(0xFF2A1A0E),
+            accentContainer = Color(0xFFD4621A),
+            onAccentContainer = Color(0xFF2A1A0E),
+            inverseSurface = Color(0xFFFEF3E2),
+            inverseOnSurface = Color(0xFF2A1A0E),
+            textPrimary = Color(0xFFFEF3E2),
+            textSecondary = Color(0xFFFEF3E2).copy(alpha = 0.70f),
+            posterYear = Color(0xFFFEF3E2).copy(alpha = 0.60f),
+            indicator = Color(0xFF9E9E9E),
+            divider = Color(0xFF26262B),
+        )
+
+    /** The palette for [theme]. */
+    fun of(theme: AppTheme): BrandPalette =
+        when (theme) {
+            AppTheme.COFFEE -> Coffee
+        }
 }
+
+/**
+ * The palette of the theme being composed.
+ *
+ * Provided by `AgustreamTheme`; read by the scrims, the window chrome and the
+ * few overlay colours the `colorScheme` has no role for. It has a default so a
+ * preview or a test can compose without wrapping the content in the theme.
+ */
+internal val LocalBrandPalette = staticCompositionLocalOf { AppThemes.Coffee }
 
 /**
  * Overlay colours that the Material colour scheme has no role for.
@@ -66,9 +117,11 @@ object AppColors {
     /** Dark scrim over media, used behind badges and progress tracks. */
     val mediaScrim = Color.Black.copy(alpha = 0.54f)
 
-    /** Hero carousel dots over artwork: muted grey when idle, white when active. */
-    val heroIndicatorInactive = BrandPalette.indicator
-    val heroIndicatorActive = BrandPalette.textPrimary
+    /** Hero carousel dots over artwork: muted grey when idle, bright when active. */
+    val heroIndicatorInactive: Color
+        @Composable get() = LocalBrandPalette.current.indicator
+    val heroIndicatorActive: Color
+        @Composable get() = LocalBrandPalette.current.textPrimary
 
     /**
      * Player chrome. The video is always black, so the controls are white
@@ -282,26 +335,30 @@ object AppScrim {
         )
 
     /** Bottom fade to the page background, dark enough for copy to sit on any artwork. */
-    val mediaBottom: Brush =
-        Brush.verticalGradient(
-            0f to Color.Transparent,
-            0.4f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_MEDIUM),
-            1f to BrandPalette.background,
-        )
+    val mediaBottom: Brush
+        @Composable get() =
+            Brush.verticalGradient(
+                0f to Color.Transparent,
+                0.4f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_MEDIUM),
+                1f to LocalBrandPalette.current.background,
+            )
 
     /**
      * Home billboard, left-to-right: fully opaque over the copy column and a
      * flat [AppAlpha.HERO_IMAGE_DIM] over the rest, so the right-aligned artwork
      * stays visible but reads a touch darker.
      */
-    val heroHorizontal: Brush =
-        Brush.horizontalGradient(
-            0f to BrandPalette.background,
-            0.25f to BrandPalette.background.copy(alpha = AppAlpha.HERO_LEFT_STRONG),
-            0.42f to BrandPalette.background.copy(alpha = AppAlpha.HERO_LEFT_MEDIUM),
-            0.6f to BrandPalette.background.copy(alpha = AppAlpha.HERO_LEFT_SOFT),
-            0.78f to BrandPalette.background.copy(alpha = AppAlpha.HERO_IMAGE_DIM),
-        )
+    val heroHorizontal: Brush
+        @Composable get() {
+            val background = LocalBrandPalette.current.background
+            return Brush.horizontalGradient(
+                0f to background,
+                0.25f to background.copy(alpha = AppAlpha.HERO_LEFT_STRONG),
+                0.42f to background.copy(alpha = AppAlpha.HERO_LEFT_MEDIUM),
+                0.6f to background.copy(alpha = AppAlpha.HERO_LEFT_SOFT),
+                0.78f to background.copy(alpha = AppAlpha.HERO_IMAGE_DIM),
+            )
+        }
 
     /**
      * Wide desktop billboard, left-to-right: opaque over the left column and
@@ -309,48 +366,57 @@ object AppScrim {
      * the page background. The fade ends on a flat [AppAlpha.HERO_IMAGE_DIM]
      * over the artwork, so the image reads a touch darker without going black.
      */
-    val heroWideLeft: Brush =
-        Brush.horizontalGradient(
-            0f to BrandPalette.background,
-            0.25f to BrandPalette.background,
-            0.45f to BrandPalette.background.copy(alpha = AppAlpha.HERO_IMAGE_DIM),
-        )
+    val heroWideLeft: Brush
+        @Composable get() {
+            val background = LocalBrandPalette.current.background
+            return Brush.horizontalGradient(
+                0f to background,
+                0.25f to background,
+                0.45f to background.copy(alpha = AppAlpha.HERO_IMAGE_DIM),
+            )
+        }
 
     /**
      * Home billboard, bottom-up: clear over the upper half and a long, soft fade
      * into the page background, so the hero dissolves into the section below
      * without a hard seam. The mid stop keeps the ramp gentle instead of sudden.
      */
-    val heroBottom: Brush =
-        Brush.verticalGradient(
-            0f to Color.Transparent,
-            0.45f to Color.Transparent,
-            0.78f to BrandPalette.background.copy(alpha = AppAlpha.HERO_BOTTOM_MID),
-            1f to BrandPalette.background,
-        )
+    val heroBottom: Brush
+        @Composable get() {
+            val background = LocalBrandPalette.current.background
+            return Brush.verticalGradient(
+                0f to Color.Transparent,
+                0.45f to Color.Transparent,
+                0.78f to background.copy(alpha = AppAlpha.HERO_BOTTOM_MID),
+                1f to background,
+            )
+        }
 
     /** Home billboard top fade, subtle enough to keep the window controls legible. */
-    val heroTop: Brush =
-        Brush.verticalGradient(
-            0f to BrandPalette.background.copy(alpha = AppAlpha.HERO_TOP),
-            0.2f to Color.Transparent,
-        )
+    val heroTop: Brush
+        @Composable get() =
+            Brush.verticalGradient(
+                0f to LocalBrandPalette.current.background.copy(alpha = AppAlpha.HERO_TOP),
+                0.2f to Color.Transparent,
+            )
 
     /** Home billboard right-edge vignette. */
-    val heroRightVignette: Brush =
-        Brush.horizontalGradient(
-            0f to Color.Transparent,
-            0.7f to Color.Transparent,
-            1f to BrandPalette.background.copy(alpha = 0.25f),
-        )
+    val heroRightVignette: Brush
+        @Composable get() =
+            Brush.horizontalGradient(
+                0f to Color.Transparent,
+                0.7f to Color.Transparent,
+                1f to LocalBrandPalette.current.background.copy(alpha = 0.25f),
+            )
 
     /** Stronger fade for short media headers, such as dialogs. */
-    val dialogHeader: Brush =
-        Brush.verticalGradient(
-            0f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_HEADER),
-            0.45f to Color.Transparent,
-            1f to BrandPalette.background,
-        )
+    val dialogHeader: Brush
+        @Composable get() =
+            Brush.verticalGradient(
+                0f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_HEADER),
+                0.45f to Color.Transparent,
+                1f to LocalBrandPalette.current.background,
+            )
 
     /**
      * Dark base behind a full-screen hero.
@@ -358,12 +424,15 @@ object AppScrim {
      * A slow or missing image never leaves a bright gap: whatever the artwork
      * does not cover falls back to this near-black gradient.
      */
-    val detailBackdrop: Brush =
-        Brush.verticalGradient(
-            0f to BrandPalette.surfaceHigh,
-            0.55f to BrandPalette.surface,
-            1f to BrandPalette.background,
-        )
+    val detailBackdrop: Brush
+        @Composable get() {
+            val palette = LocalBrandPalette.current
+            return Brush.verticalGradient(
+                0f to palette.surfaceHigh,
+                0.55f to palette.surface,
+                1f to palette.background,
+            )
+        }
 
     /**
      * Fade along the top of a screen, so a fixed control such as a back button
@@ -411,18 +480,24 @@ object PosterCaption {
  * Colours for surfaces that live outside the composition.
  *
  * The native desktop title bar is painted by AWT before Compose draws, so it
- * cannot read `MaterialTheme`; it reads these values instead.
+ * cannot read `MaterialTheme`; it reads the selected [LocalBrandPalette] instead,
+ * and the desktop composition root captures these values in the composition so
+ * an effect can hand them to DWM.
  */
 object AppWindowChrome {
     /** Native title-bar colour; matches the page background and the rail. */
-    val titleBar: Color = BrandPalette.background
+    val titleBar: Color
+        @Composable get() = LocalBrandPalette.current.background
 
     /** Native window border, matched to the title bar so the frame disappears. */
-    val border: Color = BrandPalette.background
+    val border: Color
+        @Composable get() = LocalBrandPalette.current.background
 
     /** Window background behind Compose, so a resize does not flash. */
-    val windowBackground: Color = BrandPalette.background
+    val windowBackground: Color
+        @Composable get() = LocalBrandPalette.current.background
 
     /** Native title-bar text and caption buttons. */
-    val foreground: Color = BrandPalette.textPrimary
+    val foreground: Color
+        @Composable get() = LocalBrandPalette.current.textPrimary
 }

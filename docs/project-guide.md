@@ -52,6 +52,7 @@ inject in-memory fakes.
 | Change a screen's logic/state | `app/shared/.../ui/<feature>/<Feature>ViewModel.kt` + `<Feature>Screen.kt` |
 | Share behavior across data sections | `app/shared/.../ui/common/` (`AccountScopedViewModel`, `WatchedBadgeSync`) |
 | Change colors, spacing, type, motion | `app/shared/.../ui/theme/` (`Tokens.kt`, `AppTheme.kt`, `AppType.kt`, `Motion.kt`, `WindowSize.kt`, `PosterSize.kt`) |
+| Add a theme | `AppTheme` / `AppSettings.theme` in `core/.../repository/SettingsRepository.kt`, `AppThemes` in `ui/theme/Tokens.kt`, picker in `SettingsScreen.kt` |
 | Reuse a widget (buttons, posters, search field) | `app/shared/.../ui/components/` |
 | Change a domain model or add one | `core/.../core/model/` |
 | Use a shared constant (content type, catalog extra, threshold) | `core/.../core/model/` (`ContentTypes`, `CatalogExtras`, `ProgressThresholds`) |
@@ -105,8 +106,10 @@ These exist so the same concern is not re-implemented per screen:
   output; `FrameSource` (in `app/shared/jvmMain`) extends it.
 - **`ContentTypes` / `CatalogExtras` / `ProgressThresholds` / `releaseYear()`**
   (`core/model`) — the protocol vocabulary and thresholds, defined once.
-- **Design tokens** (`theme/Tokens.kt`) — palette, spacing, sizes (including the
-  content/form/message max widths), alphas and scrims. `Modifier.focusRing`
+- **Design tokens** (`theme/Tokens.kt`) — the theme palettes (`BrandPalette`
+  values in `AppThemes`), spacing, sizes (including the content/form/message max
+  widths), alphas and scrims. `AgustreamTheme(theme)` provides the selected
+  palette through `LocalBrandPalette`; `Modifier.focusRing`
   (`components/Interaction.kt`) draws the shared keyboard focus ring.
 - **`runCatchingCancellable`** (`core/util`) — `runCatching` that never swallows
   coroutine cancellation.
@@ -241,6 +244,16 @@ not exist, and drive it with `StandardTestDispatcher` + `advanceUntilIdle()`
 2. Add the getter/setter to `SettingsRepository` and the key in
    `JsonSettingsRepository`.
 3. Add the control in `SettingsScreen`. The JSON file stays hand-editable.
+
+**Add a theme**
+1. Add a value to `AppTheme`, a palette to `AppThemes` (`ui/theme/Tokens.kt`) and
+   a label to the `themeLabels` map in `SettingsScreen`'s `AppearanceCard`, plus
+   the string in `strings.xml`. The picker iterates `AppTheme.entries`, so the
+   new option appears on its own; every other surface reads `LocalBrandPalette`
+   or a scheme role and needs no change.
+2. If the theme changes the Material roles a palette does not carry (the error
+   containers, the secondary family), promote them to `BrandPalette` first, so
+   the scheme stays the single mapping.
 
 **Add a data section**
 1. Create `ui/<feature>/<Feature>ViewModel.kt`, extending `AccountScopedViewModel`.

@@ -151,8 +151,9 @@ leer/escribir/borrar vive una sola vez.
   principal, lo que disparaba el hook de carga desde el constructor de la
   superclase antes de que existiera el estado de la subclase. Forzar un dispatch
   hace que la primera emisión espere a que termine la construcción.
-- **Los tokens de diseño son datos, no código.** `theme/Tokens.kt` contiene la
-  paleta, el espaciado, los tamaños, los alphas y los scrims; `theme/AppTheme.kt`
+- **Los tokens de diseño son datos, no código.** `theme/Tokens.kt` contiene las
+  paletas (`BrandPalette` / `AppThemes`), el espaciado, los tamaños, los alphas y
+  los scrims; `theme/AppTheme.kt`
   contiene solo el esquema de color de Material, la tipografía y las formas.
   `AppSizes` posee los anchos de contenido/formulario/mensaje y los tamaños de
   borde/progreso, `AppAlpha` posee toda la opacidad de overlays, y
@@ -369,18 +370,27 @@ leer/escribir/borrar vive una sola vez.
   uno que los addons no devuelvan. Discover ya no es una sección. **Calendar**
   pinta una rejilla mensual con los próximos episodios de las series de la
   Library; ver la limitación más abajo.
-- **El tema** sigue Material 3. `AgustreamTheme` proporciona el `darkColorScheme`
-  completo (cada rol, incluidos los niveles surface-container,
-  `outline`/`outlineVariant`, `inverse*`, `tertiary` y los contenedores de
-  error), la tipografía Inter cargada desde Compose Resources, y una escala de
-  formas pequeña y tirando a cuadrada (`AppCorner` alimenta
-  `MaterialTheme.shapes`: 2/4/6/8/12dp; la app se lee cuadrada, no redondeada).
-  La UI lee colores semánticos de `MaterialTheme.colorScheme`; la paleta de marca
-  cruda es privada y solo rellena el esquema, así que los componentes de serie de
-  Material3 y las superficies custom quedan en los mismos colores. `AppColors`
-  guarda los overlays de media para los que el esquema no tiene rol: `mediaScrim`
-  y el indicador del carrusel del hero (gris cuando está inactivo, blanco cuando
-  está activo). `AppSizes.controlHeight` / `minTouchTarget` mantienen los targets
+- **El tema** sigue Material 3 y es dato, no código. `BrandPalette`
+  (`theme/Tokens.kt`) es una data class con los colores crudos de un tema,
+  `AppThemes` mapea el `AppTheme` persistido a una paleta, y `AgustreamTheme(theme)`
+  la elige y la proporciona por `LocalBrandPalette`, y luego construye el
+  `darkColorScheme` completo a partir de ella (niveles surface-container,
+  `outline`/`outlineVariant`, `inverse*` y los contenedores de error). La paleta
+  es interna y solo rellena el esquema, así que los componentes de serie de
+  Material3 y las superficies custom quedan en los mismos colores; `tertiary`
+  refleja el acento, así que ningún tono frío se cuela en un tema cálido. Los
+  scrims y el chrome nativo de la ventana también leen `LocalBrandPalette`, así
+  que un cambio de tema repinta los degradados del hero y la barra de título en
+  el mismo frame. `AppThemes.Coffee` es el tema por defecto y único por ahora: una
+  paleta cálida crema/ámbar/naranja quemado, elegida en Ajustes → Apariencia →
+  Tema y persistida como `appearance.theme` en `settings.json`. La tipografía
+  Inter cargada desde Compose Resources y la escala de formas pequeña y tirando a
+  cuadrada (`AppCorner` alimenta `MaterialTheme.shapes`: 2/4/6/8/12dp; la app se
+  lee cuadrada, no redondeada) no dependen del tema. La UI lee colores semánticos
+  de `MaterialTheme.colorScheme`; `AppColors` guarda los overlays de media para
+  los que el esquema no tiene rol: `mediaScrim` y el indicador del carrusel del
+  hero (apagado cuando está inactivo, crema cuando está activo).
+  `AppSizes.controlHeight` / `minTouchTarget` mantienen los targets
   interactivos en el mínimo de 48dp de Material. Las superficies clicables custom
   dibujan la capa de estado ripple de Material (`clickableSurface`), así que el
   feedback de foco y pulsación sigue visible, y llevan rol de botón para que una
@@ -424,8 +434,9 @@ leer/escribir/borrar vive una sola vez.
   foco. El fondo de
   página casi negro (`#0B0803`) es la única fuente de verdad: el esquema, el
   fondo nativo de la ventana y cada degradado de fundido de página terminan en
-  él. La app es deliberadamente **solo oscura** — sin esquema claro ni color
-  dinámico — porque la UI está construida alrededor de artwork oscuro y scrims;
+  él. La app es deliberadamente **solo oscura** — cada `AppTheme` es una paleta
+  oscura, y no hay esquema claro ni color dinámico — porque la UI está construida
+  alrededor de artwork oscuro y scrims;
   el reproductor mantiene una paleta fija de controles blanco-sobre-negro sobre
   el vídeo. La `visualDensity` de Material3 queda en el default de plataforma.
 - **Imágenes con Coil 3**, el cargador de imágenes multiplataforma. El artwork

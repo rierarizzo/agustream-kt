@@ -53,6 +53,7 @@ usan ambas plataformas (ver §7).
 | Cambiar la lógica/estado de una pantalla | `app/shared/.../ui/<feature>/<Feature>ViewModel.kt` + `<Feature>Screen.kt` |
 | Compartir comportamiento entre secciones | `app/shared/.../ui/common/` (`AccountScopedViewModel`, `WatchedBadgeSync`) |
 | Cambiar colores, espaciado, tipografía, movimiento | `app/shared/.../ui/theme/` (`Tokens.kt`, `AppTheme.kt`, `AppType.kt`, `Motion.kt`, `WindowSize.kt`, `PosterSize.kt`) |
+| Añadir un tema | `AppTheme` / `AppSettings.theme` en `core/.../repository/SettingsRepository.kt`, `AppThemes` en `ui/theme/Tokens.kt`, selector en `SettingsScreen.kt` |
 | Reutilizar un widget (botones, pósters, campo de búsqueda) | `app/shared/.../ui/components/` |
 | Cambiar o añadir un modelo de dominio | `core/.../core/model/` |
 | Usar una constante compartida (tipo de contenido, extra, umbral) | `core/.../core/model/` (`ContentTypes`, `CatalogExtras`, `ProgressThresholds`) |
@@ -108,8 +109,10 @@ Existen para no reimplementar la misma preocupación en cada pantalla:
   del reproductor; `FrameSource` (en `app/shared/jvmMain`) lo extiende.
 - **`ContentTypes` / `CatalogExtras` / `ProgressThresholds` / `releaseYear()`**
   (`core/model`) — el vocabulario del protocolo y los umbrales, definidos una vez.
-- **Tokens de diseño** (`theme/Tokens.kt`) — paleta, espaciado, tamaños (incluidos
+- **Tokens de diseño** (`theme/Tokens.kt`) — las paletas de tema (`BrandPalette`
+  dentro de `AppThemes`), espaciado, tamaños (incluidos
   los anchos máximos de contenido/formulario/mensaje), alphas y scrims.
+  `AgustreamTheme(theme)` proporciona la paleta elegida por `LocalBrandPalette`;
   `Modifier.focusRing` (`components/Interaction.kt`) dibuja el anillo de foco
   compartido.
 - **`runCatchingCancellable`** (`core/util`) — `runCatching` que nunca se traga la
@@ -247,6 +250,16 @@ existe, y contrólalo con `StandardTestDispatcher` + `advanceUntilIdle()` (ver
    `JsonSettingsRepository`.
 3. Añade el control en `SettingsScreen`. El fichero JSON sigue siendo editable a
    mano.
+
+**Añadir un tema**
+1. Añade un valor a `AppTheme`, una paleta a `AppThemes` (`ui/theme/Tokens.kt`),
+   una etiqueta al mapa `themeLabels` de `AppearanceCard` en `SettingsScreen` y la
+   cadena en `strings.xml`. El selector itera `AppTheme.entries`, así que la nueva
+   opción aparece sola; cualquier otra superficie lee `LocalBrandPalette` o un rol
+   del esquema y no necesita cambios.
+2. Si el tema cambia roles de Material que la paleta no lleva (los contenedores
+   de error, la familia secondary), súbelos antes a `BrandPalette`, para que el
+   esquema siga siendo el único mapeo.
 
 **Añadir una sección de datos**
 1. Crea `ui/<feature>/<Feature>ViewModel.kt`, extendiendo `AccountScopedViewModel`.

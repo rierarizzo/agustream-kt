@@ -9,10 +9,18 @@ enum class PosterSize {
     LARGE,
 }
 
+/** Colour palette the whole UI is painted with. */
+enum class AppTheme {
+    /** Warm coffee/amber palette: the app default. */
+    COFFEE,
+}
+
 /** Locally stored preferences. */
 data class AppSettings(
     /** Play the app's motion (transitions, hover, skeletons). */
     val animationsEnabled: Boolean = true,
+    /** Colour palette for every surface, control and scrim. */
+    val theme: AppTheme = AppTheme.COFFEE,
     /** Resume a title from its saved position instead of the start. */
     val resumePlayback: Boolean = true,
     /** Start the next episode automatically when one finishes. */
@@ -45,6 +53,8 @@ interface SettingsRepository {
 
     /** Re-reads the file, picking up manual edits. */
     suspend fun reload()
+
+    suspend fun setTheme(theme: AppTheme)
 
     suspend fun setAnimationsEnabled(enabled: Boolean)
 

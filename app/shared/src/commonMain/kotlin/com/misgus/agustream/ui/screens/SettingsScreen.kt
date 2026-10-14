@@ -33,8 +33,11 @@ import agustream.app.shared.generated.resources.settings_sign_in_other_method
 import agustream.app.shared.generated.resources.settings_sign_in_to_load
 import agustream.app.shared.generated.resources.settings_signed_in_account
 import agustream.app.shared.generated.resources.settings_signed_in_as
+import agustream.app.shared.generated.resources.settings_theme
+import agustream.app.shared.generated.resources.settings_theme_subtitle
 import agustream.app.shared.generated.resources.settings_title
 import agustream.app.shared.generated.resources.settings_video_url
+import agustream.app.shared.generated.resources.theme_coffee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -63,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.agustream.core.player.PlaybackTarget
+import com.misgus.agustream.core.repository.AppTheme
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.core.repository.SignInMethod
 import com.misgus.agustream.ui.components.ActionButton
@@ -121,6 +125,8 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
             AppearanceCard(
                 animationsEnabled = state.animationsEnabled,
                 onAnimationsChange = { value -> save { settings.setAnimationsEnabled(value) } },
+                theme = state.theme,
+                onThemeChange = { value -> save { settings.setTheme(value) } },
                 posterSize = state.posterSize,
                 onPosterSizeChange = { value -> save { settings.setPosterSize(value) } },
                 libraryPosterSize = state.libraryPosterSize,
@@ -205,11 +211,14 @@ private fun AccountCard() {
 private fun AppearanceCard(
     animationsEnabled: Boolean,
     onAnimationsChange: (Boolean) -> Unit,
+    theme: AppTheme,
+    onThemeChange: (AppTheme) -> Unit,
     posterSize: PosterSize,
     onPosterSizeChange: (PosterSize) -> Unit,
     libraryPosterSize: PosterSize,
     onLibraryPosterSizeChange: (PosterSize) -> Unit,
 ) {
+    val themeLabels = mapOf(AppTheme.COFFEE to stringResource(Res.string.theme_coffee))
     val posterSizeLabels =
         mapOf(
             PosterSize.SMALL to stringResource(Res.string.poster_size_small),
@@ -226,6 +235,14 @@ private fun AppearanceCard(
                 subtitle = stringResource(Res.string.settings_animations_subtitle),
                 checked = animationsEnabled,
                 onCheckedChange = onAnimationsChange,
+            )
+            SettingsChoice(
+                title = stringResource(Res.string.settings_theme),
+                subtitle = stringResource(Res.string.settings_theme_subtitle),
+                options = AppTheme.entries,
+                selected = theme,
+                label = { themeLabels.getValue(it) },
+                onSelect = onThemeChange,
             )
             SettingsChoice(
                 title = stringResource(Res.string.settings_poster_size),

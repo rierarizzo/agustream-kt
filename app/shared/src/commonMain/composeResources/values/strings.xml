@@ -173,6 +173,8 @@
     <string name="settings_appearance_subtitle">How the app looks and moves.</string>
     <string name="settings_animations">Animations</string>
     <string name="settings_animations_subtitle">Transitions, hover effects and loading skeletons.</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_subtitle">The colour palette for every surface and control.</string>
     <string name="settings_poster_size">Poster size</string>
     <string name="settings_poster_size_subtitle">Catalogs, Discover and &quot;More like this&quot;.</string>
     <string name="settings_library_poster_size">Library poster size</string>
@@ -196,4 +198,7 @@
     <string name="poster_size_small">Small</string>
     <string name="poster_size_default">Default</string>
     <string name="poster_size_large">Large</string>
+
+    <!-- Themes -->
+    <string name="theme_coffee">Coffee</string>
 </resources>

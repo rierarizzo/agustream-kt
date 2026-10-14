@@ -1,5 +1,6 @@
 package com.misgus.agustream.data.store
 
+import com.misgus.agustream.core.repository.AppTheme
 import com.misgus.agustream.core.repository.PosterSize
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
@@ -29,6 +30,7 @@ class SettingsRepositoryTest {
             assertTrue(settings.state.value.animationsEnabled)
             assertTrue(settings.state.value.resumePlayback)
             assertTrue(settings.state.value.autoPlayNext)
+            assertEquals(AppTheme.COFFEE, settings.state.value.theme)
         }
 
     @Test
@@ -42,6 +44,7 @@ class SettingsRepositoryTest {
             settings.load()
             settings.setAnimationsEnabled(false)
             settings.setAutoPlayNext(false)
+            settings.setTheme(AppTheme.COFFEE)
             settings.setPosterSize(PosterSize.LARGE)
             settings.setLibraryPosterSize(PosterSize.SMALL)
 
@@ -49,6 +52,7 @@ class SettingsRepositoryTest {
             reloaded.load()
             assertFalse(reloaded.state.value.animationsEnabled)
             assertFalse(reloaded.state.value.autoPlayNext)
+            assertEquals(AppTheme.COFFEE, reloaded.state.value.theme)
             assertEquals(PosterSize.LARGE, reloaded.state.value.posterSize)
             assertEquals(PosterSize.SMALL, reloaded.state.value.libraryPosterSize)
             assertEquals("value", (store.read()["custom.key"] as JsonPrimitive).content)

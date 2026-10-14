@@ -88,7 +88,7 @@ fun AgustreamApp(
         LocalViewModelStoreOwner provides owner,
         LocalMotionEnabled provides (settings.animationsEnabled && systemAnimationsEnabled()),
     ) {
-        AgustreamTheme {
+        AgustreamTheme(theme = settings.theme) {
             // Publish the window class and insets once, at the root, so every
             // surface — the shell, onboarding and the player — reads the same one.
             BoxWithConstraints(Modifier.fillMaxSize()) {

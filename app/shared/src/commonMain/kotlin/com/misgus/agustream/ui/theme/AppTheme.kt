@@ -6,15 +6,18 @@ import agustream.app.shared.generated.resources.inter_medium
 import agustream.app.shared.generated.resources.inter_regular
 import agustream.app.shared.generated.resources.inter_semibold
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.misgus.agustream.core.repository.AppTheme
 import com.misgus.agustream.fonts.generated.resources.ibm_plex_sans_bold
 import com.misgus.agustream.fonts.generated.resources.ibm_plex_sans_medium
 import com.misgus.agustream.fonts.generated.resources.ibm_plex_sans_regular
@@ -33,48 +36,51 @@ private val AppShapes =
     )
 
 /**
- * The app's Material 3 colour scheme.
+ * Builds the app's Material 3 colour scheme from the [BrandPalette].
  *
  * Every role is filled so stock Material3 components (text fields, switches,
  * chips, dialogs, snackbars) render on the same palette as the custom surfaces.
+ * The roles a theme does not own keep their Material defaults, so a theme only
+ * declares what makes it different.
  */
-private val darkScheme =
+private fun BrandPalette.toColorScheme(): ColorScheme =
     darkColorScheme(
-        primary = BrandPalette.accent,
-        onPrimary = BrandPalette.onAccent,
-        primaryContainer = Color(0xFF4A3208),
-        onPrimaryContainer = Color(0xFFFFDDAD),
+        primary = accent,
+        onPrimary = onAccent,
+        primaryContainer = accentContainer,
+        onPrimaryContainer = onAccentContainer,
         inversePrimary = Color(0xFF7A5900),
         secondary = Color(0xFFCBC9CE),
         onSecondary = Color(0xFF323034),
         secondaryContainer = Color(0xFF47464A),
         onSecondaryContainer = Color(0xFFE6E4E9),
-        tertiary = Color(0xFF8FCBD2),
-        onTertiary = Color(0xFF00363D),
-        tertiaryContainer = Color(0xFF004F58),
-        onTertiaryContainer = Color(0xFFAAE7EF),
-        background = BrandPalette.background,
-        onBackground = BrandPalette.textPrimary,
-        surface = BrandPalette.surface,
-        onSurface = BrandPalette.textPrimary,
-        surfaceVariant = BrandPalette.surfaceHigh,
-        onSurfaceVariant = BrandPalette.textSecondary,
-        surfaceTint = BrandPalette.accent,
-        inverseSurface = Color(0xFFE6E0E9),
-        inverseOnSurface = Color(0xFF313033),
+        // Tertiary mirrors the accent, so no cold hue sneaks into a warm theme.
+        tertiary = accent,
+        onTertiary = onAccent,
+        tertiaryContainer = accentContainer,
+        onTertiaryContainer = onAccentContainer,
+        background = background,
+        onBackground = textPrimary,
+        surface = surface,
+        onSurface = textPrimary,
+        surfaceVariant = surfaceHigh,
+        onSurfaceVariant = textSecondary,
+        surfaceTint = accent,
+        inverseSurface = inverseSurface,
+        inverseOnSurface = inverseOnSurface,
         error = Color(0xFFFFB4AB),
         onError = Color(0xFF690005),
         errorContainer = Color(0xFF93000A),
         onErrorContainer = Color(0xFFFFDAD6),
         outline = Color(0xFF5A5A63),
-        outlineVariant = BrandPalette.divider,
+        outlineVariant = divider,
         scrim = Color.Black,
         surfaceBright = Color(0xFF35353B),
-        surfaceDim = BrandPalette.background,
-        surfaceContainerLowest = BrandPalette.background,
+        surfaceDim = background,
+        surfaceContainerLowest = background,
         surfaceContainerLow = Color(0xFF111114),
-        surfaceContainer = BrandPalette.surface,
-        surfaceContainerHigh = BrandPalette.surfaceHigh,
+        surfaceContainer = surface,
+        surfaceContainerHigh = surfaceHigh,
         surfaceContainerHighest = Color(0xFF2A2A30),
     )
 
@@ -128,15 +134,40 @@ private fun ibmPlexSansFontFamily(): FontFamily =
         Font(FontsRes.font.ibm_plex_sans_bold, FontWeight.Bold),
     )
 
-/** The app's dark Material3 theme, with the Inter typeface and the MD3 shapes. */
+/**
+ * Provides the palette for [theme] without installing a `MaterialTheme`.
+ *
+ * `AgustreamTheme` uses it internally; the desktop composition root wraps the
+ * window in it too, because it paints the native title bar — which reads the
+ * palette — outside the app's `MaterialTheme`.
+ */
 @Composable
-fun AgustreamTheme(content: @Composable () -> Unit) {
+fun AgustreamThemePalette(
+    theme: AppTheme = AppTheme.COFFEE,
+    content: @Composable () -> Unit,
+) {
+    CompositionLocalProvider(LocalBrandPalette provides AppThemes.of(theme), content = content)
+}
+
+/**
+ * The app's dark Material3 theme, with the Inter typeface and the MD3 shapes.
+ *
+ * [theme] selects the [BrandPalette]; it is provided through [LocalBrandPalette]
+ * so the scrims and the window chrome repaint together with the scheme.
+ */
+@Composable
+fun AgustreamTheme(
+    theme: AppTheme = AppTheme.COFFEE,
+    content: @Composable () -> Unit,
+) {
     val fontFamily = if (USE_IBM_PLEX_SANS) ibmPlexSansFontFamily() else interFontFamily()
 
-    MaterialTheme(
-        colorScheme = darkScheme,
-        typography = appTypography(fontFamily),
-        shapes = AppShapes,
-        content = content,
-    )
+    AgustreamThemePalette(theme) {
+        MaterialTheme(
+            colorScheme = AppThemes.of(theme).toColorScheme(),
+            typography = appTypography(fontFamily),
+            shapes = AppShapes,
+            content = content,
+        )
+    }
 }

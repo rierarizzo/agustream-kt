@@ -2,6 +2,8 @@ package com.misgus.agustream
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -30,6 +32,7 @@ import com.misgus.agustream.imaging.configureImageLoader
 import com.misgus.agustream.player.MpvPlayerService
 import com.misgus.agustream.ui.AgustreamApp
 import com.misgus.agustream.ui.services.AppServices
+import com.misgus.agustream.ui.theme.AgustreamThemePalette
 import com.misgus.agustream.ui.theme.AppWindowChrome
 import kotlinx.coroutines.delay
 import java.awt.Dimension
@@ -87,47 +90,58 @@ fun main(args: Array<String>) {
                 )
             }
 
-        Window(
-            onCloseRequest = {
-                backend.close()
-                player.dispose()
-                exitApplication()
-            },
-            state = windowState,
-            title = WINDOW_TITLE,
-        ) {
-            // The OS enforces the minimum: the window can grow or maximise but
-            // never shrink below the size it opens with. Reapplied when the
-            // density changes (e.g. moving to a monitor with another scale).
-            val density = LocalDensity.current
-            LaunchedEffect(window, density) {
-                window.minimumSize =
-                    Dimension(
-                        with(density) { WINDOW_WIDTH.roundToPx() },
-                        with(density) { WINDOW_HEIGHT.roundToPx() },
-                    )
-            }
-            // AWT does not follow the OS dark mode for the native title bar, so
-            // ask DWM. The native peer may not exist on the first frame; retry.
-            LaunchedEffect(window) {
-                val caption = AppWindowChrome.titleBar.toAwtColor()
-                val title = AppWindowChrome.foreground.toAwtColor()
-                val border = AppWindowChrome.border.toAwtColor()
-                repeat(DARK_TITLE_BAR_ATTEMPTS) {
-                    if (applyDarkTitleBar(window, caption = caption, text = title, border = border)) return@LaunchedEffect
-                    delay(TITLE_BAR_RETRY_DELAY_MS)
+        // The native title bar is painted outside `AgustreamTheme`, so provide the
+        // selected palette here too, and let a theme change reach DWM.
+        val appSettings by services.settings.state.collectAsState()
+        AgustreamThemePalette(appSettings.theme) {
+            Window(
+                onCloseRequest = {
+                    backend.close()
+                    player.dispose()
+                    exitApplication()
+                },
+                state = windowState,
+                title = WINDOW_TITLE,
+            ) {
+                // The OS enforces the minimum: the window can grow or maximise but
+                // never shrink below the size it opens with. Reapplied when the
+                // density changes (e.g. moving to a monitor with another scale).
+                val density = LocalDensity.current
+                LaunchedEffect(window, density) {
+                    window.minimumSize =
+                        Dimension(
+                            with(density) { WINDOW_WIDTH.roundToPx() },
+                            with(density) { WINDOW_HEIGHT.roundToPx() },
+                        )
                 }
+                // Read the chrome colours in the composition: they follow the selected
+                // theme, and an effect cannot read a composable getter itself.
+                val captionColor = AppWindowChrome.titleBar
+                val titleBarColor = AppWindowChrome.foreground
+                val borderColor = AppWindowChrome.border
+                val windowColor = AppWindowChrome.windowBackground
+                // AWT does not follow the OS dark mode for the native title bar, so
+                // ask DWM. The native peer may not exist on the first frame; retry.
+                LaunchedEffect(window, captionColor, titleBarColor, borderColor) {
+                    val caption = captionColor.toAwtColor()
+                    val title = titleBarColor.toAwtColor()
+                    val border = borderColor.toAwtColor()
+                    repeat(DARK_TITLE_BAR_ATTEMPTS) {
+                        if (applyDarkTitleBar(window, caption = caption, text = title, border = border)) return@LaunchedEffect
+                        delay(TITLE_BAR_RETRY_DELAY_MS)
+                    }
+                }
+                // Paint the native window with the app background so resizing does
+                // not flash the default white surface before Compose's next frame.
+                SideEffect {
+                    applyBackground(window, windowColor.toAwtColor())
+                }
+                AgustreamApp(
+                    services = services,
+                    initialSource = initialSource,
+                    autoSignIn = credentialsFromEnvironment(environment),
+                )
             }
-            // Paint the native window with the app background so resizing does
-            // not flash the default white surface before Compose's next frame.
-            SideEffect {
-                applyBackground(window, AppWindowChrome.windowBackground.toAwtColor())
-            }
-            AgustreamApp(
-                services = services,
-                initialSource = initialSource,
-                autoSignIn = credentialsFromEnvironment(environment),
-            )
         }
     }
 }

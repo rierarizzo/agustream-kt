@@ -1,6 +1,7 @@
 package com.misgus.agustream.data.store
 
 import com.misgus.agustream.core.repository.AppSettings
+import com.misgus.agustream.core.repository.AppTheme
 import com.misgus.agustream.core.repository.PosterSize
 import com.misgus.agustream.core.repository.SettingsRepository
 import com.misgus.agustream.data.boolOrNull
@@ -19,6 +20,7 @@ import kotlinx.serialization.json.JsonPrimitive
  *
  * ```json
  * {
+ *   "appearance.theme": "coffee",
  *   "animations.enabled": true,
  *   "player.resumePlayback": true,
  *   "player.autoPlayNext": true
@@ -43,6 +45,8 @@ class JsonSettingsRepository(
 
     override suspend fun reload() = load()
 
+    override suspend fun setTheme(theme: AppTheme) = update { it.copy(theme = theme) }
+
     override suspend fun setAnimationsEnabled(enabled: Boolean) = update { it.copy(animationsEnabled = enabled) }
 
     override suspend fun setResumePlayback(enabled: Boolean) = update { it.copy(resumePlayback = enabled) }
@@ -63,6 +67,7 @@ class JsonSettingsRepository(
 
     private suspend fun write(settings: AppSettings) {
         val data = store.read().toMutableMap()
+        data[KEY_THEME] = JsonPrimitive(settings.theme.name.lowercase())
         data[KEY_ANIMATIONS] = JsonPrimitive(settings.animationsEnabled)
         data[KEY_RESUME] = JsonPrimitive(settings.resumePlayback)
         data[KEY_AUTOPLAY] = JsonPrimitive(settings.autoPlayNext)
@@ -73,6 +78,7 @@ class JsonSettingsRepository(
 
     private fun JsonObject.toSettings() =
         AppSettings(
+            theme = this[KEY_THEME].stringOrNull().toAppTheme() ?: AppTheme.COFFEE,
             animationsEnabled = this[KEY_ANIMATIONS].boolOrNull() ?: true,
             resumePlayback = this[KEY_RESUME].boolOrNull() ?: true,
             autoPlayNext = this[KEY_AUTOPLAY].boolOrNull() ?: true,
@@ -88,7 +94,10 @@ class JsonSettingsRepository(
             else -> null
         }
 
+    private fun String?.toAppTheme(): AppTheme? = AppTheme.entries.firstOrNull { it.name.equals(this, ignoreCase = true) }
+
     companion object {
+        const val KEY_THEME = "appearance.theme"
         const val KEY_ANIMATIONS = "animations.enabled"
         const val KEY_RESUME = "player.resumePlayback"
         const val KEY_AUTOPLAY = "player.autoPlayNext"

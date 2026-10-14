@@ -143,8 +143,9 @@ so the atomic read/write/delete logic lives once.
   ViewModel is built on the main thread, which fired the load hook from the base
   constructor before the subclass state existed. Forcing a dispatch makes the
   first emission wait until construction has finished.
-- **Design tokens are data, not code.** `theme/Tokens.kt` holds the palette,
-  spacing, sizes, alphas and scrims; `theme/AppTheme.kt` holds only the Material
+- **Design tokens are data, not code.** `theme/Tokens.kt` holds the palettes
+  (`BrandPalette` / `AppThemes`), spacing, sizes, alphas and scrims;
+  `theme/AppTheme.kt` holds only the Material
   colour scheme, typography and shapes. `AppSizes` owns the content/form/message
   widths and the border/progress sizes, `AppAlpha` owns every overlay opacity,
   and `Modifier.focusRing` (in `Interaction.kt`) gives every focusable control
@@ -353,17 +354,25 @@ so the atomic read/write/delete logic lives once.
   that have loaded, so it never offers one the addons do not return. Discover is
   no longer a section. **Calendar** paints a month grid with the upcoming
   episodes of the Library's series; see the limitation below.
-- **Theme** follows Material 3. `AgustreamTheme` supplies the full
-  `darkColorScheme` (every role, including the surface-container tiers,
-  `outline`/`outlineVariant`, `inverse*`, `tertiary` and the error containers),
-  the Inter typeface loaded from Compose Resources, and a small,
-  square-ish shape scale (`AppCorner` feeds `MaterialTheme.shapes`:
-  2/4/6/8/12dp; the app reads square, not rounded). The UI reads
-  semantic colours from `MaterialTheme.colorScheme`; the raw brand palette is
-  private and only fills the scheme, so stock Material3 components and custom
-  surfaces stay on the same colours. `AppColors` keeps the media overlays the
-  scheme has no role for: `mediaScrim` and the hero carousel indicator (grey
-  when idle, white when active). `AppSizes.controlHeight` /
+- **Theme** follows Material 3 and is data, not code. `BrandPalette`
+  (`theme/Tokens.kt`) is a data class holding one theme's raw colours, `AppThemes`
+  maps the persisted `AppTheme` to a palette, and `AgustreamTheme(theme)` picks it
+  and provides it through `LocalBrandPalette`, then builds the full
+  `darkColorScheme` from it (surface-container tiers, `outline`/`outlineVariant`,
+  `inverse*` and the error containers). The palette is internal and only fills
+  the scheme, so stock Material3 components and custom surfaces stay on the same
+  colours; `tertiary` mirrors the accent, so no cold hue sneaks into a warm
+  theme. The scrims and the native window chrome read `LocalBrandPalette` too, so
+  a theme change repaints the hero gradients and the title bar in the same frame.
+  `AppThemes.Coffee` is the default and only theme for now: a warm
+  cream/amber/burnt-orange palette, selected in Settings → Appearance → Theme and
+  persisted as `appearance.theme` in `settings.json`. The Inter typeface loaded
+  from Compose Resources and the small, square-ish shape scale (`AppCorner` feeds
+  `MaterialTheme.shapes`: 2/4/6/8/12dp; the app reads square, not rounded) stay
+  theme-independent. The UI reads semantic colours from
+  `MaterialTheme.colorScheme`; `AppColors` keeps the media overlays the scheme
+  has no role for: `mediaScrim` and the hero carousel indicator (muted when idle,
+  cream when active). `AppSizes.controlHeight` /
   `minTouchTarget` keep interactive targets at Material's 48dp minimum. Custom
   clickable surfaces draw the Material ripple state layer (`clickableSurface`),
   so focus and press feedback stays visible, and carry a button role so a custom
@@ -402,10 +411,10 @@ so the atomic read/write/delete logic lives once.
   brighten their glyph on hover or focus. The near-black page background (`#0B0803`) is the single source of
   truth: the scheme, the native window background and every page-fade gradient
   end on it. The
-  app is deliberately **dark-only** — no light scheme and no dynamic colour —
-  because the UI is built around dark artwork and scrims; the player keeps a
-  fixed white-on-black control palette over video. Material3 `visualDensity`
-  stays at the platform default.
+  app is deliberately **dark-only** — every `AppTheme` is a dark palette, and
+  there is no light scheme and no dynamic colour — because the UI is built
+  around dark artwork and scrims; the player keeps a fixed white-on-black control
+  palette over video. Material3 `visualDensity` stays at the platform default.
 - **Images with Coil 3**, the multiplatform image loader. Remote artwork goes
   through two shared composables in `ui/components`: `PosterImage` for posters
   and thumbnails, and `RemoteImage` for the rest (backdrops, hero art, cast
