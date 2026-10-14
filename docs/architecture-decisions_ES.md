@@ -223,7 +223,12 @@ leer/escribir/borrar vive una sola vez.
   atado al primer catálogo. Los títulos bien calificados (IMDb >= 6, desconocido
   pasa) van primero y los de baja calificación solo se usan cuando no alcanza el
   buen contenido. Los seis slides auto-avanzan cada `HERO_AUTO_ADVANCE_INTERVAL`
-  (7 s, dentro del rango usual de 5-8 s para carruseles), y la pantalla vuelve a
+  (7 s, dentro del rango usual de 5-8 s para carruseles), y un cambio manual
+  pausa esa rotación durante `HERO_MANUAL_COOLDOWN` (60 s): el watcher se apoya en
+  `PagerState.isScrollInProgress` y marca todo scroll que el carrusel no inició
+  él mismo, así cubre tanto un drag en teléfono como un swipe de rueda / trackpad
+  en desktop, y el timer cede ante el usuario hasta que queda inactivo, momento en
+  que el hero vuelve a moverse solo. La pantalla vuelve a
   elegir el set completo cada `FEATURED_ROTATION_INTERVAL` (10 minutos) mientras
   Home está visible, priorizando los ítems que no están en pantalla, así cambia
   con el tiempo y no en cada recomposición. La selección usa un `Random`

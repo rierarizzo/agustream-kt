@@ -210,7 +210,12 @@ so the atomic read/write/delete logic lives once.
   first catalog. Well-rated titles (IMDb >= 6, unknown passes) come first and
   low ratings are only used when there is not enough good content. The six
   slides auto-advance every `HERO_AUTO_ADVANCE_INTERVAL` (7 s, in the usual 5-8 s
-  carousel range), and the screen re-picks the whole set every
+  carousel range), and a manual change pauses that rotation for
+  `HERO_MANUAL_COOLDOWN` (60 s): the watcher keys on `PagerState.isScrollInProgress`
+  and marks every scroll the carousel did not start itself, so it catches both a
+  drag on a phone and a wheel / trackpad swipe on desktop, and the timer yields to
+  the user until they go idle before the hero resumes on its own. The screen
+  re-picks the whole set every
   `FEATURED_ROTATION_INTERVAL` (10 minutes) while Home is visible, preferring
   items that are not already on screen, so it changes over time instead of on
   every recomposition. The selection goes through an injectable `Random`, so

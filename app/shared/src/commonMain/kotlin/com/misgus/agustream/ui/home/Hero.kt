@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,6 +68,8 @@ import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 /** Share of the window width the desktop artwork occupies. */
 private const val HERO_IMAGE_WIDTH_FRACTION = 0.75f
@@ -103,6 +106,17 @@ private val HERO_CONTENT_SLIDE_MAX = 64.dp
  * Bootstrap to 5 s): long enough to read the title, short enough to keep moving.
  */
 private val HERO_AUTO_ADVANCE_INTERVAL = 7.seconds
+
+/**
+ * How long auto-advance stays paused after the user swipes the carousel.
+ *
+ * A manual change means the user picked that slide, so the rotation yields to
+ * them instead of moving the billboard under their tap. A minute is long enough
+ * to read the copy and use the actions without it shifting, and short enough
+ * that the hero starts moving again on its own once they go idle; it is the
+ * common "resume after interaction" window for auto-rotating carousels.
+ */
+private val HERO_MANUAL_COOLDOWN = 60.seconds
 
 /** Carousel paginator: dot size, gap, bottom inset and colour animation. */
 private val HERO_PAGINATOR_DOT_SIZE = 10.dp
@@ -227,16 +241,41 @@ private fun HeroCarousel(
 ) {
     val compact = LocalWindowSize.current == WindowSize.COMPACT
     val density = LocalDensity.current
+    // Monotonic mark of the last manual interaction; auto-advance holds off until
+    // a full cooldown has passed, then resumes once the user goes idle.
+    var lastManualInteraction by remember(pagerState) { mutableStateOf<TimeMark?>(null) }
+    // Set while our own animation drives the pager, so the watcher below can tell
+    // an auto-advance from something the user did.
+    val autoScrolling = remember { mutableStateOf(false) }
+    // Any scroll we did not start counts as manual input. Watching
+    // `isScrollInProgress` covers both a drag on a phone and a wheel / trackpad
+    // swipe on desktop; `interactionSource` alone would miss the wheel, since it
+    // only dispatches drag events.
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.isScrollInProgress }.collect { inProgress ->
+            if (inProgress && !autoScrolling.value) {
+                lastManualInteraction = TimeSource.Monotonic.markNow()
+            }
+        }
+    }
     // Auto-advance. The effect is keyed on stable inputs on purpose: keying it on
     // `isScrollInProgress` would cancel it (and the animation) the moment the
     // animation sets that flag itself, so the page would never move. A tick that
-    // lands while the user is dragging is skipped instead.
+    // lands while the user is dragging, or while the post-swipe cooldown is still
+    // running, is skipped instead.
     LaunchedEffect(pagerState, items.size) {
         if (items.size <= 1) return@LaunchedEffect
         while (true) {
             delay(HERO_AUTO_ADVANCE_INTERVAL)
-            if (!pagerState.isScrollInProgress) {
-                pagerState.animateScrollToPage((pagerState.currentPage + 1) % items.size)
+            val sinceManual = lastManualInteraction?.elapsedNow()
+            val coolingDown = sinceManual != null && sinceManual < HERO_MANUAL_COOLDOWN
+            if (!pagerState.isScrollInProgress && !coolingDown) {
+                autoScrolling.value = true
+                try {
+                    pagerState.animateScrollToPage((pagerState.currentPage + 1) % items.size)
+                } finally {
+                    autoScrolling.value = false
+                }
             }
         }
     }
