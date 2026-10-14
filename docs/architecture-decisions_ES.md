@@ -217,6 +217,17 @@ leer/escribir/borrar vive una sola vez.
   (16dp) y un gap de rejilla menor, y las acciones de detalle son solo-icono (con
   `contentDescription`) a la altura del call-to-action, para que la fila quede
   alineada.
+- **El hero de Home toma de todos los catálogos.** `pickFeatured` (en
+  `HomeViewModel`) arma el pool con los ítems de todas las filas, deduplica por
+  `type:id`, balancea películas y series y baraja, así que el billboard no queda
+  atado al primer catálogo. Los títulos bien calificados (IMDb >= 6, desconocido
+  pasa) van primero y los de baja calificación solo se usan cuando no alcanza el
+  buen contenido. Los seis slides auto-avanzan cada `HERO_AUTO_ADVANCE_INTERVAL`
+  (7 s, dentro del rango usual de 5-8 s para carruseles), y la pantalla vuelve a
+  elegir el set completo cada `FEATURED_ROTATION_INTERVAL` (10 minutos) mientras
+  Home está visible, priorizando los ítems que no están en pantalla, así cambia
+  con el tiempo y no en cada recomposición. La selección usa un `Random`
+  inyectable, así los tests son deterministas.
 - **Los billboards comparten una gramática de copy.** El billboard de Home y el
   hero de detalle renderizan título, metadata, sinopsis y géneros a través de los
   mismos composables (`MediaTitle`, `MetadataRow`, `HeroSynopsis`, `HeroGenres` y

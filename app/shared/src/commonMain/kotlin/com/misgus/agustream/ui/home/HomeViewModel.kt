@@ -1,6 +1,7 @@
 package com.misgus.agustream.ui.home
 
 import androidx.lifecycle.viewModelScope
+import com.misgus.agustream.core.model.ContentTypes
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.core.model.ProgressThresholds
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 import kotlin.time.Instant
 
 /** A library title with progress, shown in "Continue watching". */
@@ -64,6 +66,7 @@ class HomeViewModel(
     private val library: LibraryRepository,
     private val progress: ProgressRepository,
     badges: WatchedBadgeResolver,
+    private val random: Random = Random.Default,
 ) : AccountScopedViewModel(account) {
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
@@ -121,7 +124,7 @@ class HomeViewModel(
                     hasLoaded = true,
                     continueWatching = continueWatching,
                     rows = rows,
-                    featured = rows.firstOrNull()?.items?.take(MAX_FEATURED) ?: emptyList(),
+                    featured = pickFeatured(rows, MAX_FEATURED, random),
                 )
             }
             loaded = true
@@ -171,6 +174,23 @@ class HomeViewModel(
         )
     }
 
+    /**
+     * Replaces the featured set with a new random mix of the loaded rows.
+     *
+     * The screen calls it on a timer, so the billboard changes over time without
+     * re-picking (or reshuffling) on every recomposition. Items already on screen
+     * are dropped when the pool is large enough, so a rotation shows new ones.
+     */
+    fun rotateFeatured() {
+        val rows = _state.value.rows
+        if (rows.isEmpty()) return
+        val current =
+            _state.value.featured
+                .map { it.type to it.id }
+                .toSet()
+        _state.update { it.copy(featured = pickFeatured(rows, MAX_FEATURED, random, exclude = current)) }
+    }
+
     private fun clear() {
         watchedSync.invalidate()
         _state.value = HomeUiState()
@@ -182,4 +202,73 @@ class HomeViewModel(
         const val MAX_CONTINUE = 12
         const val MAX_FEATURED = 6
     }
+}
+
+/** Lowest IMDb rating a title needs to lead the billboard. `null` passes. */
+private const val FEATURED_MIN_RATING = 6.0
+
+/**
+ * Picks the featured set from every catalog row, mixing movies and series.
+ *
+ * The pool is every item across all rows, deduped by `type:id`, so the billboard
+ * is not tied to the first catalog. Selection follows a preference order — well
+ * rated and off screen first, then well rated, then the rest — so a rotation
+ * shows something new and low-rated titles are only used when there is not
+ * enough good content. [exclude] is the set currently on screen; the result
+ * keeps a movie / series balance and is shuffled, so the order is random instead
+ * of always "movie, series, movie, ...".
+ */
+internal fun pickFeatured(
+    rows: List<HomeRow>,
+    count: Int,
+    random: Random,
+    exclude: Set<Pair<String, String>> = emptySet(),
+): List<MetaPreview> {
+    val all = rows.flatMap { it.items }.distinctBy { it.type to it.id }
+    if (count <= 0 || all.isEmpty()) return emptyList()
+    val good = all.filter { it.isWellRated() }
+    val rest = all.filterNot { it.isWellRated() }
+    val tiers =
+        listOf(
+            good.filterNot { (it.type to it.id) in exclude },
+            good.filter { (it.type to it.id) in exclude },
+            rest.filterNot { (it.type to it.id) in exclude },
+            rest.filter { (it.type to it.id) in exclude },
+        )
+    val picked = mutableListOf<MetaPreview>()
+    for (tier in tiers) {
+        if (picked.size >= count) break
+        picked += takeBalanced(tier, count - picked.size, random)
+    }
+    return picked.shuffled(random)
+}
+
+/**
+ * Whether a title is rated well enough to lead the billboard. An unknown rating
+ * passes, since the catalog simply does not know; only a known low score fails.
+ */
+private fun MetaPreview.isWellRated(): Boolean {
+    val rating = imdbRating
+    return rating == null || rating >= FEATURED_MIN_RATING
+}
+
+/** Takes up to [count] items from [pool], alternating movies and series. */
+private fun takeBalanced(
+    pool: List<MetaPreview>,
+    count: Int,
+    random: Random,
+): List<MetaPreview> {
+    if (count <= 0 || pool.isEmpty()) return emptyList()
+    val movies = pool.filter { it.type == ContentTypes.MOVIE }.shuffled(random)
+    val series = pool.filter { ContentTypes.isSeries(it.type) }.shuffled(random)
+    val other = pool.filterNot { it.type == ContentTypes.MOVIE || ContentTypes.isSeries(it.type) }.shuffled(random)
+    val balanced =
+        buildList {
+            repeat(maxOf(movies.size, series.size)) { index ->
+                movies.getOrNull(index)?.let(::add)
+                series.getOrNull(index)?.let(::add)
+            }
+            addAll(other)
+        }
+    return balanced.take(count)
 }

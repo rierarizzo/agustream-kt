@@ -204,6 +204,17 @@ so the atomic read/write/delete logic lives once.
   windows also use a tighter screen padding (16dp) and grid gap, and the detail
   actions are icon-only (with a `contentDescription`) at the call-to-action's
   height, so the row lines up.
+- **The Home hero draws from every catalog.** `pickFeatured` (in
+  `HomeViewModel`) takes the pool of every row's items, dedupes by `type:id`,
+  balances movies and series, and shuffles, so the billboard is not tied to the
+  first catalog. Well-rated titles (IMDb >= 6, unknown passes) come first and
+  low ratings are only used when there is not enough good content. The six
+  slides auto-advance every `HERO_AUTO_ADVANCE_INTERVAL` (7 s, in the usual 5-8 s
+  carousel range), and the screen re-picks the whole set every
+  `FEATURED_ROTATION_INTERVAL` (10 minutes) while Home is visible, preferring
+  items that are not already on screen, so it changes over time instead of on
+  every recomposition. The selection goes through an injectable `Random`, so
+  tests are deterministic.
 - **Billboards share one copy grammar.** The Home billboard and the detail
   hero render title, metadata, synopsis and genres through the same composables
   (`MediaTitle`, `MetadataRow`, `HeroSynopsis`, `HeroGenres` and the

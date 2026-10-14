@@ -62,8 +62,10 @@ import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.absoluteValue
+import kotlin.time.Duration.Companion.seconds
 
 /** Share of the window width the desktop artwork occupies. */
 private const val HERO_IMAGE_WIDTH_FRACTION = 0.75f
@@ -92,6 +94,14 @@ private val HERO_SYNOPSIS_ACTIONS_SPACE = 18.dp
  * purpose: just enough to read the swipe direction, not a full-screen slide.
  */
 private val HERO_CONTENT_SLIDE_MAX = 64.dp
+
+/**
+ * How long a slide stays before the carousel advances to the next one.
+ *
+ * In the common 5-8 s range for auto-rotating carousels (Swiper defaults to 3 s,
+ * Bootstrap to 5 s): long enough to read the title, short enough to keep moving.
+ */
+private val HERO_AUTO_ADVANCE_INTERVAL = 7.seconds
 
 /** Carousel paginator: dot size, gap, bottom inset and colour animation. */
 private val HERO_PAGINATOR_DOT_SIZE = 10.dp
@@ -201,6 +211,19 @@ private fun HeroCarousel(
 ) {
     val compact = LocalWindowSize.current == WindowSize.COMPACT
     val density = LocalDensity.current
+    // Auto-advance. The effect is keyed on stable inputs on purpose: keying it on
+    // `isScrollInProgress` would cancel it (and the animation) the moment the
+    // animation sets that flag itself, so the page would never move. A tick that
+    // lands while the user is dragging is skipped instead.
+    LaunchedEffect(pagerState, items.size) {
+        if (items.size <= 1) return@LaunchedEffect
+        while (true) {
+            delay(HERO_AUTO_ADVANCE_INTERVAL)
+            if (!pagerState.isScrollInProgress) {
+                pagerState.animateScrollToPage((pagerState.currentPage + 1) % items.size)
+            }
+        }
+    }
 
     Box(Modifier.fillMaxWidth().height(height).background(MaterialTheme.colorScheme.background)) {
         HorizontalPager(

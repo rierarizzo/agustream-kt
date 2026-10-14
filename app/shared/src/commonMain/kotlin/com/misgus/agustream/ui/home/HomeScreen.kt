@@ -70,7 +70,9 @@ import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.railHeight
 import com.misgus.agustream.ui.theme.safeTopInset
 import com.misgus.agustream.ui.theme.screenPadding
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Duration.Companion.minutes
 
 /** Home section: a featured carousel, "Continue watching" and catalog rows. */
 @Composable
@@ -80,6 +82,15 @@ fun HomeScreen(
     onOpenStreams: (StreamsRequest) -> Unit,
 ) {
     LaunchedEffect(Unit) { viewModel.load() }
+    // Rotate the featured set while Home is on screen, so the billboard changes
+    // over time instead of staying pinned to one pick. Leaving the section
+    // cancels the loop with the composition.
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(FEATURED_ROTATION_INTERVAL)
+            viewModel.rotateFeatured()
+        }
+    }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val settingsRepository = LocalAppServices.current.settings
     val settings by settingsRepository.state.collectAsStateWithLifecycle()
@@ -282,6 +293,16 @@ private val ContinueWidth = 336.dp
 private val CompactContinueWidth = 224.dp
 private val ContinueHeight = 248.dp
 private val CompactContinueHeight = 184.dp
+
+/**
+ * How often the featured billboard rotates to a new random mix of the rows.
+ *
+ * Far apart on purpose: the six slides auto-advance on their own, so the set
+ * only needs to change after the user has seen it a few times. Most streaming
+ * apps keep the featured set for the whole session; 10 minutes is a middle
+ * ground between a stale billboard and one that changes before it is seen.
+ */
+private val FEATURED_ROTATION_INTERVAL = 10.minutes
 
 /**
  * Share of the screen work-area height the wide billboard occupies.
