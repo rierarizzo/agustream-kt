@@ -38,7 +38,6 @@ import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -53,7 +52,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,12 +59,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.model.LibraryItem
 import com.misgus.agustream.core.util.runCatchingCancellable
 import com.misgus.agustream.ui.components.ActionButton
+import com.misgus.agustream.ui.components.HeroGenres
+import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
 import com.misgus.agustream.ui.components.MetadataRow
 import com.misgus.agustream.ui.components.RemoteImage
 import com.misgus.agustream.ui.components.clickableSurface
 import com.misgus.agustream.ui.components.interactionHighlight
-import com.misgus.agustream.ui.components.ratingText
+import com.misgus.agustream.ui.components.metadataParts
 import com.misgus.agustream.ui.components.rememberInteraction
 import com.misgus.agustream.ui.detail.DetailUiState
 import com.misgus.agustream.ui.detail.DetailViewModel
@@ -79,7 +79,6 @@ import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppSynopsis
-import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
@@ -387,7 +386,8 @@ private fun HeroContent(
                     .widthIn(max = 720.dp),
         ) {
             MediaTitle(state.name, state.logo, loading = !state.hasLoaded)
-            MetadataRow(detailMetadataParts(state))
+            Spacer(Modifier.height(AppSpacing.md))
+            MetadataRow(metadataParts(state.releaseInfo, runtime = state.runtime, rating = state.imdbRating))
             Spacer(Modifier.height(AppSpacing.lg))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -413,36 +413,21 @@ private fun HeroContent(
                 )
             }
             Spacer(Modifier.height(AppSpacing.lg))
-            Text(
-                // Show only the loaded description: the library preview can be a
-                // different synopsis, and swapping it mid-view reads worse than
-                // a short reserve. `minLines` keeps the layout stable.
-                text = if (state.hasLoaded) state.description.orEmpty() else "",
+            // Show only the loaded description: the library preview can be a
+            // different synopsis, and swapping it mid-view reads worse than a
+            // short reserve. `minLines` keeps the layout stable.
+            HeroSynopsis(
+                text = state.description,
+                loading = !state.hasLoaded,
                 minLines = AppSynopsis.MAX_LINES,
-                maxLines = AppSynopsis.MAX_LINES,
-                overflow = TextOverflow.Ellipsis,
-                style = AppType.heroBody(),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
             )
             if (state.genres.isNotEmpty()) {
                 Spacer(Modifier.height(AppSpacing.sm))
-                Text(
-                    state.genres.joinToString("  ·  "),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                HeroGenres(state.genres)
             }
         }
     }
 }
-
-/** Release info, runtime and rating, dot-separated. */
-private fun detailMetadataParts(state: DetailUiState): List<String> =
-    buildList {
-        state.releaseInfo?.takeIf { it.isNotEmpty() }?.let { add(it) }
-        state.runtime?.takeIf { it.isNotEmpty() }?.let { add(it) }
-        state.imdbRating?.let { add("★ ${ratingText(it)}") }
-    }
 
 /** Icon + label actions under the call to action. */
 @Composable

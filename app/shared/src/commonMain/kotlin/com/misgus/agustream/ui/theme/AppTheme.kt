@@ -54,14 +54,16 @@ private object BrandPalette {
     val onAccent = Color(0xFF1A1200)
 
     /**
-     * Default text colour. It matches the poster captions on purpose: body copy
-     * stays muted instead of glaring white.
+     * Default text colour: white. Headings and body copy share it; secondary
+     * roles step down through alpha instead of a separate grey.
      */
-    val textPrimary = Color(0xFFAFB0B0)
-    val textSecondary = Color(0xFF9A9AA4)
+    val textPrimary = Color(0xFFFFFFFF)
+
+    /** Metadata, captions and secondary copy: white, dimmed so hierarchy survives. */
+    val textSecondary = Color(0xFFFFFFFF).copy(alpha = 0.70f)
 
     /** Release year / metadata under a poster title. */
-    val posterYear = Color(0xFF8A8A92)
+    val posterYear = Color(0xFFFFFFFF).copy(alpha = 0.60f)
 
     val divider = Color(0xFF26262B)
 }
@@ -422,21 +424,21 @@ private val darkScheme =
 private fun appTypography(font: FontFamily): Typography {
     val base = Typography()
     return base.copy(
-        displayLarge = base.displayLarge.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        displayMedium = base.displayMedium.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        displaySmall = base.displaySmall.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-        headlineLarge = base.headlineLarge.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.25).sp),
-        headlineMedium = base.headlineMedium.copy(fontFamily = font, fontWeight = FontWeight.Bold, letterSpacing = (-0.25).sp),
-        headlineSmall = base.headlineSmall.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
-        titleLarge = base.titleLarge.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
-        titleMedium = base.titleMedium.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
-        titleSmall = base.titleSmall.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
+        displayLarge = base.displayLarge.copy(fontFamily = font, fontWeight = FontWeight.Medium, letterSpacing = (-0.5).sp),
+        displayMedium = base.displayMedium.copy(fontFamily = font, fontWeight = FontWeight.Medium, letterSpacing = (-0.5).sp),
+        displaySmall = base.displaySmall.copy(fontFamily = font, fontWeight = FontWeight.Medium, letterSpacing = (-0.5).sp),
+        headlineLarge = base.headlineLarge.copy(fontFamily = font, fontWeight = FontWeight.Medium, letterSpacing = (-0.25).sp),
+        headlineMedium = base.headlineMedium.copy(fontFamily = font, fontWeight = FontWeight.Medium, letterSpacing = (-0.25).sp),
+        headlineSmall = base.headlineSmall.copy(fontFamily = font, fontWeight = FontWeight.Normal),
+        titleLarge = base.titleLarge.copy(fontFamily = font, fontWeight = FontWeight.Normal),
+        titleMedium = base.titleMedium.copy(fontFamily = font, fontWeight = FontWeight.Normal),
+        titleSmall = base.titleSmall.copy(fontFamily = font, fontWeight = FontWeight.Normal),
         bodyLarge = base.bodyLarge.copy(fontFamily = font, fontWeight = FontWeight.Normal),
         bodyMedium = base.bodyMedium.copy(fontFamily = font, fontWeight = FontWeight.Normal),
         bodySmall = base.bodySmall.copy(fontFamily = font, fontWeight = FontWeight.Normal),
-        labelLarge = base.labelLarge.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
-        labelMedium = base.labelMedium.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
-        labelSmall = base.labelSmall.copy(fontFamily = font, fontWeight = FontWeight.SemiBold),
+        labelLarge = base.labelLarge.copy(fontFamily = font, fontWeight = FontWeight.Normal),
+        labelMedium = base.labelMedium.copy(fontFamily = font, fontWeight = FontWeight.Normal),
+        labelSmall = base.labelSmall.copy(fontFamily = font, fontWeight = FontWeight.Normal),
     )
 }
 

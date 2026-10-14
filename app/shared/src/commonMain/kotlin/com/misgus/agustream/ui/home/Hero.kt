@@ -28,7 +28,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.SingletonImageLoader
@@ -51,15 +49,15 @@ import coil3.request.ImageRequest
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.ArtworkFilterQuality
-import com.misgus.agustream.ui.components.LogoFilterQuality
-import com.misgus.agustream.ui.components.RemoteImage
-import com.misgus.agustream.ui.components.ratingText
+import com.misgus.agustream.ui.components.HeroSynopsis
+import com.misgus.agustream.ui.components.MediaTitle
+import com.misgus.agustream.ui.components.MetadataRow
+import com.misgus.agustream.ui.components.metadataParts
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppLogoSize
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
 import com.misgus.agustream.ui.theme.AppSynopsis
-import com.misgus.agustream.ui.theme.AppType
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionTween
@@ -85,13 +83,14 @@ private val HERO_CONTENT_MAX_WIDTH = 840.dp
 /** Gap between the bottom of the billboard and the copy actions. */
 private val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
 
-/** Vertical rhythm of the copy column. */
-private val HERO_LOGO_METADATA_SPACE = 20.dp
-private val HERO_METADATA_SYNOPSIS_SPACE = 22.dp
-private val HERO_SYNOPSIS_ACTIONS_SPACE = 28.dp
-
-/** Gap between the rating star and its number. */
-private val HERO_STAR_GAP = 4.dp
+/**
+ * Vertical rhythm of the copy column. The order it spaces (title, metadata,
+ * actions, synopsis, genres) matches the detail billboard; the values are
+ * tighter, since the home copy sits over cropped artwork.
+ */
+private val HERO_LOGO_METADATA_SPACE = 12.dp
+private val HERO_METADATA_ACTIONS_SPACE = 18.dp
+private val HERO_ACTIONS_SYNOPSIS_SPACE = 18.dp
 
 /** Carousel paginator: inset from the right edge, dot size, gap and animation. */
 private val HERO_PAGINATOR_END_MARGIN = 30.dp
@@ -326,93 +325,28 @@ private fun BoxScope.HeroCopy(
                     bottom = HERO_CONTENT_BOTTOM_MARGIN,
                 ).widthIn(max = HERO_CONTENT_MAX_WIDTH),
     ) {
-        HeroTitle(item.name, if (compact) null else item.logo)
+        MediaTitle(
+            name = item.name,
+            logo = if (compact) null else item.logo,
+            logoHeight = AppLogoSize.homeHeight,
+        )
         Spacer(Modifier.height(HERO_LOGO_METADATA_SPACE))
-        HeroMetadata(item)
-        item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
-            Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))
-            Text(
-                synopsis,
-                maxLines = AppSynopsis.MAX_LINES,
-                overflow = TextOverflow.Ellipsis,
-                style = AppType.heroBody(),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.92f),
-                modifier = Modifier.widthIn(max = AppSynopsis.maxWidth),
-            )
-        }
-        Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
+        MetadataRow(metadataParts(item.releaseInfo, genres = item.genres, rating = item.imdbRating))
+        Spacer(Modifier.height(HERO_METADATA_ACTIONS_SPACE))
         Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
             ActionButton(text = stringResource(Res.string.action_play), icon = Icons.Default.PlayArrow, onClick = onPlay)
-            ActionButton(text = stringResource(Res.string.action_more_info), icon = Icons.Outlined.Info, onClick = onOpen, primary = false)
+            ActionButton(
+                text = stringResource(Res.string.action_more_info),
+                icon = Icons.Outlined.Info,
+                onClick = onOpen,
+                primary = false,
+            )
+        }
+        item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
+            Spacer(Modifier.height(HERO_ACTIONS_SYNOPSIS_SPACE))
+            HeroSynopsis(text = synopsis, modifier = Modifier.widthIn(max = AppSynopsis.maxWidth))
         }
     }
-}
-
-/** Title logo when the metadata provides one, otherwise the name as a headline. */
-@Composable
-private fun HeroTitle(
-    name: String,
-    logo: String?,
-) {
-    if (!logo.isNullOrEmpty()) {
-        RemoteImage(
-            url = logo,
-            contentDescription = name,
-            contentScale = ContentScale.Fit,
-            filterQuality = LogoFilterQuality,
-            fadeIn = true,
-            modifier = Modifier.height(AppLogoSize.homeHeight).widthIn(max = AppLogoSize.maxWidth),
-        )
-    } else {
-        Text(
-            name,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            style = AppType.heroTitle(),
-        )
-    }
-}
-
-/** `year • ★ rating • genres`, with the star in the theme's accent colour. */
-@Composable
-private fun HeroMetadata(item: MetaPreview) {
-    val year = yearOf(item.releaseInfo)
-    val rating = item.imdbRating
-    val genres = item.genres
-    if (year == null && rating == null && genres.isEmpty()) return
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        var hasPart = false
-        if (year != null) {
-            HeroMetaText(year)
-            hasPart = true
-        }
-        if (rating != null) {
-            if (hasPart) HeroMetaSeparator()
-            Text("★", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            Spacer(Modifier.width(HERO_STAR_GAP))
-            HeroMetaText(ratingText(rating))
-            hasPart = true
-        }
-        if (genres.isNotEmpty()) {
-            if (hasPart) HeroMetaSeparator()
-            HeroMetaText(genres.joinToString(", "))
-        }
-    }
-}
-
-@Composable
-private fun HeroMetaText(text: String) {
-    Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
-}
-
-@Composable
-private fun HeroMetaSeparator() {
-    Text(
-        "•",
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = AppSpacing.sm),
-    )
 }
 
 /** Carousel paginator: a growing pill for the active page, dots for the rest. */

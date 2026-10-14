@@ -169,6 +169,17 @@ engine, the filesystem and the player touch platform source sets through
   windows also use a tighter screen padding (16dp) and grid gap, and the detail
   actions are icon-only (with a `contentDescription`) at the call-to-action's
   height, so the row lines up.
+- **Billboards share one copy grammar.** The Home billboard and the detail
+  hero render title, metadata, synopsis and genres through the same composables
+  (`MediaTitle`, `MetadataRow`, `HeroSynopsis`, `HeroGenres` and the
+  `metadataParts` builder, all in `ui/components/MediaHero.kt`), so the two
+  screens cannot drift in type, colour, separators or order. Both read title to
+  metadata to actions to synopsis. They differ only where the content does: the
+  Home billboard folds genres into the metadata line (`release • genres •
+  ★ rating`) while the detail hero keeps the runtime there and shows genres
+  under the synopsis; and the Home copy uses a tighter vertical rhythm because it
+  sits over cropped artwork. Metadata is one builder, so the star, separators
+  and rating formatting cannot diverge.
 - **Edge-to-edge and system insets.** Android runs the activity edge-to-edge
   (`enableEdgeToEdge`, with light system-bar icons forced because the app always
   paints dark), and the `Scaffold` no longer reserves the system bars
@@ -205,9 +216,18 @@ engine, the filesystem and the player touch platform source sets through
   about the font scale.
   Material's `display*` roles are sized for a big screen, so `AppType` steps
   them down one role on a compact window (hero title, screen titles, hero
-  synopsis); desktop and tablet keep the full scale. No type slot carries a
-  colour: text colour comes from the colour scheme at the call site, as Material
-  intends; `PosterCaption` steps `titleSmall` / `bodySmall` up 1sp with the meta
+  synopsis); desktop and tablet keep the full scale. The whole Material scale
+  runs lighter than stock (`Bold` to `Medium`, `SemiBold` to `Normal`), so
+  headings sit at Medium while titles, labels and body sit at Normal; `body*`
+  bottoms out at `Normal` because no lighter weight is bundled, so a genuinely
+  thinner body needs `ibm_plex_sans_light.ttf` added to `:app:fonts`. No type
+  slot carries a colour: text colour comes from the colour scheme at the call
+  site, as Material intends. The reading palette is white-based —
+  `BrandPalette.textPrimary` is `#FFFFFF` and the secondary roles
+  (`textSecondary` for `onSurfaceVariant`, `posterYear`) are white with reduced
+  alpha — so hierarchy comes from opacity instead of a second grey, and the
+  amber accent stays reserved for brand/attention rather than body copy.
+  `PosterCaption` steps `titleSmall` / `bodySmall` up 1sp with the meta
   weight at Medium, and the section subtitle sits at Medium too.
 - **Localisation.** Every user-facing string lives in
   `composeResources/values/strings.xml` and is read with
