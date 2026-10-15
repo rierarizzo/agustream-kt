@@ -22,14 +22,14 @@ dependencies {
 }
 
 android {
-    namespace = "com.misgus.agustream"
+    namespace = "com.misgus.pengu"
     compileSdk =
         libs.versions.android.compileSdk
             .get()
             .toInt()
 
     defaultConfig {
-        applicationId = "com.misgus.agustream"
+        applicationId = "com.misgus.pengu"
         minSdk =
             libs.versions.android.minSdk
                 .get()

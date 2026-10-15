@@ -1,4 +1,4 @@
-# Agustream
+# Pengu
 
 A desktop client for Windows 11 (and Linux later) that connects to the **Nuvio**
 backend, is compatible with the **Stremio addon protocol**, and plays with
@@ -44,8 +44,8 @@ decision record.
 
 Development shortcuts (environment variables, read for the run only):
 
-- `AGUSTREAM_BACKEND=local` runs everything on this machine with no account.
-- `AGUSTREAM_LOCAL_ADDONS=<manifest-url>[,<manifest-url>...]` gives local mode
+- `PENGU_BACKEND=local` runs everything on this machine with no account.
+- `PENGU_LOCAL_ADDONS=<manifest-url>[,<manifest-url>...]` gives local mode
   catalogs.
 - `NUVIO_EMAIL` / `NUVIO_PASSWORD` signs in without going through Settings.
 - `--play=<url-or-path>` opens straight into the player.

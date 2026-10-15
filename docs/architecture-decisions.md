@@ -96,7 +96,7 @@ so the atomic read/write/delete logic lives once.
   `data/`, never in the domain.
 - **Local store**: `JsonFileStore`/`JsonMapStore` and the session / ratings /
   watched-series stores. Path resolution is a platform `expect`
-  (`%APPDATA%\Agustream` on Windows, XDG elsewhere). Writes go through a
+  (`%APPDATA%\Pengu` on Windows, XDG elsewhere). Writes go through a
   sibling temporary file and are renamed into place, so an interrupted write
   cannot leave a truncated document, and a failed write is reported instead of
   being swallowed. Read-modify-write cycles in the local repositories are
@@ -164,7 +164,7 @@ so the atomic read/write/delete logic lives once.
   is for prominent controls over artwork. Call sites size every icon through
   those tokens, so the rail, the bottom bar and the text fields stay on the same
   optical size.
-- **Compose lifecycle.** `AgustreamApp` reuses the host's
+- **Compose lifecycle.** `PenguApp` reuses the host's
   `ViewModelStoreOwner` when there is one — an Android `Activity`, so section
   ViewModels survive a configuration change — and falls back to a
   composition-scoped owner where there is none, such as desktop. Section
@@ -174,7 +174,7 @@ so the atomic read/write/delete logic lives once.
   pops the stack on system back. Pushed routes get their
   own `ViewModelStoreOwner` (`ContentArea`) that is cleared on pop, so transient
   ViewModels do not leak.
-- **Onboarding and session bootstrap.** `AgustreamApp` resolves the persisted
+- **Onboarding and session bootstrap.** `PenguApp` resolves the persisted
   session once, before anything else: it shows a splash until that finishes, then
   the onboarding (no session) or the shell, so a returning user never sees the
   sign-in for a frame. It is a hard gate, so the sections no longer carry a
@@ -183,7 +183,7 @@ so the atomic read/write/delete logic lives once.
   backend that signs in another way renders another form. The desktop
   `NUVIO_EMAIL` / `NUVIO_PASSWORD` shortcut is passed in as an `autoSignIn`
   request, applied only when there is no stored session.
-- **Adaptive layout.** `AgustreamApp` measures the window once with
+- **Adaptive layout.** `PenguApp` measures the window once with
   `BoxWithConstraints` and publishes a `WindowSize` (compact / medium /
   expanded, at Material's 600 and 840 dp breakpoints) plus the window width,
   through `LocalWindowSize` / `LocalWindowWidth`, so a surface picks a layout
@@ -341,7 +341,7 @@ so the atomic read/write/delete logic lives once.
 - **Typography.** Inter is bundled through Compose Resources in `:app:shared`
   and is the typeface rendered. IBM Plex Sans stays isolated in its own
   `:app:fonts` module so the two typefaces can be swapped for comparison through
-  `USE_IBM_PLEX_SANS` in `AgustreamTheme`. Every target renders the same
+  `USE_IBM_PLEX_SANS` in `PenguTheme`. Every target renders the same
   typeface, and text is written in `sp` so
   Android's system font size keeps working. `LocalDensity` is deliberately
   never overridden: that is the common hack, and it lies to every component
@@ -412,7 +412,7 @@ so the atomic read/write/delete logic lives once.
   episodes of the Library's series; see the limitation below.
 - **Theme** follows Material 3 and is data, not code. `BrandPalette`
   (`theme/Tokens.kt`) is a data class holding one theme's raw colours, `AppThemes`
-  maps the persisted `AppTheme` to a palette, and `AgustreamTheme(theme)` picks it
+  maps the persisted `AppTheme` to a palette, and `PenguTheme(theme)` picks it
   and provides it through `LocalBrandPalette`, then builds the full
   `darkColorScheme` from it (surface-container tiers, `outline`/`outlineVariant`,
   `inverse*` and the error containers). The palette is internal and only fills
@@ -574,7 +574,7 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
 
 - The desktop player needs libmpv: on Windows it is bundled (`libmpv-2.dll`,
   extracted from the app resources), on Linux the `libmpv.so` runtime must be
-  installed. `AGUSTREAM_LIBMPV` can point at a specific library.
+  installed. `PENGU_LIBMPV` can point at a specific library.
 - Android uses a no-op player until a native video surface is added. The rest
   of the target is wired: `INTERNET` permission, a `Context`-based app directory
   and a persisted session. `AppServices.playbackSupported` is `false` for the

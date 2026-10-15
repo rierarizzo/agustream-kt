@@ -100,7 +100,7 @@ leer/escribir/borrar vive una sola vez.
   sesión viven en `data/`, nunca en el dominio.
 - **Almacén local**: `JsonFileStore`/`JsonMapStore` y los stores de sesión /
   valoraciones / series vistas. La resolución de rutas es un `expect` de
-  plataforma (`%APPDATA%\Agustream` en Windows, XDG en el resto). Las escrituras
+  plataforma (`%APPDATA%\Pengu` en Windows, XDG en el resto). Las escrituras
   pasan por un fichero temporal hermano y se renombran en su sitio, así que una
   escritura interrumpida no puede dejar un documento truncado, y una escritura
   fallida se reporta en vez de tragarse. Los ciclos de leer-modificar-escribir de
@@ -175,7 +175,7 @@ leer/escribir/borrar vive una sola vez.
   controles prominentes sobre artwork. Todos los sitios de uso dimensionan cada
   icono mediante esos tokens, para que el rail, la barra inferior y los campos
   de texto queden en el mismo tamaño óptico.
-- **Ciclo de vida de Compose.** `AgustreamApp` reutiliza el `ViewModelStoreOwner`
+- **Ciclo de vida de Compose.** `PenguApp` reutiliza el `ViewModelStoreOwner`
   del host cuando existe — una `Activity` de Android, para que los ViewModels de
   sección sobrevivan a un cambio de configuración — y cae a un owner con scope
   de composición donde no lo hay, como desktop. Los ViewModels de sección viven
@@ -185,7 +185,7 @@ leer/escribir/borrar vive una sola vez.
   (Android) desapila con el back del sistema. Las rutas apiladas tienen su propio
   `ViewModelStoreOwner` (`ContentArea`) que se limpia al desapilar, así que los
   ViewModels transitorios no se filtran.
-- **Onboarding y arranque de sesión.** `AgustreamApp` resuelve la sesión
+- **Onboarding y arranque de sesión.** `PenguApp` resuelve la sesión
   persistida una vez, antes que nada: muestra un splash hasta que termina, luego
   el onboarding (sin sesión) o el shell, para que un usuario recurrente nunca vea
   el inicio de sesión durante un frame. Es una puerta dura, así que las secciones
@@ -194,7 +194,7 @@ leer/escribir/borrar vive una sola vez.
   `signInMethods`, así que un backend que inicia sesión de otra forma renderiza
   otro formulario. El atajo de desktop `NUVIO_EMAIL` / `NUVIO_PASSWORD` se pasa
   como petición `autoSignIn`, aplicada solo cuando no hay sesión almacenada.
-- **Layout adaptable.** `AgustreamApp` mide la ventana una vez con
+- **Layout adaptable.** `PenguApp` mide la ventana una vez con
   `BoxWithConstraints` y publica un `WindowSize` (compact / medium / expanded, en
   los breakpoints de Material de 600 y 840 dp) más el ancho de ventana, a través
   de `LocalWindowSize` / `LocalWindowWidth`, para que una superficie elija un
@@ -359,7 +359,7 @@ leer/escribir/borrar vive una sola vez.
 - **Tipografía.** Inter se incluye mediante Compose Resources en `:app:shared` y
   es la tipografía renderizada. IBM Plex Sans queda aislada en su propio módulo
   `:app:fonts` para que las dos tipografías se puedan intercambiar para comparar
-  mediante `USE_IBM_PLEX_SANS` en `AgustreamTheme`. Cada target renderiza la
+  mediante `USE_IBM_PLEX_SANS` en `PenguTheme`. Cada target renderiza la
   misma tipografía, y el texto se escribe en `sp` para que el tamaño de fuente
   del sistema de Android siga funcionando. `LocalDensity` nunca se sobrescribe
   deliberadamente: ese es el hack común, y miente a cada componente sobre la
@@ -435,7 +435,7 @@ leer/escribir/borrar vive una sola vez.
   Library; ver la limitación más abajo.
 - **El tema** sigue Material 3 y es dato, no código. `BrandPalette`
   (`theme/Tokens.kt`) es una data class con los colores crudos de un tema,
-  `AppThemes` mapea el `AppTheme` persistido a una paleta, y `AgustreamTheme(theme)`
+  `AppThemes` mapea el `AppTheme` persistido a una paleta, y `PenguTheme(theme)`
   la elige y la proporciona por `LocalBrandPalette`, y luego construye el
   `darkColorScheme` completo a partir de ella (niveles surface-container,
   `outline`/`outlineVariant`, `inverse*` y los contenedores de error). La paleta
@@ -613,7 +613,7 @@ cubre los stores de fichero y los repositorios locales. El `commonTest` de
 
 - El reproductor de desktop necesita libmpv: en Windows está incluido
   (`libmpv-2.dll`, extraído de los recursos de la app), en Linux hay que instalar
-  el runtime `libmpv.so`. `AGUSTREAM_LIBMPV` puede apuntar a una librería
+  el runtime `libmpv.so`. `PENGU_LIBMPV` puede apuntar a una librería
   concreta.
 - Android usa un reproductor no-op hasta que se añada una superficie de vídeo
   nativa. El resto del target está cableado: permiso `INTERNET`, un directorio de

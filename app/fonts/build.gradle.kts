@@ -11,7 +11,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "com.misgus.agustream.app.fonts"
+        namespace = "com.misgus.pengu.app.fonts"
         compileSdk =
             libs.versions.android.compileSdk
                 .get()
@@ -39,5 +39,5 @@ kotlin {
 
 compose.resources {
     publicResClass = true
-    packageOfResClass = "com.misgus.agustream.fonts.generated.resources"
+    packageOfResClass = "com.misgus.pengu.fonts.generated.resources"
 }

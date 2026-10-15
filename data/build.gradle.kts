@@ -9,7 +9,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "com.misgus.agustream.data"
+        namespace = "com.misgus.pengu.data"
         compileSdk =
             libs.versions.android.compileSdk
                 .get()

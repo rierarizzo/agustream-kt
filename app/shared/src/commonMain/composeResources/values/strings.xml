@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <!-- App -->
-    <string name="app_name">Agustream</string>
+    <string name="app_name">Pengu</string>
 
     <!-- Common actions and status -->
     <string name="action_see_all">See all</string>
