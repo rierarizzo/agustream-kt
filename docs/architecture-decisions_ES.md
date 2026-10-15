@@ -248,12 +248,14 @@ leer/escribir/borrar vive una sola vez.
   ambos. Solo difiere el orden por pantalla: el billboard de Home lee título,
   metadata, sinopsis y luego acciones, mientras que el de detalle mantiene las
   acciones por encima de la sinopsis. También difieren donde difiere el
-  contenido: el billboard de Home integra los géneros en la línea de metadata
-  (`release • genres • ★ rating`) mientras que el hero de detalle mantiene ahí la
+  contenido: el billboard de Home integra el tipo de contenido, el año de
+  estreno ya parseado y solo el primer género en la línea de metadata
+  (`Movie • año • primer género • ★ rating`)
+  mientras que el hero de detalle mantiene ahí la
   duración y muestra los géneros bajo la sinopsis; y el copy de Home usa un ritmo
   vertical más ajustado porque se apoya sobre artwork recortado. La metadata es
-  un único builder, así que la estrella, los separadores y el formato de la
-  valoración no pueden divergir.
+  un único builder, así que la estrella, los separadores, el nombre del tipo y el
+  formato de la valoración no pueden divergir.
 - **Los billboards comparten sus acciones de icono.** `HeroActionRow` y
   `HeroActionState` (`ui/components/HeroActions.kt`) renderizan los botones de
   guardar, puntuar, visto e info junto al call to action, así que Home y el

@@ -469,7 +469,7 @@ private fun BoxScope.HeroCopy(
             textAlign = if (compact) TextAlign.Center else TextAlign.Start,
         )
         Spacer(Modifier.height(if (compact) HERO_COMPACT_LOGO_METADATA_SPACE else HERO_LOGO_METADATA_SPACE))
-        MetadataRow(metadataParts(item.releaseInfo, genres = item.genres, rating = item.imdbRating))
+        MetadataRow(metadataParts(item.releaseInfo, genres = item.genres, rating = item.imdbRating, contentType = item.type))
         if (compact) {
             // No synopsis on a phone: there is no room to read it under the
             // centred logo, so the actions follow the metadata directly.

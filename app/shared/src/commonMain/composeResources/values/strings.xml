@@ -83,6 +83,10 @@
     <string name="search_type_movies_lower">movies</string>
     <string name="search_type_series_lower">series</string>
 
+    <!-- Content types -->
+    <string name="content_type_movie">Movie</string>
+    <string name="content_type_series">Series</string>
+
     <!-- Calendar -->
     <string name="calendar_error_title">Could not load the calendar</string>
     <string name="calendar_no_upcoming">No upcoming episodes</string>

@@ -234,11 +234,12 @@ so the atomic read/write/delete logic lives once.
   both. Only the running order differs by screen: the Home billboard reads
   title, metadata, synopsis then actions, while the detail billboard keeps
   actions above the synopsis. They also differ where the content does: the
-  Home billboard folds genres into the metadata line (`release • genres •
-  ★ rating`) while the detail hero keeps the runtime there and shows genres
-  under the synopsis; and the Home copy uses a tighter vertical rhythm because it
-  sits over cropped artwork. Metadata is one builder, so the star, separators
-  and rating formatting cannot diverge.
+  Home billboard folds the content type, the parsed release year and only the
+  first genre into the metadata line (`Movie • year • first genre • ★ rating`)
+  while the detail hero keeps the runtime there and shows genres under the
+  synopsis; and the Home copy uses a tighter vertical rhythm because it sits over
+  cropped artwork. Metadata is one builder, so the star, separators, the type
+  name and rating formatting cannot diverge.
 - **Billboards share their icon actions.** `HeroActionRow` and
   `HeroActionState` (`ui/components/HeroActions.kt`) render the save, rate,
   watched and info buttons next to the call to action, so Home and the detail

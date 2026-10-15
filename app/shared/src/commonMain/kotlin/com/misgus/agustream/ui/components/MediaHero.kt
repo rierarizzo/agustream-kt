@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import com.misgus.agustream.core.model.releaseYear
 import com.misgus.agustream.ui.theme.AppAlpha
 import com.misgus.agustream.ui.theme.AppLogoSize
 import com.misgus.agustream.ui.theme.AppSpacing
@@ -109,11 +110,16 @@ fun MetadataRow(parts: List<String>) {
 }
 
 /**
- * Release info, genres, runtime and rating in the order a billboard shows them.
+ * Content type, release year, (first) genre, runtime and rating, in the order a
+ * billboard shows them.
  *
  * [runtime] and [genres] are optional because a catalog preview may not carry
- * them; when absent the remaining parts keep their relative order. The detail
+ * them; when absent the remaining parts keep their relative order. Only the
+ * first genre is used — the line is a glance, not a genre list. [releaseInfo] is
+ * reduced to its year through [releaseYear], so a raw `2022-` never leaks into
+ * the line. The detail
  * billboard shows genres under the synopsis instead, so it does not pass them.
+ * [contentType] is the raw Stremio type, named through [contentTypeName].
  */
 @Composable
 fun metadataParts(
@@ -121,10 +127,12 @@ fun metadataParts(
     runtime: String? = null,
     genres: List<String> = emptyList(),
     rating: Double? = null,
+    contentType: String? = null,
 ): List<String> =
     buildList {
-        releaseInfo?.takeIf { it.isNotEmpty() }?.let { add(it) }
-        if (genres.isNotEmpty()) add(genres.joinToString(", "))
+        contentType?.let { contentTypeName(it) }?.let { add(it) }
+        releaseYear(releaseInfo)?.let { add(it.toString()) }
+        genres.firstOrNull()?.let { add(it) }
         runtime?.takeIf { it.isNotEmpty() }?.let { add(it) }
         rating?.let { add(stringResource(Res.string.media_rating, ratingText(it))) }
     }
