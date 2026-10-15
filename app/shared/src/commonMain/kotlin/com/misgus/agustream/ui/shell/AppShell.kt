@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.agustream.core.player.PlaybackTarget
@@ -40,6 +41,7 @@ import com.misgus.agustream.ui.services.LocalAppServices
 import com.misgus.agustream.ui.streams.StreamsDialog
 import com.misgus.agustream.ui.streams.StreamsRequest
 import com.misgus.agustream.ui.theme.AppMotion
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
@@ -103,7 +105,18 @@ fun AppShell() {
                     // themselves, so the Scaffold must not reserve them again.
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                     snackbarHost = {
-                        SnackbarHost(snackbarHost, modifier = Modifier.navigationBarsPadding())
+                        // A snackbar clears the compact bottom bar; a pushed route
+                        // hides the bar, so it falls back to the window edge.
+                        val barHeight =
+                            if (showNav && windowSize == WindowSize.COMPACT) {
+                                AppSizes.bottomBarHeight
+                            } else {
+                                0.dp
+                            }
+                        SnackbarHost(
+                            snackbarHost,
+                            modifier = Modifier.padding(bottom = barHeight).navigationBarsPadding(),
+                        )
                     },
                 ) { padding ->
                     Box(Modifier.fillMaxSize().padding(padding)) {

@@ -340,15 +340,18 @@ so the atomic read/write/delete logic lives once.
   visible; a pushed route (detail, catalog) hides it and paints its own
   background, so an immersive hero such as the detail one fills the whole window
   without the section underneath showing through — the same behaviour as the
-  Flutter nested `Navigator`, without adding a navigation library. The chrome mixes
-  Material and custom: a compact window gets a `NavigationBar` with icon-only
-  `NavigationBarItem`s; a wide window a left navigation rail with custom
-  icon-only items. The rail drops the labels to stay narrow, centers the
-  profile avatar and the section items in the window, and paints the page
-  background instead of a panel colour, so it blends into the content; the
-  selected item is the amber brand tint over a faint amber fill (the same
-  `selected` treatment as `AppIconButton` and `ActionButton`), with the
-  hover/press state layer blended over it so a selected item never loses its
+  Flutter nested `Navigator`, without adding a navigation library. The chrome is
+  custom on both classes: a compact window gets an icon-only bottom bar, a wide
+  window a left navigation rail. Both share one item (`SectionNavItem`), so they
+  behave identically: the glyph carries the state (amber when selected, brighter
+  on hover, focus or press) with no state-layer box, the shared focus ring marks
+  a keyboard/D-pad target, and the item is announced as a selected tab. The rail
+  drops the labels to stay narrow, centers the profile avatar and the section
+  items in the window, and paints the page background instead of a panel colour,
+  so it blends into the content. Both draw a small amber dot under the selected
+  item: the glyph tint alone is easy to miss on stacked or widely spaced icons.
+  The bar adds a hairline `outlineVariant` top edge and stands 64dp tall
+  (`bottomBarHeight`), not Material's 80dp label height that it has no label to
   fill. Selection reads from the first frame instead of appearing only once the
   item is focused.
 - **Search owns the discover feed.** It has a free-text search across every

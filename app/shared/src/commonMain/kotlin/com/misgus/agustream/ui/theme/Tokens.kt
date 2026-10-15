@@ -170,8 +170,16 @@ object AppSizes {
     /** Width of the vertical navigation rail used on wide windows. */
     val railWidth: Dp = 80.dp
 
-    /** Height of the icon-only bottom navigation bar, used on compact windows. */
-    val bottomBarHeight: Dp = 80.dp
+    /**
+     * Height of the icon-only bottom navigation bar, used on compact windows.
+     *
+     * Shorter than Material's 80dp bar: that height fits an icon plus a label,
+     * and the bar carries no labels.
+     */
+    val bottomBarHeight: Dp = 64.dp
+
+    /** Diameter of the dot that marks the selected section on the bottom bar. */
+    val navIndicator: Dp = 4.dp
 
     /**
      * Height of a primary control (call-to-action button, action icon box).

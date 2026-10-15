@@ -357,16 +357,21 @@ leer/escribir/borrar vive una sola vez.
   la oculta y pinta su propio fondo, así que un hero inmersivo como el de detalle
   llena toda la ventana sin que la sección de debajo se transparente — el mismo
   comportamiento que el `Navigator` anidado de Flutter, sin añadir una librería
-  de navegación. El chrome mezcla Material y custom: una ventana compacta recibe
-  una `NavigationBar` con `NavigationBarItem`s solo-iconos; una ventana ancha un
-  rail de navegación izquierdo con items solo-iconos custom. El rail elimina las
-  etiquetas para mantenerse estrecho, centra el avatar de perfil y los items de
-  sección en la ventana, y pinta el fondo de página en vez de un color de panel,
-  así que se funde con el contenido; el item seleccionado es el tinte ámbar de
-  marca sobre un relleno ámbar tenue (el mismo tratamiento `selected` que
-  `AppIconButton` y `ActionButton`), con la capa de estado hover/press mezclada
-  por encima para que un item seleccionado nunca pierda su relleno. La selección
-  se ve desde el primer frame en vez de aparecer solo cuando el item recibe foco.
+  de navegación. El chrome es custom en las dos clases: una ventana compacta
+  recibe una barra inferior solo-iconos; una ventana ancha un rail de navegación
+  izquierdo. Ambas comparten un mismo item (`SectionNavItem`), así que se
+  comportan igual: el glifo lleva el estado (ámbar al seleccionar, más claro en
+  hover, foco o press) sin caja de state layer, el anillo de foco compartido
+  marca el target de teclado/D-pad, y el item se anuncia como pestaña
+  seleccionada. El rail elimina las etiquetas para mantenerse estrecho, centra el
+  avatar de perfil y los items de sección en la ventana, y pinta el fondo de
+  página en vez de un color de panel, así que se funde con el contenido. Ambas
+  dibujan un pequeño punto ámbar bajo el item seleccionado: el tinte del glifo
+  solo es fácil de pasar por alto con iconos apilados o muy separados. La barra
+  añade un borde hairline `outlineVariant` arriba y mide 64dp de alto
+  (`bottomBarHeight`), no los 80dp de la barra con etiqueta que no tiene etiqueta
+  que llenar. La selección se ve desde el primer frame en vez de aparecer solo
+  cuando el item recibe foco.
 - **Search es dueña del feed de discover.** Tiene una búsqueda de texto libre en
   cada catálogo que declara el extra `search`, con debounce, ejecutada en
   paralelo y deduplicada entre addons, dividida en raíles Movies / Series /
