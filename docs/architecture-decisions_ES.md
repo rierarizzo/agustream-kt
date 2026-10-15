@@ -291,9 +291,11 @@ leer/escribir/borrar vive una sola vez.
   watching" sin costura dura, un fundido superior sutil, una viñeta en el borde
   derecho, y un `AppAlpha.HERO_IMAGE_DIM` plano mantenido sobre el artwork para
   que se lea más oscuro que la imagen cruda. En un teléfono el billboard abarca
-  el ancho completo y recorta el mismo backdrop en una banda 1.2 veces su ancho
+  el ancho completo y recorta el mismo backdrop en una banda 1.3 veces su ancho
   (alineada al centro) en vez de mostrar el póster vertical entero, y lo lava con
-  el mismo dim plano que el ancho más el fundido inferior: el copy queda centrado
+  el mismo dim plano que el ancho más un fundido inferior que arranca más arriba
+  que el del ancho, para que el copy más alto y centrado quede más metido en lo
+  oscuro: el copy queda centrado
   en horizontal y anclado al
   borde inferior, el título prefiere siempre el logo
   (`AppLogoSize.compactHeight`, el texto
@@ -310,11 +312,15 @@ leer/escribir/borrar vive una sola vez.
   swipe hace cross-fade en vez de deslizar: cada página cancela el offset
   horizontal del pager en un `graphicsLayer` y su alpha sigue el mismo offset,
   así que un billboard se disuelve a través del fondo de página en el siguiente.
-  El copy (título, metadata, sinopsis, acciones) se desliza un poco contra el
+  El offset se lee dentro del bloque de layer, no en composición, así que un
+  swipe actualiza layers en vez de recomponer cada página compuesta por frame, y
+  el copy lee el mismo offset igual. El copy (título, metadata, sinopsis,
+  acciones) se desliza un poco contra el
   swipe (`HERO_CONTENT_SLIDE_MAX`, 64dp) para que se lea la dirección, mientras
-  que el artwork solo hace cross-fade. La página enfocada se eleva con `zIndex`,
-  para que sus botones posean los hits; los vecinos difuminados se sientan en el
-  mismo sitio y si no capturarían el click. En ventana ancha el rail flota sobre
+  que el artwork solo hace cross-fade. La página enfocada se eleva con `zIndex`
+  a partir de `pagerState.currentPage` (lectura de una vez por cambio, no por
+  frame), para que sus botones posean los hits; los vecinos difuminados se
+  sientan en el mismo sitio y si no capturarían el click. En ventana ancha el rail flota sobre
   el contenido, que reserva su ancho, así que la navegación nunca lo solapa.
 - **Tipografía.** Inter se incluye mediante Compose Resources en `:app:shared` y
   es la tipografía renderizada. IBM Plex Sans queda aislada en su propio módulo
@@ -480,9 +486,11 @@ leer/escribir/borrar vive una sola vez.
   título se contienen en una caja — una altura óptica fija más una guarda
   `maxWidth` (`AppLogoSize`), dibujados con `ContentScale.Fit` — para que un logo
   cuadrado no se eleve sobre el copy y uno muy ancho no desborde su columna. El
-  hero de Home precarga cada backdrop y logo destacado a través del loader
-  singleton, dimensionado al billboard, para que deslizar el carrusel pinte desde
-  caché en vez de empezar una vuelta de red a mitad de gesto.
+  hero de Home precarga el backdrop y el logo de la siguiente diapositiva a
+  través del loader singleton, dimensionados al billboard, y se re-arma según
+  avanza la página, para que deslizar pinte desde caché en vez de empezar una
+  vuelta de red a mitad de gesto sin el pico de decodes que causaba encolar todo
+  el set al entrar.
 - **El movimiento** está centralizado en `ui/theme/Motion.kt`: `AppMotion` guarda
   las duraciones y tanto las easings utilitarias como las emphasized de Material
   (las pantallas que entran usan emphasized decelerate, las que salen emphasized

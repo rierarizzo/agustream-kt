@@ -275,9 +275,10 @@ so the atomic read/write/delete logic lives once.
   seam, a subtle top fade, a right-edge vignette, and a flat
   `AppAlpha.HERO_IMAGE_DIM` kept over the artwork so it reads darker than the
   raw image. On a phone the billboard spans the full width and crops the same
-  backdrop into a band 1.2 times its width (centre-aligned) instead of showing
+  backdrop into a band 1.3 times its width (centre-aligned) instead of showing
   the portrait poster whole, and washes it with the same flat dim as the wide one
-  plus the bottom fade: the copy is
+  plus a bottom fade that starts higher than the wide one's, so the taller,
+  centred copy sits deeper in the dark: the copy is
   centred horizontally and anchored to the bottom edge, the title always prefers
   the logo
   (`AppLogoSize.compactHeight`, text only as a fallback) and the synopsis is
@@ -293,12 +294,16 @@ so the atomic read/write/delete logic lives once.
   (32dp), clear of the gesture bar. The swipe cross-fades rather
   than slides: each page cancels the pager's horizontal offset in a
   `graphicsLayer` and its alpha follows the same offset, so one billboard
-  dissolves through the page background into the next. The copy (title,
+  dissolves through the page background into the next. The offset is read inside
+  the layer block, not in composition, so a swipe updates layers instead of
+  recomposing every composed page each frame, and the copy reads the same offset
+  the same way. The copy (title,
   metadata, synopsis, actions) slides a little against the swipe
   (`HERO_CONTENT_SLIDE_MAX`, 64dp) so the direction reads, while the artwork
-  only cross-fades. The focused page is raised with `zIndex`, so its buttons own
-  the hits; the faded neighbours sit at the same place and would otherwise
-  capture the click. On a
+  only cross-fades. The focused page is raised with `zIndex` off
+  `pagerState.currentPage` (a once-per-swap read, not a per-frame one), so its
+  buttons own the hits; the faded neighbours sit at the same place and would
+  otherwise capture the click. On a
   wide window the rail floats over the content,
   which reserves its width, so the navigation never overlaps it.
 - **Typography.** Inter is bundled through Compose Resources in `:app:shared`
@@ -451,9 +456,10 @@ so the atomic read/write/delete logic lives once.
   contained in a box — a fixed optical height plus a `maxWidth` guard
   (`AppLogoSize`), drawn with `ContentScale.Fit` — so a square logo cannot
   tower over the copy and a very wide one cannot overflow its column. The Home
-  hero preloads every featured backdrop and logo through the singleton loader,
-  sized to the billboard, so swiping the carousel paints from cache instead of
-  starting a network round-trip mid-gesture.
+  hero preloads the next slide's backdrop and logo through the singleton loader,
+  sized to the billboard, and re-arms as the page advances, so swiping paints
+  from cache instead of starting a network round-trip mid-gesture without the
+  decode spike that enqueuing the whole set caused on entry.
 - **Motion** is centralised in `ui/theme/Motion.kt`: `AppMotion` holds the
   durations and both the utility and the Material emphasized easings (entering
   screens use emphasized decelerate, exiting ones emphasized accelerate), and

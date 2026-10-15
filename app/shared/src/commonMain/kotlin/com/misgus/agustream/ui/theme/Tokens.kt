@@ -390,6 +390,22 @@ object AppScrim {
             )
         }
 
+    /**
+     * Phone billboard, bottom-up: like [heroBottom], but the fade starts higher
+     * so the taller, centred copy sits deeper in the dark and the year, rating
+     * and genre line stay legible over the artwork.
+     */
+    val heroBottomCompact: Brush
+        @Composable get() {
+            val background = LocalBrandPalette.current.background
+            return Brush.verticalGradient(
+                0f to Color.Transparent,
+                0.35f to Color.Transparent,
+                0.78f to background.copy(alpha = AppAlpha.HERO_BOTTOM_MID),
+                1f to background,
+            )
+        }
+
     /** Home billboard top fade, subtle enough to keep the window controls legible. */
     val heroTop: Brush
         @Composable get() =

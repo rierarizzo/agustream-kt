@@ -80,10 +80,10 @@ private const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
  * Height of the compact billboard as a multiple of its width.
  *
  * A phone cannot show the wide desktop composition, so it crops the same
- * backdrop into a tall band: 1.2 keeps the centre of the artwork, where the
+ * backdrop into a tall band: 1.3 keeps the centre of the artwork, where the
  * subject usually is, and gives the centred logo and actions room to breathe.
  */
-private const val HERO_COMPACT_HEIGHT_RATIO = 1.2f
+private const val HERO_COMPACT_HEIGHT_RATIO = 1.3f
 
 /** Widest the copy column ever grows, so the synopsis keeps a comfortable measure. */
 private val HERO_CONTENT_MAX_WIDTH = 840.dp
@@ -306,12 +306,6 @@ private fun HeroCarousel(
             beyondViewportPageCount = 1,
             key = { page -> items[page].id },
         ) { page ->
-            // Cross-fade instead of slide: the pager's horizontal offset is
-            // cancelled and the page's alpha follows the same offset, so one
-            // billboard dissolves through the page background into the next
-            // while the swipe still scrubs the transition.
-            val signedOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-            val distance = signedOffset.absoluteValue
             Box(
                 modifier =
                     Modifier
@@ -319,9 +313,20 @@ private fun HeroCarousel(
                         // The focused page draws on top, so its buttons own the
                         // hits: the faded neighbours sit at the same place and
                         // would otherwise capture the click (alpha does not
-                        // affect hit-testing).
-                        .zIndex(-distance)
+                        // affect hit-testing). Reading `currentPage` changes once
+                        // per page, not once per frame.
+                        .zIndex(if (page == pagerState.currentPage) 1f else 0f)
                         .graphicsLayer {
+                            // Cross-fade instead of slide: the pager's horizontal
+                            // offset is cancelled and the page's alpha follows the
+                            // same offset, so one billboard dissolves through the
+                            // page background into the next while the swipe still
+                            // scrubs the transition. The offset is read here, in
+                            // the layer phase, not in composition: it changes on
+                            // every swipe frame, and reading it in composition
+                            // recomposed all the composed pages each frame.
+                            val signedOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                            val distance = signedOffset.absoluteValue
                             translationX = signedOffset * size.width
                             alpha = (1f - distance).coerceIn(0f, 1f)
                         },
@@ -332,7 +337,7 @@ private fun HeroCarousel(
                     wide = wide,
                     saved = items[page].id in savedIds,
                     savedBusy = items[page].id in busyIds,
-                    signedOffset = signedOffset,
+                    offset = { (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction },
                     onBackdropAspect = { ratio -> onBackdropAspect(page, ratio) },
                     onOpen = { onOpen(items[page]) },
                     onPlay = { onPlay(items[page]) },
@@ -353,6 +358,7 @@ private fun HeroCarousel(
     }
     HeroArtworkPreloader(
         items = items,
+        pagerState = pagerState,
         backdropWidthPx = backdropWidthPx,
         backdropHeightPx = backdropHeightPx,
         logoHeightPx =
@@ -371,7 +377,7 @@ private fun HeroSlide(
     wide: Boolean,
     saved: Boolean,
     savedBusy: Boolean,
-    signedOffset: Float,
+    offset: () -> Float,
     onBackdropAspect: (Float) -> Unit,
     onOpen: () -> Unit,
     onPlay: () -> Unit,
@@ -423,7 +429,7 @@ private fun HeroSlide(
             Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
         } else {
             Box(Modifier.fillMaxSize().background(AppColors.heroImageDim))
-            Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
+            Box(Modifier.fillMaxSize().background(AppScrim.heroBottomCompact))
         }
         HeroCopy(
             item = item,
@@ -433,7 +439,12 @@ private fun HeroSlide(
             onOpen = onOpen,
             onPlay = onPlay,
             onToggleSaved = onToggleSaved,
-            modifier = Modifier.graphicsLayer { translationX = -signedOffset * slidePx },
+            modifier =
+                Modifier.graphicsLayer {
+                    // Deferred to the layer phase for the same reason as the
+                    // page alpha: the offset changes on every swipe frame.
+                    translationX = -offset() * slidePx
+                },
         )
     }
 }
@@ -537,42 +548,50 @@ private fun HeroPaginator(
 }
 
 /**
- * Warms Coil's cache with every hero artwork, so swiping the carousel paints
- * from memory instead of starting a network round-trip mid-gesture. The
- * requests are cancelled with the composition if the items change.
+ * Warms Coil's cache with the next hero artwork, so the auto-advance and a
+ * forward swipe paint from memory instead of starting a network round-trip
+ * mid-gesture.
+ *
+ * Only the immediate neighbour is warmed, re-warmed as the page advances:
+ * enqueuing the whole set at once spiked the decoder (six full-size backdrops
+ * plus six logos) and competed with the visible page on entry. The request is
+ * cancelled with the composition if the items or the sizes change.
  */
 @Composable
 private fun HeroArtworkPreloader(
     items: List<MetaPreview>,
+    pagerState: PagerState,
     backdropWidthPx: Int,
     backdropHeightPx: Int,
     logoHeightPx: Int,
     logoMaxWidthPx: Int,
 ) {
+    if (items.size <= 1) return
     val context = LocalPlatformContext.current
-    LaunchedEffect(items, backdropWidthPx, backdropHeightPx, logoHeightPx, logoMaxWidthPx) {
-        if (items.isEmpty()) return@LaunchedEffect
+    // Reading `currentPage` here re-arms the preload only when the page settles,
+    // not on every scroll frame.
+    val nextPage = (pagerState.currentPage + 1) % items.size
+    LaunchedEffect(items, nextPage, backdropWidthPx, backdropHeightPx, logoHeightPx, logoMaxWidthPx) {
         val loader = SingletonImageLoader.get(context)
-        items.forEach { item ->
-            val backdrop = item.background ?: item.poster
-            backdrop?.let { url ->
-                loader.enqueue(
-                    ImageRequest
-                        .Builder(context)
-                        .data(url)
-                        .size(backdropWidthPx, backdropHeightPx)
-                        .build(),
-                )
-            }
-            item.logo?.let { url ->
-                loader.enqueue(
-                    ImageRequest
-                        .Builder(context)
-                        .data(url)
-                        .size(logoMaxWidthPx, logoHeightPx)
-                        .build(),
-                )
-            }
+        val item = items[nextPage]
+        val backdrop = item.background ?: item.poster
+        backdrop?.let { url ->
+            loader.enqueue(
+                ImageRequest
+                    .Builder(context)
+                    .data(url)
+                    .size(backdropWidthPx, backdropHeightPx)
+                    .build(),
+            )
+        }
+        item.logo?.let { url ->
+            loader.enqueue(
+                ImageRequest
+                    .Builder(context)
+                    .data(url)
+                    .size(logoMaxWidthPx, logoHeightPx)
+                    .build(),
+            )
         }
     }
 }
