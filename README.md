@@ -2,7 +2,7 @@
 
 A desktop client for Windows 11 (and Linux later) that connects to the **Nuvio**
 backend, is compatible with the **Stremio addon protocol**, and plays with
-**libmpv**. Complementary to Nuvio, not a replacement.
+**mpv** (via mediamp). Complementary to Nuvio, not a replacement.
 
 This repository is the **Compose Multiplatform** implementation, migrated from
 the original Flutter app. Desktop is the only target wired up end to end for
@@ -17,14 +17,14 @@ now; the shared code is multiplatform and the Android app compiles against it.
 | HTTP | Ktor client (CIO on desktop, OkHttp on Android) |
 | JSON | kotlinx.serialization (defensive `JsonElement` parsing) |
 | Images | Coil 3 |
-| Playback | libmpv through JNA (desktop), isolated behind `PlayerService` |
+| Playback | mpv via mediamp, rendered into the Compose canvas (desktop), isolated behind `PlayerService` |
 | Accounts/sync | Nuvio API (Supabase) |
 | Sources | Stremio addons (HTTP/JSON) |
 
 ## Modules
 
 ```
-app/desktopApp   composition root: window, libmpv player, main()
+app/desktopApp   composition root: window, mpv player (mediamp), main()
 app/androidApp   Android composition root
 app/fonts        IBM Plex Sans assets as Compose Resources (kept for comparison)
 app/shared       Compose UI and ViewModels
@@ -74,5 +74,5 @@ Development shortcuts (environment variables, read for the run only):
 Pengu is licensed under the [GNU General Public License v3.0](LICENSE)
 (SPDX: `GPL-3.0`).
 
-Bundled third-party components (fonts, icons and the libmpv library used for
+Bundled third-party components (fonts, icons and the player engine used for
 playback) keep their own licenses; see [`licenses/`](licenses/README.md).

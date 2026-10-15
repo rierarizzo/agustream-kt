@@ -22,6 +22,7 @@ kotlinx-datetime = "0.8.0"
 jna = "5.17.0"
 logback = "1.6.5"
 material3 = "1.12.0-alpha03"
+mediamp = "0.5.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -56,6 +57,9 @@ coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.r
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+mediamp-all = { module = "org.openani.mediamp:mediamp-all", version.ref = "mediamp" }
+mediamp-mpv-runtime-windows-x64 = { module = "org.openani.mediamp:mediamp-mpv-runtime-windows-x64", version.ref = "mediamp" }
+mediamp-ffmpeg-runtime-windows-x64 = { module = "org.openani.mediamp:mediamp-ffmpeg-runtime-windows-x64", version.ref = "mediamp" }
 ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
 ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }

@@ -29,7 +29,7 @@ import com.misgus.pengu.data.store.JsonMapStore
 import com.misgus.pengu.data.store.JsonSettingsRepository
 import com.misgus.pengu.data.store.LocalRatingRepository
 import com.misgus.pengu.imaging.configureImageLoader
-import com.misgus.pengu.player.MpvPlayerService
+import com.misgus.pengu.player.MediampPlayerService
 import com.misgus.pengu.ui.PenguApp
 import com.misgus.pengu.ui.services.AppServices
 import com.misgus.pengu.ui.theme.AppWindowChrome
@@ -64,11 +64,13 @@ fun main(args: Array<String>) {
     val ratings = LocalRatingRepository(JsonMapStore(AppPaths.ratingsFile))
     val settings = JsonSettingsRepository(JsonMapStore(AppPaths.settingsFile, pretty = true))
     val watchedCache = FileWatchedSeriesCache()
-    val player = MpvPlayerService()
 
     val initialSource = initialSource(args)
 
     application {
+        // Created on the Compose (EDT) thread so mediamp captures that same thread as its
+        // main dispatcher; commands are then valid from the UI thread and its coroutines.
+        val player = remember { MediampPlayerService() }
         val windowState = rememberWindowState(width = WINDOW_WIDTH, height = WINDOW_HEIGHT)
         val windowController = remember { ComposeWindowController(windowState) }
         val services =

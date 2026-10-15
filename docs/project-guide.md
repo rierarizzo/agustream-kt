@@ -6,7 +6,7 @@ Multiplatform ideas** the code relies on. For the *why* behind decisions, read
 [`architecture-decisions.md`](architecture-decisions.md); this file is the *where*.
 
 > Pengu is a Compose Multiplatform client for the Nuvio backend that speaks
-> the Stremio addon protocol and plays video with libmpv. Desktop (Windows) is
+> the Stremio addon protocol and plays video with mpv (via mediamp). Desktop (Windows) is
 > the fully wired target; the shared code also builds for Android.
 
 ---
@@ -14,7 +14,7 @@ Multiplatform ideas** the code relies on. For the *why* behind decisions, read
 ## 1. The shape of the project
 
 ```
-app/desktopApp   Composition root: window, libmpv player, main()
+app/desktopApp   Composition root: window, mpv player (mediamp), main()
 app/androidApp   Composition root: Activity, no-op player
 app/fonts        IBM Plex Sans assets (kept for comparison)
 app/shared       Compose UI + ViewModels (the whole product UI)
@@ -81,7 +81,7 @@ Example: user taps a poster on Home and presses **Watch now**.
    `StreamRepository.all(...)` → `StremioStreamRepository` (aggregates addons).
 5. Selecting a stream pushes `ContentRoute.Player(PlaybackTarget…)`.
 6. `PlayerScreen` calls `PlayerService.open(target)`. On desktop that is
-   `MpvPlayerService` (libmpv via JNA); on Android it is `NoopPlayerService`.
+   `MediampPlayerService` (mpv via mediamp); on Android it is `NoopPlayerService`.
 7. `PlaybackProgressReporter` saves progress through `ProgressRepository` while
    playing.
 
@@ -103,7 +103,8 @@ These exist so the same concern is not re-implemented per screen:
 - **`ProfileScope`** (`data/backend`) — `AccountRepository.requireProfileId()` /
   `requireActiveProfile()`, used by every profile-scoped Nuvio repository.
 - **`VideoOutput`** (`core/player`) — typed marker for the player's platform
-  output; `FrameSource` (in `app/shared/jvmMain`) extends it.
+  output; `VideoSurfaceRenderer` (in `app/shared/jvmMain`) extends it and draws
+  the video as Compose content.
 - **`ContentTypes` / `CatalogExtras` / `ProgressThresholds` / `releaseYear()`**
   (`core/model`) — the protocol vocabulary and thresholds, defined once.
 - **Design tokens** (`theme/Tokens.kt`) — the theme palettes (`BrandPalette`
@@ -198,7 +199,7 @@ Tests mirror the module they test:
   (`NuvioTestStack.kt`). `data/src/jvmTest` covers the file stores.
 - `app/shared/src/commonTest` — ViewModels against fakes in
   `ui/support/Fakes.kt`.
-- `app/desktopApp/src/test` — libmpv helpers (`MpvTracks`) and the image decoder.
+- `app/desktopApp/src/test` — the image decoder (`MitchellImageDecoder`).
 
 Run them:
 

@@ -19,7 +19,7 @@ or the playback engine directly.
 :data      implementations (Stremio addons, Nuvio/Supabase, local JSON store)
 :app:fonts   alternate typeface (IBM Plex Sans) assets as Compose Resources
 :app:shared  Compose UI + ViewModels (depends on :core and :app:fonts)
-:app:desktopApp  composition root: libmpv player, window control, main()
+:app:desktopApp  composition root: mpv player (mediamp), window control, main()
 :app:androidApp  Android composition root (no-op player for now)
 ```
 
@@ -73,7 +73,8 @@ so the atomic read/write/delete logic lives once.
 - **`PlayerService` is a contract**, with a neutral `PlayerState` and a
   `videoOutput: VideoOutput?` handle so the UI can embed the native surface
   without depending on the engine. `VideoOutput` is an empty marker; the
-  desktop `FrameSource` extends it.
+  desktop `VideoSurfaceRenderer` extends it and draws the video as Compose
+  content.
 
 ## Data (`:data`)
 
@@ -559,18 +560,19 @@ so the atomic read/write/delete logic lives once.
 
 ## Player
 
-`PlayerService` is implemented on desktop by `MpvPlayerService`, which loads
-**libmpv** in process through JNA, in the composition root so the engine stays
-out of the shared UI. Video is produced with libmpv's **render API** (software
-backend) and handed to the UI as Compose bitmaps through `FrameSource`, so the
-video is ordinary Compose content and the Compose controls stay on top of it; a
-native `wid` surface would cover them. The rest (commands, position, tracks)
-goes through the libmpv client API. On Windows the `libmpv-2.dll` is bundled
-with the app; on Linux the system `libmpv.so` is used. The library is loaded
-lazily, so a machine without it degrades to a clear playback error. Watch
-progress reporting, resume, subtitles/audio selection and next-episode autoplay
-are ported from the original. The software renderer is CPU-bound; moving to the
-OpenGL render backend is the planned performance step.
+`PlayerService` is implemented on desktop by `MediampPlayerService`, a thin
+adapter over **[mediamp](https://github.com/open-ani/mediamp)**'s mpv backend,
+created in the composition root so the engine stays out of the shared UI.
+mediamp renders the video into the Compose/Skia canvas (D3D11 on Windows,
+OpenGL on Linux, Metal on macOS) and draws it through `VideoSurfaceRenderer`, so
+the video is ordinary Compose content and the Compose controls stack on top of
+it in the same window — a native `wid` surface or a separate overlay window
+would either cover the controls or drift out of sync. Commands, position,
+tracks and volume go through mediamp's `MediampPlayer` API (mpv's client API
+under the hood); external addon subtitles are added with the underlying mpv
+command. mediamp's per-platform runtime bundles a matching libmpv and FFmpeg
+(LGPL on Windows/macOS, GPL-3.0 on Linux). Watch progress reporting, resume,
+subtitles/audio selection and next-episode autoplay are unchanged.
 
 ## Testing
 
@@ -582,9 +584,10 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
 
 ## Known differences / limitations
 
-- The desktop player needs libmpv: on Windows it is bundled (`libmpv-2.dll`,
-  extracted from the app resources), on Linux the `libmpv.so` runtime must be
-  installed. `PENGU_LIBMPV` can point at a specific library.
+- The desktop player uses **mediamp**'s mpv backend, which bundles a matching
+  libmpv and FFmpeg per platform: no system install and no `PENGU_LIBMPV` are
+  needed. The Linux runtime is GPL-3.0 (mpv's X11 output); Windows and macOS are
+  LGPL.
 - Android uses a no-op player until a native video surface is added. The rest
   of the target is wired: `INTERNET` permission, a `Context`-based app directory
   and a persisted session. `AppServices.playbackSupported` is `false` for the
@@ -628,10 +631,3 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   pressed states, and the player has shortcuts, but there is no focus traversal
   across the Home rails and no spatial navigation model. A TV target makes this
   mandatory rather than nice to have.
-
-### Player performance
-
-- **OpenGL render backend.** As noted in the player section, the current
-  software renderer hands frames to Compose as bitmaps and is CPU-bound. Moving
-  to libmpv's OpenGL render backend is the planned performance step and needs a
-  GL context wired into the composition root.

@@ -19,7 +19,7 @@ habla directamente con HTTP, el sistema de ficheros ni el motor de reproducción
 :data      implementations (Stremio addons, Nuvio/Supabase, local JSON store)
 :app:fonts   alternate typeface (IBM Plex Sans) assets as Compose Resources
 :app:shared  Compose UI + ViewModels (depends on :core and :app:fonts)
-:app:desktopApp  composition root: libmpv player, window control, main()
+:app:desktopApp  composition root: reproductor mpv (mediamp), control de ventana, main()
 :app:androidApp  Android composition root (no-op player for now)
 ```
 
@@ -75,8 +75,9 @@ leer/escribir/borrar vive una sola vez.
   sin que el compilador lo note.
 - **`PlayerService` es un contrato**, con un `PlayerState` neutro y un handle
   `videoOutput: VideoOutput?` para que la UI pueda incrustar la superficie nativa
-  sin depender del motor. `VideoOutput` es un marcador vacío; el `FrameSource` de
-  desktop lo extiende.
+  sin depender del motor. `VideoOutput` es un marcador vacío; el
+  `VideoSurfaceRenderer` de desktop lo extiende y dibuja el vídeo como contenido
+  Compose.
 
 ## Datos (`:data`)
 
@@ -599,19 +600,19 @@ leer/escribir/borrar vive una sola vez.
 
 ## Reproductor
 
-`PlayerService` lo implementa en desktop `MpvPlayerService`, que carga **libmpv**
-en proceso mediante JNA, en el composition root para que el motor quede fuera de
-la UI compartida. El vídeo se produce con la **API de render** de libmpv (backend
-software) y se entrega a la UI como bitmaps de Compose a través de `FrameSource`,
-así que el vídeo es contenido Compose normal y los controles Compose quedan
-encima; una superficie nativa `wid` los taparía. El resto (comandos, posición,
-pistas) pasa por la API cliente de libmpv. En Windows el `libmpv-2.dll` se
-incluye con la app; en Linux se usa el `libmpv.so` del sistema. La librería se
-carga de forma perezosa, así que una máquina sin ella degrada a un error de
-reproducción claro. El reporte de progreso, el resume, la selección de
-subtítulos/audio y el autoplay del siguiente episodio están portados del
-original. El renderer software está limitado por CPU; pasar al backend de render
-OpenGL es el paso de rendimiento planeado.
+`PlayerService` lo implementa en desktop `MediampPlayerService`, un adaptador
+fino sobre el backend mpv de **[mediamp](https://github.com/open-ani/mediamp)**,
+creado en el composition root para que el motor quede fuera de la UI compartida.
+mediamp rinde el vídeo dentro del lienzo Compose/Skia (D3D11 en Windows, OpenGL
+en Linux, Metal en macOS) y lo dibuja vía `VideoSurfaceRenderer`, así que el
+vídeo es contenido Compose normal y los controles Compose se apilan encima en la
+misma ventana — una superficie `wid` nativa o una ventana overlay aparte taparían
+los controles o se desincronizarían. Los comandos, la posición, las pistas y el
+volumen pasan por la API `MediampPlayer` de mediamp (por debajo, la API cliente
+de mpv); los subtítulos externos de addons se añaden con el comando subyacente de
+mpv. El runtime por plataforma de mediamp incluye un libmpv y FFmpeg a juego
+(LGPL en Windows/macOS, GPL-3.0 en Linux). El reporte de progreso, el resume, la
+selección de subtítulos/audio y el autoplay del siguiente episodio no cambian.
 
 ## Testing
 
@@ -623,10 +624,10 @@ cubre los stores de fichero y los repositorios locales. El `commonTest` de
 
 ## Diferencias conocidas / limitaciones
 
-- El reproductor de desktop necesita libmpv: en Windows está incluido
-  (`libmpv-2.dll`, extraído de los recursos de la app), en Linux hay que instalar
-  el runtime `libmpv.so`. `PENGU_LIBMPV` puede apuntar a una librería
-  concreta.
+- El reproductor de desktop usa el backend mpv de **mediamp**, que incluye un
+  libmpv y FFmpeg a juego por plataforma: no hace falta instalar nada ni
+  `PENGU_LIBMPV`. El runtime de Linux es GPL-3.0 (salida X11 de mpv); Windows y
+  macOS son LGPL.
 - Android usa un reproductor no-op hasta que se añada una superficie de vídeo
   nativa. El resto del target está cableado: permiso `INTERNET`, un directorio de
   app basado en `Context` y una sesión persistida.
@@ -674,10 +675,3 @@ que cambian, no por esfuerzo.
   focus y pressed, y el reproductor tiene atajos, pero no hay recorrido de foco
   por los raíles de Home ni modelo de navegación espacial. Un target de TV lo
   hace obligatorio en vez de deseable.
-
-### Rendimiento del reproductor
-
-- **Backend de render OpenGL.** Como se anota en la sección del reproductor, el
-  renderer software actual entrega frames a Compose como bitmaps y está limitado
-  por CPU. Pasar al backend de render OpenGL de libmpv es el paso de rendimiento
-  planeado y necesita un contexto GL cableado en el composition root.

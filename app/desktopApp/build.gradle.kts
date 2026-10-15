@@ -20,12 +20,17 @@ dependencies {
     // desktop ImageLoader is configured (the default decoder aliases).
     implementation(libs.coil.compose)
 
-    // Desktop playback engine: libmpv, loaded in process through JNA and driven
-    // through its client and render APIs. Isolated behind PlayerService.
+    // Windows title-bar theming (DWM) goes through JNA.
     implementation(libs.jna)
     implementation(libs.jna.platform)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Desktop playback engine: mediamp's mpv backend renders the video into the
+    // Compose canvas, so the Compose controls overlay it in the same window.
+    implementation(libs.mediamp.all)
+    runtimeOnly(libs.mediamp.mpv.runtime.windows.x64)
+    runtimeOnly(libs.mediamp.ffmpeg.runtime.windows.x64)
 
     implementation(libs.compose.uiToolingPreview)
 

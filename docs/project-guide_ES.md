@@ -6,7 +6,7 @@ Compose Multiplatform** usa el código. Para el *porqué* de las decisiones, lee
 [`architecture-decisions.md`](architecture-decisions.md); este archivo es el *dónde*.
 
 > Pengu es un cliente Compose Multiplatform para el backend Nuvio que habla el
-> protocolo de addons de Stremio y reproduce vídeo con libmpv. Desktop (Windows)
+> protocolo de addons de Stremio y reproduce vídeo con mpv (vía mediamp). Desktop (Windows)
 > es el target completamente cableado; el código compartido también compila para
 > Android.
 
@@ -15,7 +15,7 @@ Compose Multiplatform** usa el código. Para el *porqué* de las decisiones, lee
 ## 1. La forma del proyecto
 
 ```
-app/desktopApp   Composition root: ventana, reproductor libmpv, main()
+app/desktopApp   Composition root: ventana, reproductor mpv (mediamp), main()
 app/androidApp   Composition root: Activity, reproductor no-op
 app/fonts        Assets de IBM Plex Sans (se mantienen para comparar)
 app/shared       UI Compose + ViewModels (toda la UI del producto)
@@ -82,7 +82,7 @@ Ejemplo: el usuario toca un póster en Home y pulsa **Watch now**.
    `StreamRepository.all(...)` → `StremioStreamRepository` (agrega addons).
 5. Al elegir un stream se apila `ContentRoute.Player(PlaybackTarget…)`.
 6. `PlayerScreen` llama a `PlayerService.open(target)`. En desktop es
-   `MpvPlayerService` (libmpv vía JNA); en Android es `NoopPlayerService`.
+   `MediampPlayerService` (mpv vía mediamp); en Android es `NoopPlayerService`.
 7. `PlaybackProgressReporter` guarda el progreso a través de `ProgressRepository`
    mientras se reproduce.
 
@@ -106,7 +106,8 @@ Existen para no reimplementar la misma preocupación en cada pantalla:
 - **`ProfileScope`** (`data/backend`) — `AccountRepository.requireProfileId()` /
   `requireActiveProfile()`, usado por cada repositorio Nuvio con scope de perfil.
 - **`VideoOutput`** (`core/player`) — marcador tipado de la salida de plataforma
-  del reproductor; `FrameSource` (en `app/shared/jvmMain`) lo extiende.
+  del reproductor; `VideoSurfaceRenderer` (en `app/shared/jvmMain`) lo extiende y
+  dibuja el vídeo como contenido Compose.
 - **`ContentTypes` / `CatalogExtras` / `ProgressThresholds` / `releaseYear()`**
   (`core/model`) — el vocabulario del protocolo y los umbrales, definidos una vez.
 - **Tokens de diseño** (`theme/Tokens.kt`) — las paletas de tema (`BrandPalette`
@@ -203,8 +204,7 @@ Los tests reflejan el módulo que prueban:
   `data/src/jvmTest` cubre los stores de fichero.
 - `app/shared/src/commonTest` — ViewModels contra fakes en
   `ui/support/Fakes.kt`.
-- `app/desktopApp/src/test` — helpers de libmpv (`MpvTracks`) y el decodificador
-  de imágenes.
+- `app/desktopApp/src/test` — el decodificador de imágenes.
 
 Ejecútalos:
 
