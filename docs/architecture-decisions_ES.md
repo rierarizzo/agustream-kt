@@ -649,9 +649,12 @@ que cambian, no por esfuerzo.
 
 - **Pulido móvil y endurecimiento de release.** El layout compacto funciona,
   pero aún no está ajustado superficie por superficie: el espaciado y las
-  proporciones todavía necesitan una pasada en teléfonos reales. Por separado, el
-  build de release de Android está sin optimizar — `isMinifyEnabled` es `false` y
-  no hay baseline profile — así que se lee mucho más lento de lo necesario.
+  proporciones todavía necesitan una pasada en teléfonos reales. El build de
+  release de Android está minificado (`isMinifyEnabled` + `isShrinkResources`) e
+  incluye los baseline profiles de librería (Compose y compañía) vía
+  `profileinstaller`, pero todavía no tiene uno propio: generarlo requiere el
+  plugin `androidx.baselineprofile` con una corrida de macrobenchmark en un
+  dispositivo.
 - **Navegación con teclado / D-pad.** `Interaction.kt` cubre estados hover,
   focus y pressed, y el reproductor tiene atajos, pero no hay recorrido de foco
   por los raíles de Home ni modelo de navegación espacial. Un target de TV lo

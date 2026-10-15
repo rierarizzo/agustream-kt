@@ -606,9 +606,11 @@ not a one-file change. They are grouped by the axis they change, not by effort.
 
 - **Mobile polish and release hardening.** The compact layout works, but it is
   not tuned surface by surface yet: spacing and proportions still need a pass on
-  real phones. Separately, the Android release build is unoptimised —
-  `isMinifyEnabled` is `false` and there is no baseline profile — so it reads as
-  much slower than it needs to.
+  real phones. The Android release build is minified
+  (`isMinifyEnabled` + `isShrinkResources`) and ships the library baseline
+  profiles (Compose and friends) through `profileinstaller`, but there is no app
+  profile of its own yet: generating one needs the `androidx.baselineprofile`
+  plugin with a macrobenchmark run on a device.
 - **Keyboard / D-pad navigation.** `Interaction.kt` covers hover, focus and
   pressed states, and the player has shortcuts, but there is no focus traversal
   across the Home rails and no spatial navigation model. A TV target makes this
