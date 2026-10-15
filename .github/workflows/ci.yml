@@ -1,9 +1,11 @@
 name: CI
 
+# Manual runs on purpose: the project is still pre-release, and the automatic
+# push / pull_request runs only produced failure noise. Run it from the Actions
+# tab (or `gh workflow run CI`) when a full check is wanted. To bring the
+# automatic runs back, restore the `push` and `pull_request` triggers.
 on:
-  push:
-    branches: [master, main]
-  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
