@@ -1,14 +1,11 @@
 package com.misgus.pengu.ui.home
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -17,23 +14,16 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.pengu.app.shared.generated.resources.Res
-import com.misgus.pengu.app.shared.generated.resources.detail_episode_code
 import com.misgus.pengu.app.shared.generated.resources.detail_error_library
 import com.misgus.pengu.app.shared.generated.resources.empty_nothing_to_show
 import com.misgus.pengu.app.shared.generated.resources.home_continue_watching
@@ -46,13 +36,9 @@ import com.misgus.pengu.core.repository.CatalogRef
 import com.misgus.pengu.core.repository.PosterSize
 import com.misgus.pengu.ui.components.Message
 import com.misgus.pengu.ui.components.MetaPosterCard
-import com.misgus.pengu.ui.components.PosterImage
 import com.misgus.pengu.ui.components.SectionHeader
 import com.misgus.pengu.ui.components.SyncingIndicator
-import com.misgus.pengu.ui.components.clickableSurface
 import com.misgus.pengu.ui.components.contentTypeLabel
-import com.misgus.pengu.ui.components.motionBorder
-import com.misgus.pengu.ui.components.rememberInteraction
 import com.misgus.pengu.ui.components.toUserMessage
 import com.misgus.pengu.ui.icons.AppIcons
 import com.misgus.pengu.ui.services.LocalAppServices
@@ -60,17 +46,12 @@ import com.misgus.pengu.ui.shell.ContentNavigator
 import com.misgus.pengu.ui.shell.ContentRoute
 import com.misgus.pengu.ui.shell.LocalSnackbarHost
 import com.misgus.pengu.ui.streams.StreamsRequest
-import com.misgus.pengu.ui.theme.AppColors
-import com.misgus.pengu.ui.theme.AppCorner
-import com.misgus.pengu.ui.theme.AppSizes
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalWindowHeight
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.PosterCaption
 import com.misgus.pengu.ui.theme.WindowSize
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
-import com.misgus.pengu.ui.theme.motionTween
 import com.misgus.pengu.ui.theme.railHeight
 import com.misgus.pengu.ui.theme.safeTopInset
 import com.misgus.pengu.ui.theme.screenPadding
@@ -263,70 +244,6 @@ private fun HomeContent(
         }
     }
 }
-
-@Composable
-private fun ContinueCard(
-    entry: ContinueEntry,
-    width: Dp,
-    onTap: () -> Unit,
-) {
-    val item = entry.item
-    val progress = entry.progress
-    val season = progress.season
-    val episodeNumber = progress.episode
-    val episode =
-        if (season == null || episodeNumber == null) {
-            null
-        } else {
-            stringResource(Res.string.detail_episode_code, season, episodeNumber)
-        }
-    val backdrop = item.background ?: item.poster
-
-    val interaction = rememberInteraction()
-    val borderColor =
-        animateColorAsState(
-            targetValue = if (interaction.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-            animationSpec = motionTween(),
-            label = "borderColor",
-        )
-
-    Column(
-        modifier = Modifier.width(width).clickableSurface(interaction, onTap, indication = null),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-                    .motionBorder(color = { borderColor.value }, width = AppSizes.borderWidth, cornerRadius = AppCorner.small)
-                    .clip(MaterialTheme.shapes.small),
-        ) {
-            PosterImage(backdrop, Modifier.fillMaxSize())
-            progress.fraction?.let { fraction ->
-                LinearProgressIndicator(
-                    progress = { fraction.toFloat() },
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = AppColors.mediaScrim,
-                    modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(AppSizes.progressBarHeight),
-                )
-            }
-        }
-        Spacer(Modifier.height(AppSpacing.sm))
-        Text(
-            item.name,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = PosterCaption.title(),
-        )
-        episode?.let { Text(it, style = PosterCaption.meta()) }
-    }
-}
-
-/** Width and rail height of a 16:9 "Continue watching" card, smaller on a phone. */
-private val ContinueWidth = 336.dp
-private val CompactContinueWidth = 224.dp
-private val ContinueHeight = 248.dp
-private val CompactContinueHeight = 184.dp
 
 /**
  * How often the featured billboard rotates to a new random mix of the rows.
