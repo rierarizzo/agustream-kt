@@ -30,7 +30,9 @@ actual fun configDirectory(): String {
         } else {
             env["XDG_CONFIG_HOME"] ?: "${env["HOME"] ?: "."}/.config"
         }
-    return File(base, "Pengu").path
+    val current = File(base, "Pengu")
+    PlatformFileIO.migrateConfigDirectory(File(base, "Agustream"), current)
+    return current.path
 }
 
 actual fun readTextFile(path: String): String? = PlatformFileIO.read(path)
