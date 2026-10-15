@@ -112,14 +112,6 @@ leer/escribir/borrar vive una sola vez.
   los repositorios locales se serializan con un `Mutex`. El fichero de sesión se
   restringe al usuario actual donde el SO lo permite; es endurecimiento
   best-effort, no un keychain.
-- **Migración del directorio de configuración.** El proyecto pasó de
-  `Agustream` a `Pengu`, lo que también cambió el directorio en disco. En el
-  primer arranque que encuentra el directorio `Agustream` heredado y ninguno
-  `Pengu`, la capa de plataforma lo renombra en su sitio
-  (`PlatformFileIO.migrateConfigDirectory`), de modo que la sesión, los ajustes
-  y el progreso en caché se conservan. Una migración fallida deja el directorio
-  heredado intacto, y el renombrado no se reintenta una vez existe el directorio
-  `Pengu`.
 - **Los ajustes** viven en `settings.json` como un objeto JSON plano con claves
   punteadas, como el `settings.json` de VS Code (`animations.enabled`,
   `player.resumePlayback`, `player.autoPlayNext`, `poster.size`,

@@ -106,13 +106,6 @@ so the atomic read/write/delete logic lives once.
   being swallowed. Read-modify-write cycles in the local repositories are
   serialized with a `Mutex`. The session file is restricted to the current user
   where the OS allows it; that is best-effort hardening, not a keychain.
-- **Config directory migration.** The project was renamed from `Agustream` to
-  `Pengu`, which also changed the on-disk directory. On the first start that
-  finds the legacy `Agustream` directory and no `Pengu` one, the platform layer
-  renames it into place (`PlatformFileIO.migrateConfigDirectory`), so the
-  session, the settings and the cached progress carry over. A failed migration
-  leaves the legacy directory untouched, and the rename is not retried once the
-  `Pengu` directory exists.
 - **Settings** live in `settings.json` as a flat JSON object with dotted keys,
   like VS Code's `settings.json` (`animations.enabled`, `player.resumePlayback`,
   `player.autoPlayNext`, `poster.size`, `library.poster.size`).

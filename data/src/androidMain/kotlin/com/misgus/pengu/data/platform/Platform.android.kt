@@ -35,9 +35,7 @@ actual fun configDirectory(): String {
     val context =
         applicationContext
             ?: return File(System.getProperty("java.io.tmpdir") ?: ".", "Pengu").path
-    val current = File(context.filesDir, "Pengu")
-    PlatformFileIO.migrateConfigDirectory(File(context.filesDir, "Agustream"), current)
-    return current.path
+    return File(context.filesDir, "Pengu").path
 }
 
 actual fun readTextFile(path: String): String? = PlatformFileIO.read(path)

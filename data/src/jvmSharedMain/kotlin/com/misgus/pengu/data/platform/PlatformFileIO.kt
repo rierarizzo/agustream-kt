@@ -55,32 +55,4 @@ internal object PlatformFileIO {
             if (file.exists()) file.delete()
         }
     }
-
-    /**
-     * Moves the legacy `Agustream` config directory to its `Pengu` name once.
-     *
-     * [legacy] and [current] are siblings, so the rename normally succeeds on
-     * every platform. The copy fallback covers a locked file or a different
-     * mount; it stages the copy next to the target so an interrupted transfer is
-     * not mistaken for a finished migration on the next start. A failed
-     * migration leaves the legacy directory untouched, since no data is lost by
-     * keeping it around.
-     */
-    fun migrateConfigDirectory(
-        legacy: File,
-        current: File,
-    ) {
-        if (current.exists() || !legacy.exists()) return
-        runCatching {
-            current.parentFile?.mkdirs()
-            if (legacy.renameTo(current)) return@runCatching
-            val staging = File(current.parentFile, "${current.name}.migrating")
-            staging.deleteRecursively()
-            legacy.copyRecursively(staging, overwrite = false)
-            if (!staging.renameTo(current)) {
-                staging.deleteRecursively()
-                throw IOException("Could not migrate ${legacy.path} to ${current.path}")
-            }
-        }
-    }
 }
