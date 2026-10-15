@@ -287,8 +287,8 @@ so the atomic read/write/delete logic lives once.
   gradient so the artwork is darkened in one full-screen fill, so the taller,
   centred copy sits deeper in the dark: the copy is
   centred horizontally and anchored to the bottom edge, the title always prefers
-  the logo
-  (`AppLogoSize.compactHeight`, text only as a fallback) and the synopsis is
+  the logo (scaled to the copy width by `AppLogoSize.opticalHeight`, text only as
+  a fallback) and the synopsis is
   dropped, since there is no room to read it under a centred logo. On a wide
   window the copy column is
   bottom-anchored 100dp above the hero edge, up to 840dp wide, and shares the
@@ -462,9 +462,12 @@ so the atomic read/write/delete logic lives once.
   `MitchellImageDecoder`, a cubic decoder that keeps Coil's size math and
   reduces once at decode time. Together they both sharpen the artwork and cut
   the bitmap memory the renderer has to scale every frame. Title logos are
-  contained in a box — a fixed optical height plus a `maxWidth` guard
+  contained in a box — an optical height plus a `maxWidth` guard
   (`AppLogoSize`), drawn with `ContentScale.Fit` — so a square logo cannot
-  tower over the copy and a very wide one cannot overflow its column. The Home
+  tower over the copy and a very wide one cannot overflow its column. On a phone
+  `opticalHeight` scales the box to the copy width: a fixed height there was the
+  only binding limit, which boxed a square logo to a sliver while a wide one
+  still filled the column, so the two shapes now read at a similar weight. The Home
   hero preloads the next slide's backdrop and logo through the singleton loader,
   sized to the billboard, and re-arms as the page advances, so swiping paints
   from cache instead of starting a network round-trip mid-gesture without the

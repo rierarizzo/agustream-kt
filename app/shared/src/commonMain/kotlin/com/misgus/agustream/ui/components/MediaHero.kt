@@ -47,15 +47,10 @@ fun MediaTitle(
     /** Alignment of the name when it falls back to text; a logo centres itself. */
     textAlign: TextAlign = TextAlign.Start,
 ) {
-    // A fixed optical height keeps the logos in scale, capped by a max width so a
-    // wide one cannot overflow the column. It is smaller on a phone.
-    val height =
-        logoHeight
-            ?: if (LocalWindowSize.current == WindowSize.COMPACT) {
-                AppLogoSize.compactHeight
-            } else {
-                AppLogoSize.detailHeight
-            }
+    // The logo box: a fixed optical height on a wide window, scaled to the copy
+    // width on a phone (see [AppLogoSize.opticalHeight]), so a square logo does
+    // not read tiny next to a wide one while both stay inside the column.
+    val height = AppLogoSize.opticalHeight(logoHeight ?: AppLogoSize.detailHeight)
     when {
         loading ->
             // Reserve the space so the title does not jump when it arrives, but

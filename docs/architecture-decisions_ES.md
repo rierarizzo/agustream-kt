@@ -305,7 +305,7 @@ leer/escribir/borrar vive una sola vez.
   más metido en lo oscuro: el copy queda centrado
   en horizontal y anclado al
   borde inferior, el título prefiere siempre el logo
-  (`AppLogoSize.compactHeight`, el texto
+  (escalado al ancho del copy por `AppLogoSize.opticalHeight`, el texto
   solo como reserva) y la sinopsis se omite, porque no hay sitio para leerla bajo
   un logo centrado. En ventana ancha la columna de copy
   está anclada abajo a 100dp del borde del hero, hasta 840dp de ancho, y comparte
@@ -493,10 +493,13 @@ leer/escribir/borrar vive una sola vez.
   decodificador cúbico que mantiene las matemáticas de tamaño de Coil y reduce
   una vez en el momento de decodificar. Juntos afilan el artwork y reducen la
   memoria de bitmap que el renderer tiene que escalar cada frame. Los logos de
-  título se contienen en una caja — una altura óptica fija más una guarda
+  título se contienen en una caja — una altura óptica más una guarda
   `maxWidth` (`AppLogoSize`), dibujados con `ContentScale.Fit` — para que un logo
-  cuadrado no se eleve sobre el copy y uno muy ancho no desborde su columna. El
-  hero de Home precarga el backdrop y el logo de la siguiente diapositiva a
+  cuadrado no se eleve sobre el copy y uno muy ancho no desborde su columna. En
+  un teléfono `opticalHeight` escala la caja al ancho del copy: una altura fija
+  ahí era el único límite, y encajonaba un logo cuadrado a una franja mientras
+  uno ancho seguía llenando la columna, así que ambas formas leen con un peso
+  similar. El hero de Home precarga el backdrop y el logo de la siguiente diapositiva a
   través del loader singleton, dimensionados al billboard, y se re-arma según
   avanza la página, para que deslizar pinte desde caché en vez de empezar una
   vuelta de red a mitad de gesto sin el pico de decodes que causaba encolar todo

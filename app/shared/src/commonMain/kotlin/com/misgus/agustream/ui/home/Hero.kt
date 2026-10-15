@@ -363,7 +363,7 @@ private fun HeroCarousel(
         backdropHeightPx = backdropHeightPx,
         logoHeightPx =
             with(density) {
-                (if (compact) AppLogoSize.compactHeight else AppLogoSize.homeHeight).roundToPx().coerceAtLeast(1)
+                AppLogoSize.opticalHeight(AppLogoSize.homeHeight).roundToPx().coerceAtLeast(1)
             },
         logoMaxWidthPx = with(density) { AppLogoSize.maxWidth.roundToPx().coerceAtLeast(1) },
     )
@@ -477,7 +477,7 @@ private fun BoxScope.HeroCopy(
         MediaTitle(
             name = item.name,
             logo = item.logo,
-            logoHeight = if (compact) AppLogoSize.compactHeight else AppLogoSize.homeHeight,
+            logoHeight = AppLogoSize.homeHeight,
             textAlign = if (compact) TextAlign.Center else TextAlign.Start,
         )
         Spacer(Modifier.height(if (compact) HERO_COMPACT_LOGO_METADATA_SPACE else HERO_LOGO_METADATA_SPACE))

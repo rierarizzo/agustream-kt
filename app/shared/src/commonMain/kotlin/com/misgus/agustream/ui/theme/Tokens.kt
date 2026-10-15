@@ -223,9 +223,10 @@ object AppScale {
 /**
  * Sizing for the title artwork (logo) on a billboard.
  *
- * A logo is contained in a box: a fixed optical height plus a [maxWidth] guard,
- * so a square logo cannot tower over the copy while a very wide one cannot
- * overflow its column. Both billboards read these values, so they stay in sync.
+ * A logo is contained in a box: an optical height plus a [maxWidth] guard, so a
+ * square logo cannot tower over the copy while a very wide one cannot overflow
+ * its column. Both billboards read these values, so they stay in sync, and
+ * [opticalHeight] scales the box down on a phone.
  */
 object AppLogoSize {
     /** Optical height of the title logo on the wide home billboard. */
@@ -234,11 +235,24 @@ object AppLogoSize {
     /** Optical height of the title logo on the wide detail billboard. */
     val detailHeight: Dp = 96.dp
 
-    /** Optical height of the title logo on a phone's billboard (home and detail). */
-    val compactHeight: Dp = 56.dp
-
     /** Widest a logo may grow; a wider logo scales down to fit. */
     val maxWidth: Dp = 520.dp
+
+    /**
+     * Optical height of the logo box on the current window.
+     *
+     * A wide window uses [wideHeight]. A phone scales the whole box to the copy
+     * width, keeping the wide billboard's [wideHeight]-over-[maxWidth]
+     * proportion: a fixed height was the only binding limit there, so a square
+     * logo boxed down to a sliver while a wide one still filled the column. The
+     * result is capped at [wideHeight], so a narrower column can only shrink it.
+     */
+    @Composable
+    fun opticalHeight(wideHeight: Dp): Dp {
+        if (LocalWindowSize.current != WindowSize.COMPACT) return wideHeight
+        val copyWidth = LocalWindowWidth.current - LocalWindowSize.current.screenPadding * 2
+        return (wideHeight * (copyWidth / maxWidth)).coerceIn(0.dp, wideHeight)
+    }
 }
 
 /**
