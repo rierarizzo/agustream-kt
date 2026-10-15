@@ -238,7 +238,13 @@ leer/escribir/borrar vive una sola vez.
   `PagerState.isScrollInProgress` y marca todo scroll que el carrusel no inició
   él mismo, así cubre tanto un drag en teléfono como un swipe de rueda / trackpad
   en desktop, y el timer cede ante el usuario hasta que queda inactivo, momento en
-  que el hero vuelve a moverse solo. La pantalla vuelve a
+  que el hero vuelve a moverse solo. El pager es infinito (arranca cerca de la
+  mitad del rango y `page % items.size` mapea una página de vuelta a su ítem), así
+  el auto-avance siempre va hacia adelante: el último slide no recorre todas las
+  páginas hacia atrás para llegar a la primera. El avance hace snap con un
+  spring (`motionSpring`) y respeta `LocalMotionEnabled`, así que "desactivar
+  animaciones" salta al objetivo como el resto de transiciones. La pantalla
+  vuelve a
   elegir el set completo cada `FEATURED_ROTATION_INTERVAL` (10 minutos) mientras
   Home está visible, priorizando los ítems que no están en pantalla, así cambia
   con el tiempo y no en cada recomposición. La selección usa un `Random`
@@ -326,19 +332,27 @@ leer/escribir/borrar vive una sola vez.
   El paginador del carrusel es una fila de puntos iguales de 7dp, centrada en el
   borde inferior del billboard: crema para la página activa y gris para el resto.
   En un teléfono se sienta más arriba (32dp), libre de la barra de gestos. El
-  swipe hace cross-fade en vez de deslizar: cada página cancela el offset
-  horizontal del pager en un `graphicsLayer` y su alpha sigue el mismo offset,
-  así que un billboard se disuelve a través del fondo de página en el siguiente.
-  El offset se lee dentro del bloque de layer, no en composición, así que un
-  swipe actualiza layers en vez de recomponer cada página compuesta por frame, y
-  el copy lee el mismo offset igual. El copy (título, metadata, sinopsis,
-  acciones) se desliza un poco contra el
-  swipe (`HERO_CONTENT_SLIDE_MAX`, 64dp) para que se lea la dirección, mientras
-  que el artwork solo hace cross-fade. La página enfocada se eleva con `zIndex`
-  a partir de `pagerState.currentPage` (lectura de una vez por cambio, no por
-  frame), para que sus botones posean los hits; los vecinos difuminados se
-  sientan en el mismo sitio y si no capturarían el click. En ventana ancha el rail flota sobre
-  el contenido, que reserva su ancho, así que la navegación nunca lo solapa.
+  pager es solo un driver de gesto y offset: sus páginas están vacías, y el
+  artwork y el copy se dibujan encima como capas separadas para la página
+  asentada y, mientras corre un swipe, su vecina. Mantener el alpha por primitiva
+  (una capa de backdrop, las washes compartidas, una capa de copy) en vez de
+  sobre una página compuesta entera saca al billboard del camino de buffer
+  offscreen que tomaría un alpha de página completa, y las washes se elevan fuera
+  de los slides, así que un cross-fade ya no dibuja un segundo gradiente a
+  pantalla completa. La vecina visible se resuelve con `derivedStateOf` sobre
+  `pagerState.currentPageOffsetFraction`, y el alpha y el deslizamiento se leen
+  dentro de cada `graphicsLayer`, así que un swipe actualiza layers en vez de
+  recomponer cada página compuesta por frame. El swipe hace cross-fade en vez de
+  deslizar: cada capa se disuelve a través del fondo de página en su vecina. El
+  copy (título, metadata, sinopsis, acciones) se desliza un poco contra el swipe
+  (`HERO_CONTENT_SLIDE_MAX`, 64dp) para que se lea la dirección, mientras que el
+  artwork se desplaza una fracción menor del ancho de página
+  (`HERO_BACKDROP_PARALLAX`, 5.5%) con un ligero overscan (`HERO_BACKDROP_SCALE`,
+  1.14), así que los dos slides se leen como capas en vez de una doble exposición
+  plana. La página asentada se dibuja última entre las capas, para que sus
+  botones posean los hits. En ventana ancha el rail flota
+  sobre el contenido, que reserva su ancho, así que la navegación nunca lo
+  solapa.
 - **Tipografía.** Inter se incluye mediante Compose Resources en `:app:shared` y
   es la tipografía renderizada. IBM Plex Sans queda aislada en su propio módulo
   `:app:fonts` para que las dos tipografías se puedan intercambiar para comparar

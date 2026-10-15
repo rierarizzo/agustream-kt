@@ -26,7 +26,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,13 +36,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import coil3.SingletonImageLoader
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
@@ -60,8 +62,10 @@ import com.misgus.agustream.ui.theme.AppColors
 import com.misgus.agustream.ui.theme.AppLogoSize
 import com.misgus.agustream.ui.theme.AppScrim
 import com.misgus.agustream.ui.theme.AppSpacing
+import com.misgus.agustream.ui.theme.LocalMotionEnabled
 import com.misgus.agustream.ui.theme.LocalWindowSize
 import com.misgus.agustream.ui.theme.WindowSize
+import com.misgus.agustream.ui.theme.motionSpring
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
 import kotlinx.coroutines.delay
@@ -142,6 +146,16 @@ private val HERO_COMPACT_METADATA_ACTIONS_SPACE = (12.dp - HeroActionRowInset).c
 private val HERO_CONTENT_SLIDE_MAX = 64.dp
 
 /**
+ * Backdrop drift against a swipe, as a fraction of the page width, and the
+ * overscan that keeps the drift from exposing an edge.
+ *
+ * The two slides do not dissolve perfectly on top of each other: a small drift
+ * and zoom make the change read as layers instead of a flat double exposure.
+ */
+private const val HERO_BACKDROP_PARALLAX = 0.055f
+private const val HERO_BACKDROP_SCALE = 1.14f
+
+/**
  * How long a slide stays before the carousel advances to the next one.
  *
  * In the common 5-8 s range for auto-rotating carousels (Swiper defaults to 3 s,
@@ -170,6 +184,16 @@ private val HERO_COMPACT_PAGINATOR_BOTTOM_MARGIN = 32.dp
 private const val HERO_PAGINATOR_ANIMATION_MS = 250
 
 /**
+ * First page of the infinite hero pager.
+ *
+ * A large multiple of [itemCount] near the middle of the range, so there is room
+ * to swipe both ways and the auto-advance always moves forward: the last slide
+ * no longer scrolls back through every page to reach the first. `page %
+ * itemCount` maps a page back to its item.
+ */
+private fun heroStartingPage(itemCount: Int): Int = (Int.MAX_VALUE / 2) - (Int.MAX_VALUE / 2) % itemCount
+
+/**
  * Compact / Android billboard: in the scroll flow, full-bleed and cropped.
  *
  * A phone cannot show the wide desktop composition, so it crops the same
@@ -188,14 +212,13 @@ internal fun Hero(
 ) {
     if (items.isEmpty()) return
     val density = LocalDensity.current
-    val pagerState = rememberPagerState(pageCount = { items.size })
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val height = maxWidth * HERO_COMPACT_HEIGHT_RATIO
         HeroCarousel(
             items = items,
-            pagerState = pagerState,
             height = height,
+            pageWidthPx = with(density) { maxWidth.roundToPx().coerceAtLeast(1) },
             wide = false,
             savedIds = savedIds,
             busyIds = busyIds,
@@ -230,7 +253,6 @@ internal fun WideHero(
 ) {
     if (items.isEmpty()) return
     val density = LocalDensity.current
-    val pagerState = rememberPagerState(pageCount = { items.size })
     var aspect by remember(items) { mutableStateOf(HERO_FALLBACK_ASPECT_RATIO) }
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -241,8 +263,8 @@ internal fun WideHero(
         val artworkHeight = maxOf((maxWidth * HERO_IMAGE_WIDTH_FRACTION) / aspect, frameHeight)
         HeroCarousel(
             items = items,
-            pagerState = pagerState,
             height = frameHeight,
+            pageWidthPx = with(density) { maxWidth.roundToPx().coerceAtLeast(1) },
             wide = true,
             savedIds = savedIds,
             busyIds = busyIds,
@@ -260,8 +282,8 @@ internal fun WideHero(
 @Composable
 private fun HeroCarousel(
     items: List<MetaPreview>,
-    pagerState: PagerState,
     height: Dp,
+    pageWidthPx: Int,
     wide: Boolean,
     savedIds: Set<String>,
     busyIds: Set<String>,
@@ -272,8 +294,21 @@ private fun HeroCarousel(
     onPlay: (MetaPreview) -> Unit,
     onToggleSaved: (MetaPreview) -> Unit,
 ) {
+    // Infinite pager so the auto-advance and a swipe wrap around instead of
+    // scrolling back through every page from the last slide to the first. The
+    // item shown is `page % items.size`; recreating on a size change keeps the
+    // current page valid when the featured set rotates.
+    val pagerState =
+        key(items.size) {
+            rememberPagerState(
+                initialPage = if (items.size > 1) heroStartingPage(items.size) else 0,
+                pageCount = { if (items.size > 1) Int.MAX_VALUE else 1 },
+            )
+        }
     val compact = LocalWindowSize.current == WindowSize.COMPACT
     val density = LocalDensity.current
+    val motionEnabled = LocalMotionEnabled.current
+    val snapSpec = motionSpring()
     // Monotonic mark of the last manual interaction; auto-advance holds off until
     // a full cooldown has passed, then resumes once the user goes idle.
     var lastManualInteraction by remember(pagerState) { mutableStateOf<TimeMark?>(null) }
@@ -296,7 +331,7 @@ private fun HeroCarousel(
     // animation sets that flag itself, so the page would never move. A tick that
     // lands while the user is dragging, or while the post-swipe cooldown is still
     // running, is skipped instead.
-    LaunchedEffect(pagerState, items.size) {
+    LaunchedEffect(pagerState, items.size, motionEnabled) {
         if (items.size <= 1) return@LaunchedEffect
         while (true) {
             delay(HERO_AUTO_ADVANCE_INTERVAL)
@@ -305,7 +340,12 @@ private fun HeroCarousel(
             if (!pagerState.isScrollInProgress && !coolingDown) {
                 autoScrolling.value = true
                 try {
-                    pagerState.animateScrollToPage((pagerState.currentPage + 1) % items.size)
+                    // A spring snap, like the rest of the app's larger surfaces,
+                    // and a snap when motion is off.
+                    pagerState.animateScrollToPage(
+                        pagerState.currentPage + 1,
+                        animationSpec = snapSpec,
+                    )
                 } finally {
                     autoScrolling.value = false
                 }
@@ -313,49 +353,71 @@ private fun HeroCarousel(
         }
     }
 
-    Box(Modifier.fillMaxWidth().height(height).background(MaterialTheme.colorScheme.background)) {
-        HorizontalPager(
-            state = pagerState,
-            beyondViewportPageCount = 1,
-            key = { page -> items[page].id },
-        ) { page ->
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        // The focused page draws on top, so its buttons own the
-                        // hits: the faded neighbours sit at the same place and
-                        // would otherwise capture the click (alpha does not
-                        // affect hit-testing). Reading `currentPage` changes once
-                        // per page, not once per frame.
-                        .zIndex(if (page == pagerState.currentPage) 1f else 0f)
-                        .graphicsLayer {
-                            // Cross-fade instead of slide: the pager's horizontal
-                            // offset is cancelled and the page's alpha follows the
-                            // same offset, so one billboard dissolves through the
-                            // page background into the next while the swipe still
-                            // scrubs the transition. The offset is read here, in
-                            // the layer phase, not in composition: it changes on
-                            // every swipe frame, and reading it in composition
-                            // recomposed all the composed pages each frame.
-                            val signedOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                            val distance = signedOffset.absoluteValue
-                            translationX = signedOffset * size.width
-                            alpha = (1f - distance).coerceIn(0f, 1f)
-                        },
-            ) {
-                HeroSlide(
-                    item = items[page],
-                    compact = compact,
-                    wide = wide,
-                    saved = items[page].id in savedIds,
-                    savedBusy = items[page].id in busyIds,
-                    offset = { (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction },
-                    onBackdropAspect = { ratio -> onBackdropAspect(page, ratio) },
-                    onOpen = { onOpen(items[page]) },
-                    onPlay = { onPlay(items[page]) },
-                    onToggleSaved = { onToggleSaved(items[page]) },
-                )
+    // The page beside the settled one, if any. Reading the offset through
+    // `derivedStateOf` keeps the layers from recomposing on every swipe frame:
+    // the neighbour only changes when a page enters or leaves the viewport.
+    val neighborPage by remember(pagerState) {
+        derivedStateOf {
+            when {
+                pagerState.currentPageOffsetFraction > 0f -> pagerState.currentPage + 1
+                pagerState.currentPageOffsetFraction < 0f -> pagerState.currentPage - 1
+                else -> null
+            }
+        }
+    }
+    // Neighbour first and the settled page last, so the settled copy owns the hits.
+    val layers = listOfNotNull(neighborPage, pagerState.currentPage)
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(height)
+            .clipToBounds()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        // The pager is only a gesture and offset driver: its pages are empty, so
+        // the artwork and the copy are drawn as separate layers below. One alpha
+        // over a whole page forces the billboard into an offscreen layer every
+        // frame; per-primitive alpha does not.
+        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize())
+        }
+        Box(Modifier.fillMaxSize()) {
+            // Artwork first, then the washes once, then the copy: the wash is the
+            // same for every slide, so it no longer draws per page.
+            layers.forEach { page ->
+                key(page) {
+                    HeroBackdropLayer(
+                        item = items[page % items.size],
+                        wide = wide,
+                        page = page,
+                        pageWidthPx = pageWidthPx,
+                        pagerState = pagerState,
+                        onAspect = { ratio -> onBackdropAspect(page % items.size, ratio) },
+                    )
+                }
+            }
+            HeroWashes(wide)
+            layers.forEach { page ->
+                key(page) {
+                    HeroCopy(
+                        item = items[page % items.size],
+                        compact = compact,
+                        saved = items[page % items.size].id in savedIds,
+                        savedBusy = items[page % items.size].id in busyIds,
+                        onOpen = { onOpen(items[page % items.size]) },
+                        onPlay = { onPlay(items[page % items.size]) },
+                        onToggleSaved = { onToggleSaved(items[page % items.size]) },
+                        modifier =
+                            Modifier.graphicsLayer {
+                                // Deferred to the layer phase: the offset changes
+                                // on every swipe frame, and an alpha over the
+                                // copy alone stays off the whole-page layer.
+                                alpha = heroLayerVisibility(pagerState, page)
+                                translationX = -heroLayerOffset(pagerState, page) * HERO_CONTENT_SLIDE_MAX.toPx()
+                            },
+                    )
+                }
             }
         }
         if (items.size > 1) {
@@ -382,45 +444,42 @@ private fun HeroCarousel(
     )
 }
 
-/** One billboard slide: cropped artwork under the background washes and the copy. */
+/**
+ * Billboard artwork for one page, as its own layer.
+ *
+ * The alpha is read inside `graphicsLayer`, so a swipe updates the layer instead
+ * of recomposing; a single-image layer is also what keeps the cross-fade off the
+ * offscreen-buffer path a whole-page alpha would take.
+ */
 @Composable
-private fun HeroSlide(
+private fun BoxScope.HeroBackdropLayer(
     item: MetaPreview,
-    compact: Boolean,
     wide: Boolean,
-    saved: Boolean,
-    savedBusy: Boolean,
-    offset: () -> Float,
-    onBackdropAspect: (Float) -> Unit,
-    onOpen: () -> Unit,
-    onPlay: () -> Unit,
-    onToggleSaved: () -> Unit,
+    page: Int,
+    pageWidthPx: Int,
+    pagerState: PagerState,
+    onAspect: (Float) -> Unit,
 ) {
     val backdrop = item.background ?: item.poster
-    // The artwork cross-fades, but the copy slides a little against the swipe,
-    // so the user can read whether the change is going forward or back.
-    val slidePx = with(LocalDensity.current) { HERO_CONTENT_SLIDE_MAX.toPx() }
-    // The hero box behind the pager already paints the page background, so a
-    // slow or missing image never leaves a bright gap without a second
-    // full-screen fill per composed page.
-    Box(Modifier.fillMaxSize()) {
-        if (!backdrop.isNullOrEmpty()) {
-            AsyncImage(
-                model = backdrop,
-                contentDescription = null,
-                // Both frames are shorter than the wide artwork, so `Crop` trims
-                // it: the desktop keeps the top edge pinned, the phone keeps the
-                // centre, where the subject usually is.
-                contentScale = ContentScale.Crop,
-                alignment = if (wide) Alignment.TopCenter else Alignment.Center,
-                filterQuality = BackdropFilterQuality,
-                onSuccess = { state ->
-                    val image = state.result.image
-                    if (image.width > 0 && image.height > 0) {
-                        onBackdropAspect(image.width.toFloat() / image.height.toFloat())
-                    }
-                },
-                modifier =
+    if (backdrop.isNullOrEmpty()) return
+    AsyncImage(
+        model = backdrop,
+        contentDescription = null,
+        // Both frames are shorter than the wide artwork, so `Crop` trims it: the
+        // desktop keeps the top edge pinned, the phone keeps the centre, where
+        // the subject usually is.
+        contentScale = ContentScale.Crop,
+        alignment = if (wide) Alignment.TopCenter else Alignment.Center,
+        filterQuality = BackdropFilterQuality,
+        onSuccess = { state ->
+            val image = state.result.image
+            if (image.width > 0 && image.height > 0) {
+                onAspect(image.width.toFloat() / image.height.toFloat())
+            }
+        },
+        modifier =
+            Modifier
+                .then(
                     if (wide) {
                         // Pinned to the top-right corner, at the billboard's width.
                         Modifier
@@ -430,38 +489,49 @@ private fun HeroSlide(
                     } else {
                         Modifier.fillMaxSize()
                     },
-            )
-        }
-        // Washes over the artwork, in draw order. The last child paints on top,
-        // and every one ends on the page background so the hero has no seam. The
-        // wide billboard needs its edge scrims in different directions; a phone
-        // folds its flat dim and bottom fade into one gradient, so the artwork is
-        // darkened in a single full-screen fill instead of two.
-        if (wide) {
-            Box(Modifier.fillMaxSize().background(AppScrim.heroWideLeft))
-            Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
-            Box(Modifier.fillMaxSize().background(AppScrim.heroTop))
-            Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
-        } else {
-            Box(Modifier.fillMaxSize().background(AppScrim.heroBottomCompact))
-        }
-        HeroCopy(
-            item = item,
-            compact = compact,
-            saved = saved,
-            savedBusy = savedBusy,
-            onOpen = onOpen,
-            onPlay = onPlay,
-            onToggleSaved = onToggleSaved,
-            modifier =
-                Modifier.graphicsLayer {
-                    // Deferred to the layer phase for the same reason as the
-                    // page alpha: the offset changes on every swipe frame.
-                    translationX = -offset() * slidePx
+                ).graphicsLayer {
+                    alpha = heroLayerVisibility(pagerState, page)
+                    // A small drift and overscan, so the two slides read as layers
+                    // instead of a flat double exposure.
+                    translationX = -heroLayerOffset(pagerState, page) * pageWidthPx * HERO_BACKDROP_PARALLAX
+                    scaleX = HERO_BACKDROP_SCALE
+                    scaleY = HERO_BACKDROP_SCALE
                 },
-        )
+    )
+}
+
+/**
+ * The washes over the artwork, drawn once for the whole billboard.
+ *
+ * The last child paints on top, and every gradient ends on the page background
+ * so the hero has no seam. Hoisting them out of the slides means the cross-fade
+ * no longer draws a second full-screen gradient while it runs. The wide
+ * billboard needs its edge scrims in different directions; a phone folds its
+ * flat dim and bottom fade into one gradient.
+ */
+@Composable
+private fun HeroWashes(wide: Boolean) {
+    if (wide) {
+        Box(Modifier.fillMaxSize().background(AppScrim.heroWideLeft))
+        Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
+        Box(Modifier.fillMaxSize().background(AppScrim.heroTop))
+        Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
+    } else {
+        Box(Modifier.fillMaxSize().background(AppScrim.heroBottomCompact))
     }
 }
+
+/** Signed distance of [page] from the settled page, in pages. */
+private fun heroLayerOffset(
+    pagerState: PagerState,
+    page: Int,
+): Float = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+
+/** Cross-fade alpha of [page] against the settled page. */
+private fun heroLayerVisibility(
+    pagerState: PagerState,
+    page: Int,
+): Float = (1f - heroLayerOffset(pagerState, page).absoluteValue).coerceIn(0f, 1f)
 
 /** The copy block: title logo, metadata, synopsis and the existing actions. */
 @Composable
@@ -539,7 +609,7 @@ private fun HeroPaginator(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         for (index in 0 until pageCount) {
-            val selected = index == pagerState.currentPage
+            val selected = index == pagerState.currentPage % pageCount
             val color by animateColorAsState(
                 targetValue =
                     if (selected) {

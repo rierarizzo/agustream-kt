@@ -224,7 +224,13 @@ so the atomic read/write/delete logic lives once.
   `HERO_MANUAL_COOLDOWN` (60 s): the watcher keys on `PagerState.isScrollInProgress`
   and marks every scroll the carousel did not start itself, so it catches both a
   drag on a phone and a wheel / trackpad swipe on desktop, and the timer yields to
-  the user until they go idle before the hero resumes on its own. The screen
+  the user until they go idle before the hero resumes on its own. The pager is
+  infinite (it starts near the middle of the range and `page % items.size` maps a
+  page back to its item), so the auto-advance always moves forward: the last
+  slide does not scroll back through every page to reach the first. The advance
+  snaps with a spring (`motionSpring`) and respects `LocalMotionEnabled`, so
+  "disable animations" jumps to the target like every other transition. The
+  screen
   re-picks the whole set every
   `FEATURED_ROTATION_INTERVAL` (10 minutes) while Home is visible, preferring
   items that are not already on screen, so it changes over time instead of on
@@ -308,19 +314,25 @@ so the atomic read/write/delete logic lives once.
   Home and Detail wrap the description at the same width. The carousel
   paginator is a row of equal 7dp dots, centred on the billboard's bottom edge:
   cream for the active page and grey for the rest. On a phone it sits higher
-  (32dp), clear of the gesture bar. The swipe cross-fades rather
-  than slides: each page cancels the pager's horizontal offset in a
-  `graphicsLayer` and its alpha follows the same offset, so one billboard
-  dissolves through the page background into the next. The offset is read inside
-  the layer block, not in composition, so a swipe updates layers instead of
-  recomposing every composed page each frame, and the copy reads the same offset
-  the same way. The copy (title,
+  (32dp), clear of the gesture bar. The pager is only a gesture and offset
+  driver: its pages are empty, and the artwork and the copy are drawn above it
+  as separate layers for the settled page and, while a swipe runs, its
+  neighbour. Keeping the alpha per primitive (a backdrop layer, the shared
+  washes, a copy layer) instead of over a whole composed page keeps the billboard
+  off the offscreen-buffer path a page-wide alpha would take, and the washes are
+  hoisted out of the slides so a cross-fade no longer draws a second full-screen
+  gradient. The visible neighbour is resolved through `derivedStateOf` on
+  `pagerState.currentPageOffsetFraction`, and the alpha and slide are read inside
+  each `graphicsLayer`, so a swipe updates layers instead of recomposing every
+  composed page each frame. The swipe cross-fades rather than slides: each layer
+  dissolves through the page background into its neighbour. The copy (title,
   metadata, synopsis, actions) slides a little against the swipe
   (`HERO_CONTENT_SLIDE_MAX`, 64dp) so the direction reads, while the artwork
-  only cross-fades. The focused page is raised with `zIndex` off
-  `pagerState.currentPage` (a once-per-swap read, not a per-frame one), so its
-  buttons own the hits; the faded neighbours sit at the same place and would
-  otherwise capture the click. On a
+  drifts a small fraction of the page width (`HERO_BACKDROP_PARALLAX`, 5.5%) at a
+  slight overscan (`HERO_BACKDROP_SCALE`, 1.14), so the two slides read as layers
+  instead of a flat double exposure. The settled page is drawn last among the
+  layers, so its buttons
+  own the hits. On a
   wide window the rail floats over the content,
   which reserves its width, so the navigation never overlaps it.
 - **Typography.** Inter is bundled through Compose Resources in `:app:shared`

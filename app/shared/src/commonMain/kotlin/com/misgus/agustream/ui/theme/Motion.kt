@@ -1,9 +1,13 @@
 package com.misgus.agustream.ui.theme
 
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -73,6 +77,21 @@ fun <T> motionTween(
     delayMillis: Int = 0,
     easing: Easing = AppMotion.standard,
 ): TweenSpec<T> = AppMotion.spec(LocalMotionEnabled.current, durationMillis, delayMillis, easing)
+
+/**
+ * A pager snap: a critically damped spring when motion is on, a snap when it is
+ * off.
+ *
+ * A spring cannot collapse to a zero duration the way [AppMotion.spec] does, so
+ * the disabled case jumps to the target instead.
+ */
+@Composable
+fun motionSpring(): AnimationSpec<Float> =
+    if (LocalMotionEnabled.current) {
+        spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)
+    } else {
+        snap()
+    }
 
 /**
  * Applies [scale] and [alpha] in the draw phase.
