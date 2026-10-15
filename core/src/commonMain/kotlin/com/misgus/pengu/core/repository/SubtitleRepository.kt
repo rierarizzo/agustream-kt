@@ -1,5 +1,6 @@
 package com.misgus.pengu.core.repository
 
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.Subtitle
 
 /** Reads subtitle tracks from the account's addons. */
@@ -9,7 +10,7 @@ interface SubtitleRepository {
      * `movie`, `series`, ...
      */
     suspend fun all(
-        type: String,
+        type: ContentType,
         id: String,
     ): List<Subtitle>
 }
@@ -17,7 +18,7 @@ interface SubtitleRepository {
 /** Repository that offers no subtitles (used when there is no addon layer). */
 class NoSubtitleRepository : SubtitleRepository {
     override suspend fun all(
-        type: String,
+        type: ContentType,
         id: String,
     ): List<Subtitle> = emptyList()
 }

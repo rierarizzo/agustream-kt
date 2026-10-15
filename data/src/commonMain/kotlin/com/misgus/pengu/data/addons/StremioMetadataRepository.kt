@@ -3,6 +3,7 @@ package com.misgus.pengu.data.addons
 import com.misgus.pengu.core.model.AddonCatalog
 import com.misgus.pengu.core.model.AddonManifest
 import com.misgus.pengu.core.model.CatalogExtras
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.repository.AddonRepository
@@ -26,18 +27,18 @@ class StremioMetadataRepository(
     private val clients = AddonClientPool(client)
 
     override suspend fun detail(
-        type: String,
+        type: ContentType,
         id: String,
     ): MetaDetail? {
         for (baseUrl in candidates()) {
-            val meta = runCatchingCancellable { clients.clientFor(baseUrl).fetchMeta(type, id) }.getOrNull()
+            val meta = runCatchingCancellable { clients.clientFor(baseUrl).fetchMeta(type.value, id) }.getOrNull()
             if (meta != null) return meta
         }
         return null
     }
 
     override suspend fun similar(
-        type: String,
+        type: ContentType,
         id: String,
         genre: String?,
     ): List<MetaPreview> {
@@ -76,25 +77,25 @@ class StremioMetadataRepository(
     private suspend fun tryCatalog(
         baseUrl: String,
         manifest: AddonManifest,
-        type: String,
+        type: ContentType,
         id: String,
         genre: String?,
     ): List<MetaPreview>? {
         val addonClient = clients.clientFor(baseUrl)
         return try {
-            val catalog = pickCatalog(manifest.catalogs, type, genre) ?: return null
+            val catalog = pickCatalog(manifest.catalogs, type.value, genre) ?: return null
             val supportsGenre = !genre.isNullOrEmpty() && catalog.extra.any { it.name == CatalogExtras.GENRE }
             // Prefer a genre match, but fall back to the generic catalog so a
             // title is never left without a "similar" row.
             val byGenre =
                 if (supportsGenre) {
                     runCatchingCancellable {
-                        addonClient.fetchCatalog(type, catalog.id, mapOf(CatalogExtras.GENRE to genre))
+                        addonClient.fetchCatalog(type.value, catalog.id, mapOf(CatalogExtras.GENRE to genre))
                     }.getOrDefault(emptyList())
                 } else {
                     emptyList()
                 }
-            val items = byGenre.ifEmpty { addonClient.fetchCatalog(type, catalog.id, null) }
+            val items = byGenre.ifEmpty { addonClient.fetchCatalog(type.value, catalog.id, null) }
             items.filter { it.id != id }.ifEmpty { null }
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
             throw cancellation

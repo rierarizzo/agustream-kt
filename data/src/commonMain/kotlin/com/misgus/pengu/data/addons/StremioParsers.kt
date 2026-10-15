@@ -4,10 +4,13 @@ import com.misgus.pengu.core.model.AddonCatalog
 import com.misgus.pengu.core.model.AddonCatalogExtra
 import com.misgus.pengu.core.model.AddonManifest
 import com.misgus.pengu.core.model.AddonResource
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaPerson
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.model.MetaVideo
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.core.model.Stream
 import com.misgus.pengu.core.model.StreamBehaviorHints
 import com.misgus.pengu.core.model.Subtitle
@@ -77,7 +80,7 @@ internal fun addonCatalogExtraFromJson(json: JsonObject): AddonCatalogExtra =
 internal fun metaPreviewFromJson(json: JsonObject): MetaPreview =
     MetaPreview(
         id = json["id"].stringOrNull() ?: "",
-        type = json["type"].stringOrNull() ?: "",
+        type = ContentType(json["type"].stringOrNull() ?: ""),
         name = json["name"].stringOrNull() ?: "",
         poster = json["poster"].stringOrNull(),
         posterShape = json["posterShape"].stringOrNull(),
@@ -98,7 +101,7 @@ internal fun metaDetailFromJson(json: JsonObject): MetaDetail {
     val links = json["links"]
     return MetaDetail(
         id = json["id"].stringOrNull() ?: "",
-        type = json["type"].stringOrNull() ?: "",
+        type = ContentType(json["type"].stringOrNull() ?: ""),
         name = json["name"].stringOrNull() ?: "",
         poster = json["poster"].stringOrNull(),
         background = json["background"].stringOrNull(),
@@ -147,8 +150,8 @@ internal fun metaVideoFromJson(json: JsonObject): MetaVideo =
         id = json["id"].stringOrNull() ?: "",
         // Some addons name episodes with `name`; the protocol uses `title`.
         title = (json["title"] ?: json["name"]).stringOrNull(),
-        season = json["season"].intOrNull(),
-        episode = json["episode"].intOrNull(),
+        season = json["season"].intOrNull()?.let(::Season),
+        episode = json["episode"].intOrNull()?.let(::Episode),
         number = json["number"].intOrNull(),
         released = json["released"].stringOrNull(),
         thumbnail = json["thumbnail"].stringOrNull(),

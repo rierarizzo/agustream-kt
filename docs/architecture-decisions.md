@@ -66,7 +66,10 @@ so the atomic read/write/delete logic lives once.
 - **Shared vocabulary lives with the models.** `ContentTypes`, `CatalogExtras`,
   `ProgressThresholds` and `releaseYear()` name the protocol strings and
   thresholds the domain, data and UI layers compare, so a typo or a drifting
-  literal cannot change behavior.
+  literal cannot change behavior. `ContentType`, `Season` and `Episode` are
+  value classes over the protocol token and the two numbers, so a content type
+  cannot be passed where another `String` is expected, or an episode where a
+  season is, without the compiler noticing.
 - **`PlayerService` is a contract**, with a neutral `PlayerState` and a
   `videoOutput: VideoOutput?` handle so the UI can embed the native surface
   without depending on the engine. `VideoOutput` is an empty marker; the
@@ -625,18 +628,6 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   pressed states, and the player has shortcuts, but there is no focus traversal
   across the Home rails and no spatial navigation model. A TV target makes this
   mandatory rather than nice to have.
-
-### UI components
-
-Follow-ups from the review of the component layer (`ActionButton`,
-`AppTextField`/`AppSearchField`, `AppIconButton`).
-
-- **Decide the field height.** `AppTextField` keeps Material's 56dp while
-  buttons use `AppSizes.controlHeight` (48dp). Either expose an
-  `AppSizes.fieldHeight` and document the difference, or align them.
-- **Trim the remaining unused surface.** `AppTextField.supportingText` is still
-  unused today; keep it only where a real call site is planned, so the API does
-  not grow dead branches.
 
 ### Player performance
 

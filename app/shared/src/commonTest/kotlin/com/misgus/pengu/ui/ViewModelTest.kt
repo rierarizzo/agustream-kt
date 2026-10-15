@@ -1,5 +1,6 @@
 package com.misgus.pengu.ui
 
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.repository.CatalogRef
@@ -35,7 +36,7 @@ class LibraryViewModelTest {
     private fun item(
         id: String,
         type: String,
-    ) = LibraryItem(id = id, contentId = id, contentType = type, name = id)
+    ) = LibraryItem(id = id, contentId = id, contentType = ContentType(type), name = id)
 
     private fun viewModel(library: FakeLibraryRepository): LibraryViewModel {
         val account = FakeAccountRepository()
@@ -95,14 +96,14 @@ class HomeViewModelTest {
                 CatalogRef(
                     addonName = "Addon",
                     addonBaseUrl = "https://addon",
-                    type = "movie",
+                    type = ContentType("movie"),
                     id = "top",
                     name = "Top",
                 )
             val preview =
                 MetaPreview(
                     id = "tt1",
-                    type = "movie",
+                    type = ContentType("movie"),
                     name = "Movie",
                 )
             val viewModel =

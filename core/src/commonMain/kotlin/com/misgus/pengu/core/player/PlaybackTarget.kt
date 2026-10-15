@@ -1,5 +1,9 @@
 package com.misgus.pengu.core.player
 
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
+import com.misgus.pengu.core.model.Season
+
 /**
  * What the player is asked to play, plus the identity needed to save progress.
  *
@@ -12,11 +16,11 @@ data class PlaybackTarget(
     val title: String,
     val contentId: String? = null,
     /** `movie`, `series`, ... */
-    val contentType: String? = null,
+    val contentType: ContentType? = null,
     /** Playback id of the episode, when it is one. */
     val videoId: String? = null,
-    val season: Int? = null,
-    val episode: Int? = null,
+    val season: Season? = null,
+    val episode: Episode? = null,
     /** Headers the player must send (an addon's `proxyHeaders`). */
     val httpHeaders: Map<String, String>? = null,
 ) {
@@ -44,7 +48,7 @@ data class PlaybackTarget(
          * `tmdb:123:1:2`).
          */
         fun fromContent(
-            type: String,
+            type: ContentType,
             id: String,
             title: String,
             source: String,
@@ -52,11 +56,11 @@ data class PlaybackTarget(
         ): PlaybackTarget {
             // Split from the end so content ids with colons (`tmdb:123`) survive.
             val parts = id.split(':')
-            var season: Int? = null
-            var episode: Int? = null
+            var season: Season? = null
+            var episode: Episode? = null
             if (parts.size >= 3) {
-                season = parts[parts.size - 2].toIntOrNull()
-                episode = parts.last().toIntOrNull()
+                season = parts[parts.size - 2].toIntOrNull()?.let(::Season)
+                episode = parts.last().toIntOrNull()?.let(::Episode)
             }
             val isEpisode = season != null && episode != null
             return PlaybackTarget(

@@ -3,7 +3,7 @@ package com.misgus.pengu.core.model
 /** A catalog item, called a "meta preview" in Stremio terms. */
 data class MetaPreview(
     val id: String,
-    val type: String,
+    val type: ContentType,
     val name: String,
     val poster: String? = null,
     /** `poster` or `landscape`. */
@@ -24,7 +24,7 @@ data class MetaPreview(
  */
 data class MetaDetail(
     val id: String,
-    val type: String,
+    val type: ContentType,
     val name: String,
     val poster: String? = null,
     val background: String? = null,
@@ -48,8 +48,8 @@ data class MetaDetail(
 data class MetaVideo(
     val id: String,
     val title: String? = null,
-    val season: Int? = null,
-    val episode: Int? = null,
+    val season: Season? = null,
+    val episode: Episode? = null,
     val number: Int? = null,
     val released: String? = null,
     val thumbnail: String? = null,

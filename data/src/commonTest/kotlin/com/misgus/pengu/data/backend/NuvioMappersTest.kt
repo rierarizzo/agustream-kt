@@ -1,5 +1,6 @@
 package com.misgus.pengu.data.backend
 
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.LibraryItem
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -55,7 +56,7 @@ class NuvioMappersTest {
             LibraryItem(
                 id = "",
                 contentId = "tt1",
-                contentType = "movie",
+                contentType = ContentType("movie"),
                 name = "Movie",
             )
         val row = libraryItemToRow(item, profileId = 1, userId = "user-1")

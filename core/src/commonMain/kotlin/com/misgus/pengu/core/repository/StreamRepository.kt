@@ -1,5 +1,6 @@
 package com.misgus.pengu.core.repository
 
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.Stream
 
 /** Streams for one title, grouped by the addon that produced them. */
@@ -21,7 +22,7 @@ interface StreamRepository {
      * (`tt123:1:2`). [type] is `movie`, `series`, ...
      */
     suspend fun all(
-        type: String,
+        type: ContentType,
         id: String,
     ): List<StreamGroup>
 }

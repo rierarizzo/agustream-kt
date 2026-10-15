@@ -264,15 +264,14 @@ not exist, and drive it with `StandardTestDispatcher` + `advanceUntilIdle()`
 
 ## 9. Known rough edges (where to be careful)
 
-- **Large UI files**: `DetailScreen.kt`, `HomeScreen.kt`, `Hero.kt`,
-  `PlayerScreen.kt` are still big even after splits. Split them further when you
-  touch them.
+- **Large UI files**: `DetailScreen.kt` and `PlayerScreen.kt` are still big even
+  after splits. Split them further when you touch them. The home billboard is
+  split across `Hero.kt` (entry points and pager), `HeroLayers.kt` (artwork,
+  washes, copy) and `HeroOverlays.kt` (swipe, paginator, preloader), and
+  "Continue watching" moved to `ContinueWatching.kt`.
 - **`AppServices` is a service locator** reached through `LocalAppServices`.
   ViewModels take dependencies explicitly (good); screens read the global. In
   tests, prefer constructing the ViewModel directly.
-- **Primitive obsession**: `contentType`, `season`/`episode` and catalog extras
-  are still plain `String`/`Int?`. `ContentTypes`/`CatalogExtras` reduce the
-  stringly risk; a value class would be the next step.
 - **`ktlintFormat` on Windows** may trip over generated Compose sources; use
   `ktlintCheck`, which excludes them (the filter is configured in the root
   `build.gradle.kts`).

@@ -1,9 +1,12 @@
 package com.misgus.pengu.ui.calendar
 
 import com.misgus.pengu.core.model.AddonCatalogExtra
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaVideo
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.core.repository.CatalogRef
 import com.misgus.pengu.ui.support.FakeAccountRepository
 import com.misgus.pengu.ui.support.FakeCatalogRepository
@@ -34,19 +37,19 @@ class CalendarViewModelTest {
     fun keepsOnlyAiredSeasonEpisodesInsideTheWindow() =
         runTest(dispatcher) {
             val series =
-                LibraryItem(id = "s1", contentId = "tt1", contentType = "series", name = "Show")
+                LibraryItem(id = "s1", contentId = "tt1", contentType = ContentType("series"), name = "Show")
             val detail =
                 MetaDetail(
                     id = "tt1",
-                    type = "series",
+                    type = ContentType("series"),
                     name = "Show",
                     videos =
                         listOf(
-                            MetaVideo(id = "e1", title = "Soon", season = 1, episode = 1, released = "2025-06-01"),
-                            MetaVideo(id = "e2", title = "Past", season = 1, episode = 2, released = "2025-05-01"),
-                            MetaVideo(id = "e3", title = "Unknown", season = 1, episode = 3, released = null),
-                            MetaVideo(id = "s0", title = "Special", season = 0, episode = 1, released = "2025-06-02"),
-                            MetaVideo(id = "e4", title = "Too far", season = 2, episode = 1, released = "2026-01-01"),
+                            MetaVideo(id = "e1", title = "Soon", season = Season(1), episode = Episode(1), released = "2025-06-01"),
+                            MetaVideo(id = "e2", title = "Past", season = Season(1), episode = Episode(2), released = "2025-05-01"),
+                            MetaVideo(id = "e3", title = "Unknown", season = Season(1), episode = Episode(3), released = null),
+                            MetaVideo(id = "s0", title = "Special", season = Season(0), episode = Episode(1), released = "2025-06-02"),
+                            MetaVideo(id = "e4", title = "Too far", season = Season(2), episode = Episode(1), released = "2026-01-01"),
                         ),
                 )
             val viewModel =
@@ -76,12 +79,12 @@ class CalendarViewModelTest {
     fun usesTheCalendarCatalogWhenAnAddonExposesIt() =
         runTest(dispatcher) {
             val series =
-                LibraryItem(id = "s1", contentId = "tt1", contentType = "series", name = "Show")
+                LibraryItem(id = "s1", contentId = "tt1", contentType = ContentType("series"), name = "Show")
             val ref =
                 CatalogRef(
                     addonName = "Cinemeta",
                     addonBaseUrl = "https://cinemeta",
-                    type = "series",
+                    type = ContentType("series"),
                     id = "calendar-videos",
                     name = "Calendar videos",
                     extras = listOf(AddonCatalogExtra("calendarVideosIds", isRequired = true)),
@@ -89,9 +92,12 @@ class CalendarViewModelTest {
             val detail =
                 MetaDetail(
                     id = "tt1",
-                    type = "series",
+                    type = ContentType("series"),
                     name = "Show",
-                    videos = listOf(MetaVideo(id = "e1", title = "Soon", season = 1, episode = 1, released = "2025-06-01")),
+                    videos =
+                        listOf(
+                            MetaVideo(id = "e1", title = "Soon", season = Season(1), episode = Episode(1), released = "2025-06-01"),
+                        ),
                 )
             val viewModel =
                 CalendarViewModel(

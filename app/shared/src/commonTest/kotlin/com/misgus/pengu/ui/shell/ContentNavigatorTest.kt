@@ -1,12 +1,13 @@
 package com.misgus.pengu.ui.shell
 
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.player.PlaybackTarget
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ContentNavigatorTest {
-    private val item = LibraryItem(id = "tt1", contentId = "tt1", contentType = "movie", name = "Movie")
+    private val item = LibraryItem(id = "tt1", contentId = "tt1", contentType = ContentType("movie"), name = "Movie")
 
     @Test
     fun replaceKeepsTheStackDepth() {

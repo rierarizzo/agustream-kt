@@ -8,7 +8,7 @@ data class LibraryItem(
     /** Addon content id, e.g. `tt1254207`. */
     val contentId: String,
     /** `movie`, `series`, ... */
-    val contentType: String,
+    val contentType: ContentType,
     val name: String,
     val poster: String? = null,
     val posterShape: String? = null,

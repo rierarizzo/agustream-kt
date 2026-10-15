@@ -1,5 +1,8 @@
 package com.misgus.pengu.core.repository
 
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.core.model.WatchProgress
 import com.misgus.pengu.core.model.WatchedEntry
 import kotlinx.coroutines.flow.StateFlow
@@ -34,15 +37,15 @@ interface ProgressRepository {
      */
     suspend fun markWatched(
         contentId: String,
-        contentType: String,
-        season: Int? = null,
-        episode: Int? = null,
+        contentType: ContentType,
+        season: Season? = null,
+        episode: Episode? = null,
     )
 
     /** Removes a watched marker (the same identity [markWatched] writes). */
     suspend fun unmarkWatched(
         contentId: String,
-        season: Int? = null,
-        episode: Int? = null,
+        season: Season? = null,
+        episode: Episode? = null,
     )
 }

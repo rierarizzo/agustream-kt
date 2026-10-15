@@ -2,6 +2,7 @@ package com.misgus.pengu.core.repository
 
 import com.misgus.pengu.core.model.AddonCatalogExtra
 import com.misgus.pengu.core.model.CatalogExtras
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaPreview
 
@@ -16,7 +17,7 @@ data class CatalogRef(
     /** Addon base URL (no `/manifest.json`). */
     val addonBaseUrl: String,
     /** `movie`, `series`, ... */
-    val type: String,
+    val type: ContentType,
     /** Catalog id inside the addon manifest. */
     val id: String,
     val name: String,

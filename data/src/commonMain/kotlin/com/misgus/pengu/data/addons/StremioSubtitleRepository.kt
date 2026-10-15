@@ -1,6 +1,7 @@
 package com.misgus.pengu.data.addons
 
 import com.misgus.pengu.core.model.Addon
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.Subtitle
 import com.misgus.pengu.core.repository.AddonRepository
 import com.misgus.pengu.core.repository.SubtitleRepository
@@ -23,7 +24,7 @@ class StremioSubtitleRepository(
     private val clients = AddonClientPool(client)
 
     override suspend fun all(
-        type: String,
+        type: ContentType,
         id: String,
     ): List<Subtitle> {
         val installed: List<Addon> = runCatchingCancellable { addons.all() }.getOrDefault(emptyList())
@@ -45,14 +46,14 @@ class StremioSubtitleRepository(
 
     private suspend fun subtitlesFor(
         addon: Addon,
-        type: String,
+        type: ContentType,
         id: String,
     ): List<Subtitle> {
         val baseUrl = normalizeAddonBaseUrl(addon.url)
         if (baseUrl.isEmpty()) return emptyList()
         return try {
             val name = addon.name ?: hostOf(baseUrl)
-            clients.clientFor(baseUrl).fetchSubtitles(type, id).map { it.withAddon(name) }
+            clients.clientFor(baseUrl).fetchSubtitles(type.value, id).map { it.withAddon(name) }
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
             throw cancellation
         } catch (_: Exception) {

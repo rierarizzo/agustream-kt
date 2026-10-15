@@ -185,7 +185,7 @@ class CalendarViewModel(
     ): List<CalendarEntry> =
         videos.mapNotNull { video ->
             val date = releaseDateOrNull(video.released) ?: return@mapNotNull null
-            if ((video.season ?: 0) <= 0) return@mapNotNull null
+            if ((video.season?.number ?: 0) <= 0) return@mapNotNull null
             if (date < start || date > end) return@mapNotNull null
             CalendarEntry(item, video, date)
         }
@@ -211,8 +211,8 @@ class CalendarViewModel(
             compareBy<CalendarEntry>(
                 { it.date },
                 { it.item.name },
-                { it.video.season ?: 0 },
-                { it.video.episode ?: 0 },
+                { it.video.season?.number ?: 0 },
+                { it.video.episode?.number ?: 0 },
             )
     }
 }

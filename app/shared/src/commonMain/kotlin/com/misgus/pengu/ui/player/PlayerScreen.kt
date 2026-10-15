@@ -318,7 +318,7 @@ private suspend fun playNextIfPossible(
         val meta = services.metadata.detail(ContentTypes.SERIES, seriesId) ?: return@runCatchingCancellable null
         val episodes =
             meta.videos
-                .filter { (it.season ?: 0) > 0 && (it.episode ?: 0) > 0 }
+                .filter { (it.season?.number ?: 0) > 0 && (it.episode?.number ?: 0) > 0 }
                 .sortedBy { episodeOrder(it) }
         val index = episodes.indexOfFirst { it.season == target.season && it.episode == target.episode }
         if (index < 0 || index + 1 >= episodes.size) return@runCatchingCancellable null
@@ -330,7 +330,7 @@ private suspend fun playNextIfPossible(
                 group.streams.firstOrNull { it.isDirectPlayable }
             } ?: return@runCatchingCancellable null
         val url = stream.url ?: return@runCatchingCancellable null
-        val episodeCode = getString(Res.string.detail_episode_code, next.season ?: 0, next.episode ?: 0)
+        val episodeCode = getString(Res.string.detail_episode_code, next.season?.number ?: 0, next.episode?.number ?: 0)
         PlaybackTarget.fromContent(
             type = ContentTypes.SERIES,
             id = nextId,
@@ -341,7 +341,7 @@ private suspend fun playNextIfPossible(
     }.getOrNull()
 }
 
-private fun episodeOrder(video: MetaVideo): Int = (video.season ?: 0) * 1000 + (video.episode ?: 0)
+private fun episodeOrder(video: MetaVideo): Int = (video.season?.number ?: 0) * 1000 + (video.episode?.number ?: 0)
 
 /** How long to wait for a parsed duration before resuming anyway. */
 private val RESUME_TIMEOUT = 5.seconds

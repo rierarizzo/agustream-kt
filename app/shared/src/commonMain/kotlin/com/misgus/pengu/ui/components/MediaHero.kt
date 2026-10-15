@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.media_rating
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.releaseYear
 import com.misgus.pengu.ui.theme.AppAlpha
 import com.misgus.pengu.ui.theme.AppLogoSize
@@ -122,7 +123,7 @@ fun metadataParts(
     runtime: String? = null,
     genres: List<String> = emptyList(),
     rating: Double? = null,
-    contentType: String? = null,
+    contentType: ContentType? = null,
 ): List<String> =
     buildList {
         contentType?.let { contentTypeName(it) }?.let { add(it) }

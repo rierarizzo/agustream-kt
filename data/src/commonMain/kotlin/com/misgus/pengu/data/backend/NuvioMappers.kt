@@ -7,7 +7,10 @@ package com.misgus.pengu.data.backend
 
 import com.misgus.pengu.core.model.Addon
 import com.misgus.pengu.core.model.BackendProfile
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
 import com.misgus.pengu.core.model.LibraryItem
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.core.model.WatchProgress
 import com.misgus.pengu.core.model.WatchedEntry
 import com.misgus.pengu.data.boolOrNull
@@ -41,7 +44,7 @@ fun libraryItemFromRow(json: JsonObject): LibraryItem =
     LibraryItem(
         id = json["id"].stringOrNull() ?: "",
         contentId = json["content_id"].stringOrNull() ?: "",
-        contentType = json["content_type"].stringOrNull() ?: "",
+        contentType = ContentType(json["content_type"].stringOrNull() ?: ""),
         name = json["name"].stringOrNull() ?: "",
         poster = json["poster"].stringOrNull(),
         posterShape = json["poster_shape"].stringOrNull(),
@@ -61,10 +64,10 @@ fun watchProgressFromRow(json: JsonObject): WatchProgress =
     WatchProgress(
         id = json["id"].stringOrNull() ?: "",
         contentId = json["content_id"].stringOrNull() ?: "",
-        contentType = json["content_type"].stringOrNull() ?: "",
+        contentType = ContentType(json["content_type"].stringOrNull() ?: ""),
         videoId = json["video_id"].stringOrNull(),
-        season = json["season"].intOrNull(),
-        episode = json["episode"].intOrNull(),
+        season = json["season"].intOrNull()?.let(::Season),
+        episode = json["episode"].intOrNull()?.let(::Episode),
         position = json["position"].intOrNull()?.milliseconds,
         duration = json["duration"].intOrNull()?.milliseconds,
         lastWatched = json["last_watched"].instantMillisOrNull(),
@@ -87,9 +90,9 @@ fun addonFromRow(json: JsonObject): Addon =
 fun watchedEntryFromRow(json: JsonObject): WatchedEntry =
     WatchedEntry(
         contentId = json["content_id"].stringOrNull() ?: "",
-        contentType = json["content_type"].stringOrNull() ?: "",
-        season = json["season"].intOrNull(),
-        episode = json["episode"].intOrNull(),
+        contentType = ContentType(json["content_type"].stringOrNull() ?: ""),
+        season = json["season"].intOrNull()?.let(::Season),
+        episode = json["episode"].intOrNull()?.let(::Episode),
     )
 
 /**
@@ -106,7 +109,7 @@ fun libraryItemToRow(
     val map = mutableMapOf<String, JsonElement>()
     userId?.let { map["user_id"] = JsonPrimitive(it) }
     map["content_id"] = JsonPrimitive(item.contentId)
-    map["content_type"] = JsonPrimitive(item.contentType)
+    map["content_type"] = JsonPrimitive(item.contentType.value)
     map["name"] = JsonPrimitive(item.name)
     item.poster?.let { map["poster"] = JsonPrimitive(it) }
     item.posterShape?.let { map["poster_shape"] = JsonPrimitive(it) }
@@ -132,10 +135,10 @@ fun watchProgressToRow(
 ): JsonObject {
     val map = mutableMapOf<String, JsonElement>()
     map["content_id"] = JsonPrimitive(progress.contentId)
-    map["content_type"] = JsonPrimitive(progress.contentType)
+    map["content_type"] = JsonPrimitive(progress.contentType.value)
     progress.videoId?.let { map["video_id"] = JsonPrimitive(it) }
-    progress.season?.let { map["season"] = JsonPrimitive(it) }
-    progress.episode?.let { map["episode"] = JsonPrimitive(it) }
+    progress.season?.let { map["season"] = JsonPrimitive(it.number) }
+    progress.episode?.let { map["episode"] = JsonPrimitive(it.number) }
     progress.position?.let { map["position"] = JsonPrimitive(it.inWholeMilliseconds) }
     progress.duration?.let { map["duration"] = JsonPrimitive(it.inWholeMilliseconds) }
     map["last_watched"] = JsonPrimitive((progress.lastWatched ?: Clock.System.now()).toEpochMilliseconds())

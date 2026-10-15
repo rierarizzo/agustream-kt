@@ -9,7 +9,7 @@ class LibraryItemTest {
         LibraryItem(
             id = "1",
             contentId = "tt1",
-            contentType = "movie",
+            contentType = ContentType("movie"),
             name = "Movie",
             releaseInfo = releaseInfo,
         )
@@ -35,20 +35,20 @@ class LibraryItemTest {
         val preview =
             MetaPreview(
                 id = "tt2",
-                type = "series",
+                type = ContentType("series"),
                 name = "Show",
                 poster = "p",
                 genres = listOf("Drama"),
             )
         val built = LibraryItem.fromPreview(preview)
         assertEquals("tt2", built.contentId)
-        assertEquals("series", built.contentType)
+        assertEquals(ContentType("series"), built.contentType)
         assertEquals("p", built.poster)
     }
 
     @Test
     fun carriesTheAddonBaseUrlWhenProvided() {
-        val preview = MetaPreview(id = "tt3", type = "movie", name = "Film")
+        val preview = MetaPreview(id = "tt3", type = ContentType("movie"), name = "Film")
         assertEquals(
             "https://addon",
             LibraryItem.fromPreview(preview, addonBaseUrl = "https://addon").addonBaseUrl,

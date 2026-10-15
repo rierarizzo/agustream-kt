@@ -1,6 +1,7 @@
 package com.misgus.pengu.ui.discover
 
 import com.misgus.pengu.core.model.AddonCatalogExtra
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.repository.CatalogRef
 import com.misgus.pengu.core.repository.CatalogRepository
@@ -36,7 +37,7 @@ class DiscoverViewModelTest {
     ) = CatalogRef(
         addonName = addon,
         addonBaseUrl = "https://$addon",
-        type = type,
+        type = ContentType(type),
         id = id,
         name = id,
         extras = extras,
@@ -45,7 +46,7 @@ class DiscoverViewModelTest {
     private fun preview(
         id: String,
         type: String,
-    ) = MetaPreview(id = id, type = type, name = id)
+    ) = MetaPreview(id = id, type = ContentType(type), name = id)
 
     @Test
     fun mixesMoviesAndSeriesInOneList() =

@@ -1,6 +1,7 @@
 package com.misgus.pengu.ui.home
 
 import androidx.lifecycle.viewModelScope
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.ContentTypes
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaPreview
@@ -293,7 +294,7 @@ internal fun pickFeatured(
     rows: List<HomeRow>,
     count: Int,
     random: Random,
-    exclude: Set<Pair<String, String>> = emptySet(),
+    exclude: Set<Pair<ContentType, String>> = emptySet(),
 ): List<MetaPreview> {
     val all = rows.flatMap { it.items }.distinctBy { it.type to it.id }
     if (count <= 0 || all.isEmpty()) return emptyList()

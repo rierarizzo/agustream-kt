@@ -12,6 +12,7 @@ import com.misgus.pengu.app.shared.generated.resources.detail_director
 import com.misgus.pengu.app.shared.generated.resources.detail_episode_generic
 import com.misgus.pengu.app.shared.generated.resources.detail_released
 import com.misgus.pengu.app.shared.generated.resources.detail_writer
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.ContentTypes
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaPerson
@@ -33,7 +34,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun DetailScrollContent(
     state: DetailUiState,
     item: LibraryItem,
-    openStreams: (String, String, String) -> Unit,
+    openStreams: (ContentType, String, String) -> Unit,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     if (state.isSeries && state.episodes.isNotEmpty()) {

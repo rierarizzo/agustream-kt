@@ -2,9 +2,12 @@ package com.misgus.pengu.ui.support
 
 import com.misgus.pengu.core.model.Addon
 import com.misgus.pengu.core.model.BackendProfile
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaPreview
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.core.model.WatchProgress
 import com.misgus.pengu.core.model.WatchedEntry
 import com.misgus.pengu.core.repository.AccountRepository
@@ -93,15 +96,15 @@ class FakeProgressRepository(
 
     override suspend fun markWatched(
         contentId: String,
-        contentType: String,
-        season: Int?,
-        episode: Int?,
+        contentType: ContentType,
+        season: Season?,
+        episode: Episode?,
     ) = Unit
 
     override suspend fun unmarkWatched(
         contentId: String,
-        season: Int?,
-        episode: Int?,
+        season: Season?,
+        episode: Episode?,
     ) = Unit
 }
 
@@ -111,12 +114,12 @@ class FakeMetadataRepository(
     private val details: Map<String, MetaDetail> = emptyMap(),
 ) : MetadataRepository {
     override suspend fun detail(
-        type: String,
+        type: ContentType,
         id: String,
     ): MetaDetail? = details[id] ?: detail
 
     override suspend fun similar(
-        type: String,
+        type: ContentType,
         id: String,
         genre: String?,
     ): List<MetaPreview> = emptyList()
@@ -146,7 +149,7 @@ class FakeStreamRepository(
     private val groups: List<StreamGroup> = emptyList(),
 ) : StreamRepository {
     override suspend fun all(
-        type: String,
+        type: ContentType,
         id: String,
     ): List<StreamGroup> = groups
 }

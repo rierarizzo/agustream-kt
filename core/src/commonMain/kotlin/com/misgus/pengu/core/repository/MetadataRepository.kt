@@ -1,5 +1,6 @@
 package com.misgus.pengu.core.repository
 
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaPreview
 
@@ -12,7 +13,7 @@ import com.misgus.pengu.core.model.MetaPreview
 interface MetadataRepository {
     /** Full metadata for [id] in [type], or `null` when no addon has it. */
     suspend fun detail(
-        type: String,
+        type: ContentType,
         id: String,
     ): MetaDetail?
 
@@ -23,7 +24,7 @@ interface MetadataRepository {
      * [genre]. Returns an empty list when no addon can do it.
      */
     suspend fun similar(
-        type: String,
+        type: ContentType,
         id: String,
         genre: String? = null,
     ): List<MetaPreview>

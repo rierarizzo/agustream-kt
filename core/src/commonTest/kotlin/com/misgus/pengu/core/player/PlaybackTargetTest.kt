@@ -1,5 +1,6 @@
 package com.misgus.pengu.core.player
 
+import com.misgus.pengu.core.model.ContentType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -9,7 +10,7 @@ class PlaybackTargetTest {
     fun buildsMovieTarget() {
         val target =
             PlaybackTarget.fromContent(
-                type = "movie",
+                type = ContentType("movie"),
                 id = "tt1254207",
                 title = "Big Buck Bunny",
                 source = "https://example/movie.mp4",
@@ -25,15 +26,15 @@ class PlaybackTargetTest {
     fun buildsEpisodeTarget() {
         val target =
             PlaybackTarget.fromContent(
-                type = "series",
+                type = ContentType("series"),
                 id = "tt0149460:2:16",
                 title = "The Office",
                 source = "https://example/ep.mp4",
             )
         assertEquals("tt0149460", target.contentId)
         assertEquals("tt0149460:2:16", target.videoId)
-        assertEquals(2, target.season)
-        assertEquals(16, target.episode)
+        assertEquals(2, target.season?.number)
+        assertEquals(16, target.episode?.number)
         assertEquals("tt0149460_s2e16", target.progressKey)
     }
 
@@ -41,14 +42,14 @@ class PlaybackTargetTest {
     fun keepsContentIdsWithColons() {
         val target =
             PlaybackTarget.fromContent(
-                type = "series",
+                type = ContentType("series"),
                 id = "tmdb:123:1:2",
                 title = "Show",
                 source = "https://example/ep.mp4",
             )
         assertEquals("tmdb:123", target.contentId)
-        assertEquals(1, target.season)
-        assertEquals(2, target.episode)
+        assertEquals(1, target.season?.number)
+        assertEquals(2, target.episode?.number)
         assertEquals("tmdb:123_s1e2", target.progressKey)
     }
 

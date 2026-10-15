@@ -1,6 +1,8 @@
 package com.misgus.pengu.core.watched
 
+import com.misgus.pengu.core.model.Episode
 import com.misgus.pengu.core.model.MetaDetail
+import com.misgus.pengu.core.model.Season
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -15,15 +17,15 @@ import kotlin.time.Instant
  */
 data class WatchedKey(
     val contentId: String,
-    val season: Int? = null,
-    val episode: Int? = null,
+    val season: Season? = null,
+    val episode: Episode? = null,
 )
 
 /** Builds a [WatchedKey]. */
 fun watchedKey(
     contentId: String,
-    season: Int? = null,
-    episode: Int? = null,
+    season: Season? = null,
+    episode: Episode? = null,
 ) = WatchedKey(contentId, season, episode)
 
 /**
@@ -41,7 +43,7 @@ fun hasWatchedAllMainSeasonEpisodes(
     completed: Set<WatchedKey>,
     today: Instant,
 ): Boolean {
-    val episodes = meta.videos.filter { (it.season ?: 0) > 0 && isEpisodeAired(it.released, today) }
+    val episodes = meta.videos.filter { (it.season?.number ?: 0) > 0 && isEpisodeAired(it.released, today) }
     if (episodes.isEmpty()) return false
     return episodes.all { video ->
         val key = watchedKey(meta.id, video.season, video.episode)

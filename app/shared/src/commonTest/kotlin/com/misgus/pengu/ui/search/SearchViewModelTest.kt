@@ -1,6 +1,7 @@
 package com.misgus.pengu.ui.search
 
 import com.misgus.pengu.core.model.AddonCatalogExtra
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.repository.CatalogRef
 import com.misgus.pengu.ui.support.FakeAccountRepository
@@ -33,13 +34,13 @@ class SearchViewModelTest {
     ) = CatalogRef(
         addonName = "Addon",
         addonBaseUrl = "https://addon-$id",
-        type = "movie",
+        type = ContentType("movie"),
         id = id,
         name = id,
         extras = if (searchable) listOf(AddonCatalogExtra("search")) else emptyList(),
     )
 
-    private fun preview(id: String) = MetaPreview(id = id, type = "movie", name = id)
+    private fun preview(id: String) = MetaPreview(id = id, type = ContentType("movie"), name = id)
 
     @Test
     fun searchesOnlySearchableCatalogsAndDedupes() =

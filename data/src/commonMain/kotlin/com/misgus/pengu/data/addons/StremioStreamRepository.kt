@@ -1,6 +1,7 @@
 package com.misgus.pengu.data.addons
 
 import com.misgus.pengu.core.model.Addon
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.repository.AddonRepository
 import com.misgus.pengu.core.repository.StreamGroup
 import com.misgus.pengu.core.repository.StreamRepository
@@ -24,7 +25,7 @@ class StremioStreamRepository(
     private val clients = AddonClientPool(client)
 
     override suspend fun all(
-        type: String,
+        type: ContentType,
         id: String,
     ): List<StreamGroup> {
         val installed: List<Addon> = runCatchingCancellable { addons.all() }.getOrDefault(emptyList())
@@ -38,13 +39,13 @@ class StremioStreamRepository(
 
     private suspend fun streamsFor(
         addon: Addon,
-        type: String,
+        type: ContentType,
         id: String,
     ): StreamGroup? {
         val baseUrl = normalizeAddonBaseUrl(addon.url)
         if (baseUrl.isEmpty()) return null
         return try {
-            val streams = clients.clientFor(baseUrl).fetchStreams(type, id)
+            val streams = clients.clientFor(baseUrl).fetchStreams(type.value, id)
             if (streams.isEmpty()) {
                 null
             } else {

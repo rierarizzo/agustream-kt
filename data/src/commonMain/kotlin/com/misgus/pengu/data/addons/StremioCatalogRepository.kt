@@ -1,6 +1,7 @@
 package com.misgus.pengu.data.addons
 
 import com.misgus.pengu.core.model.Addon
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.ContentTypes
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaPreview
@@ -42,12 +43,12 @@ class StremioCatalogRepository(
                         runCatchingCancellable {
                             val manifest = addonClient.fetchManifest()
                             manifest.catalogs
-                                .filter { it.type == ContentTypes.MOVIE || it.type == ContentTypes.SERIES }
+                                .filter { it.type == ContentTypes.MOVIE.value || it.type == ContentTypes.SERIES.value }
                                 .map { catalog ->
                                     CatalogRef(
                                         addonName = addon.name ?: manifest.name,
                                         addonBaseUrl = addonClient.baseUrl,
-                                        type = catalog.type,
+                                        type = ContentType(catalog.type),
                                         id = catalog.id,
                                         name = catalog.name,
                                         extras = catalog.extra,
@@ -63,10 +64,10 @@ class StremioCatalogRepository(
     override suspend fun items(
         ref: CatalogRef,
         extra: Map<String, String>?,
-    ): List<MetaPreview> = clients.clientFor(ref.addonBaseUrl).fetchCatalog(ref.type, ref.id, extra)
+    ): List<MetaPreview> = clients.clientFor(ref.addonBaseUrl).fetchCatalog(ref.type.value, ref.id, extra)
 
     override suspend fun detailedItems(
         ref: CatalogRef,
         extra: Map<String, String>?,
-    ): List<MetaDetail> = clients.clientFor(ref.addonBaseUrl).fetchCatalogDetailed(ref.type, ref.id, extra)
+    ): List<MetaDetail> = clients.clientFor(ref.addonBaseUrl).fetchCatalogDetailed(ref.type.value, ref.id, extra)
 }

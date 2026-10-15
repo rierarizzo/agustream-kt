@@ -1,6 +1,9 @@
 package com.misgus.pengu.data.backend
 
 import com.misgus.pengu.core.BackendException
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.core.model.WatchProgress
 import com.misgus.pengu.core.model.WatchedEntry
 import com.misgus.pengu.core.repository.AccountRepository
@@ -88,18 +91,18 @@ class NuvioProgressRepository(
 
     override suspend fun markWatched(
         contentId: String,
-        contentType: String,
-        season: Int?,
-        episode: Int?,
+        contentType: ContentType,
+        season: Season?,
+        episode: Episode?,
     ) {
         val profileId = requireProfileId()
         val item =
             buildMap<String, kotlinx.serialization.json.JsonElement> {
                 put("content_id", JsonPrimitive(contentId))
-                put("content_type", JsonPrimitive(contentType))
+                put("content_type", JsonPrimitive(contentType.value))
                 put("watched_at", JsonPrimitive(Clock.System.now().toEpochMilliseconds()))
-                season?.let { put("season", JsonPrimitive(it)) }
-                episode?.let { put("episode", JsonPrimitive(it)) }
+                season?.let { put("season", JsonPrimitive(it.number)) }
+                episode?.let { put("episode", JsonPrimitive(it.number)) }
             }
         rest.callRpc(
             "sync_push_watched_items",
@@ -115,15 +118,15 @@ class NuvioProgressRepository(
 
     override suspend fun unmarkWatched(
         contentId: String,
-        season: Int?,
-        episode: Int?,
+        season: Season?,
+        episode: Episode?,
     ) {
         val profileId = requireProfileId()
         val key =
             buildMap<String, kotlinx.serialization.json.JsonElement> {
                 put("content_id", JsonPrimitive(contentId))
-                season?.let { put("season", JsonPrimitive(it)) }
-                episode?.let { put("episode", JsonPrimitive(it)) }
+                season?.let { put("season", JsonPrimitive(it.number)) }
+                episode?.let { put("episode", JsonPrimitive(it.number)) }
             }
         rest.callRpc(
             "sync_delete_watched_items",

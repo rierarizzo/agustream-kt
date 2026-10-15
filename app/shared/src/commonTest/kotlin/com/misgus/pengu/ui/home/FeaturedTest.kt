@@ -1,5 +1,6 @@
 package com.misgus.pengu.ui.home
 
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.ContentTypes
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.repository.CatalogRef
@@ -13,7 +14,7 @@ class FeaturedTest {
         CatalogRef(
             addonName = "Addon",
             addonBaseUrl = "https://addon",
-            type = "movie",
+            type = ContentType("movie"),
             id = id,
             name = id,
         )

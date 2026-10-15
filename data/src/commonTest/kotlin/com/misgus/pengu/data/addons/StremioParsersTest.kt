@@ -140,8 +140,8 @@ class StremioParsersTest {
             }
         val episode = metaDetailFromJson(json).videos.single()
         assertEquals("Pilot", episode.title)
-        assertEquals(1, episode.season)
-        assertEquals(1, episode.episode)
+        assertEquals(1, episode.season?.number)
+        assertEquals(1, episode.episode?.number)
     }
 
     @Test

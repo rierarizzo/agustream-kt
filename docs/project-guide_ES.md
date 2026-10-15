@@ -270,15 +270,14 @@ existe, y contrólalo con `StandardTestDispatcher` + `advanceUntilIdle()` (ver
 
 ## 9. Bordes peligrosos conocidos (donde tener cuidado)
 
-- **Archivos de UI grandes**: `DetailScreen.kt`, `HomeScreen.kt`, `Hero.kt`,
-  `PlayerScreen.kt` siguen siendo grandes incluso tras los splits. Divídelos más
-  cuando los toques.
+- **Archivos de UI grandes**: `DetailScreen.kt` y `PlayerScreen.kt` siguen
+  siendo grandes incluso tras los splits. Divídelos más cuando los toques. El
+  billboard de Home está repartido entre `Hero.kt` (puntos de entrada y pager),
+  `HeroLayers.kt` (artwork, washes, copy) y `HeroOverlays.kt` (swipe, paginador,
+  preloader), y "Continue watching" se movió a `ContinueWatching.kt`.
 - **`AppServices` es un service locator** al que se llega vía `LocalAppServices`.
   Los ViewModels reciben dependencias explícitas (bien); las pantallas leen el
   global. En tests, prefiere construir el ViewModel directamente.
-- **Obsesión por primitivos**: `contentType`, `season`/`episode` y los extras de
-  catálogo siguen siendo `String`/`Int?`. `ContentTypes`/`CatalogExtras` reducen
-  el riesgo de strings; un value class sería el siguiente paso.
 - **`ktlintFormat` en Windows** puede tropezar con las fuentes generadas de
   Compose; usa `ktlintCheck`, que las excluye (el filtro está configurado en el
   `build.gradle.kts` raíz).

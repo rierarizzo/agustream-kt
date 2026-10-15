@@ -6,6 +6,7 @@ import com.misgus.pengu.app.shared.generated.resources.content_type_movie
 import com.misgus.pengu.app.shared.generated.resources.content_type_series
 import com.misgus.pengu.app.shared.generated.resources.search_type_movies
 import com.misgus.pengu.app.shared.generated.resources.search_type_series
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.ContentTypes
 import org.jetbrains.compose.resources.stringResource
 
@@ -17,7 +18,7 @@ import org.jetbrains.compose.resources.stringResource
  * types the same way.
  */
 @Composable
-fun contentTypeLabel(type: String): String? =
+fun contentTypeLabel(type: ContentType): String? =
     when (type) {
         ContentTypes.MOVIE -> stringResource(Res.string.search_type_movies)
         ContentTypes.SERIES -> stringResource(Res.string.search_type_series)
@@ -32,9 +33,9 @@ fun contentTypeLabel(type: String): String? =
  * read wrong ("Movies" next to a single title).
  */
 @Composable
-fun contentTypeName(type: String): String? =
+fun contentTypeName(type: ContentType): String? =
     when {
-        type.equals(ContentTypes.MOVIE, ignoreCase = true) -> stringResource(Res.string.content_type_movie)
+        type.value.equals(ContentTypes.MOVIE.value, ignoreCase = true) -> stringResource(Res.string.content_type_movie)
         ContentTypes.isSeries(type) -> stringResource(Res.string.content_type_series)
         else -> null
     }

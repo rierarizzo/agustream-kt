@@ -39,6 +39,7 @@ import com.misgus.pengu.app.shared.generated.resources.detail_episode_generic
 import com.misgus.pengu.app.shared.generated.resources.detail_error_library
 import com.misgus.pengu.app.shared.generated.resources.detail_error_rating
 import com.misgus.pengu.app.shared.generated.resources.detail_error_watched
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.ContentTypes
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.util.runCatchingCancellable
@@ -131,7 +132,7 @@ fun DetailScreen(
     val watchedError = stringResource(Res.string.detail_error_watched)
     val ratingError = stringResource(Res.string.detail_error_rating)
 
-    val openStreams: (String, String, String) -> Unit = { type, id, title ->
+    val openStreams: (ContentType, String, String) -> Unit = { type, id, title ->
         onOpenStreams(
             StreamsRequest(
                 type = type,
@@ -177,8 +178,8 @@ fun DetailScreen(
                         // Prefer a regular episode: season 0 is specials.
                         val first =
                             state.episodes
-                                .filter { (it.season ?: 0) > 0 }
-                                .minByOrNull { (it.season ?: 0) * 1000 + (it.episode ?: it.number ?: 0) }
+                                .filter { (it.season?.number ?: 0) > 0 }
+                                .minByOrNull { (it.season?.number ?: 0) * 1000 + (it.episode?.number ?: it.number ?: 0) }
                                 ?: state.episodes.firstOrNull()
                         if (state.isSeries && first != null) {
                             openStreams(ContentTypes.SERIES, first.id, "${state.name} · ${first.title ?: episodeFallback}")

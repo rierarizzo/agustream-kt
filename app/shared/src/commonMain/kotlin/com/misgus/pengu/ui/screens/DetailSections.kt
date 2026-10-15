@@ -50,6 +50,7 @@ import com.misgus.pengu.app.shared.generated.resources.detail_your_rating
 import com.misgus.pengu.core.model.MetaPerson
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.model.MetaVideo
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.ui.components.ActionButton
 import com.misgus.pengu.ui.components.ActionButtonStyle
 import com.misgus.pengu.ui.components.MarqueeText
@@ -246,7 +247,7 @@ internal fun EpisodesSection(
     var season by remember(seasons) { mutableStateOf(defaultSeason(seasons)) }
     val episodes =
         remember(videos, season) {
-            videos.filter { it.season == season }.sortedBy { it.episode ?: it.number ?: 0 }
+            videos.filter { it.season == season }.sortedBy { it.episode?.number ?: it.number ?: 0 }
         }
 
     Column {
@@ -287,18 +288,18 @@ internal fun EpisodesSection(
  * Seasons in display order: regular ones ascending first, then season `0`
  * ("Specials") at the end.
  */
-private fun orderSeasons(seasons: List<Int>): List<Int> =
-    seasons.filter { it != 0 }.sorted().let { regular ->
-        if (seasons.contains(0)) regular + 0 else regular
+private fun orderSeasons(seasons: List<Season>): List<Season> =
+    seasons.filter { it.number != 0 }.sortedBy { it.number }.let { regular ->
+        if (seasons.any { it.number == 0 }) regular + Season(0) else regular
     }
 
 /** Season 1 opens the picker when present; otherwise the first season shown. */
-private fun defaultSeason(seasons: List<Int>): Int = seasons.firstOrNull { it == 1 } ?: seasons.first()
+private fun defaultSeason(seasons: List<Season>): Season = seasons.firstOrNull { it.number == 1 } ?: seasons.first()
 
 /** Season `0` is presented as "Specials"; every other season as `S<n>`. */
 @Composable
-private fun seasonLabel(season: Int): String =
-    if (season == 0) stringResource(Res.string.detail_specials) else stringResource(Res.string.detail_season_short, season)
+private fun seasonLabel(season: Season): String =
+    if (season.number == 0) stringResource(Res.string.detail_specials) else stringResource(Res.string.detail_season_short, season.number)
 
 private val RELEASE_MONTHS =
     listOf(

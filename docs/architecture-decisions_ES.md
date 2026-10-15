@@ -69,6 +69,10 @@ leer/escribir/borrar vive una sola vez.
   `CatalogExtras`, `ProgressThresholds` y `releaseYear()` nombran las cadenas de
   protocolo y los umbrales que comparan el dominio, los datos y la UI, para que
   una errata o un literal que se desvía no pueda cambiar el comportamiento.
+  `ContentType`, `Season` y `Episode` son value classes sobre el token de
+  protocolo y los dos números, de modo que un tipo de contenido no se puede
+  pasar donde se espera otro `String`, ni un episodio donde va una temporada,
+  sin que el compilador lo note.
 - **`PlayerService` es un contrato**, con un `PlayerState` neutro y un handle
   `videoOutput: VideoOutput?` para que la UI pueda incrustar la superficie nativa
   sin depender del motor. `VideoOutput` es un marcador vacío; el `FrameSource` de
@@ -670,18 +674,6 @@ que cambian, no por esfuerzo.
   focus y pressed, y el reproductor tiene atajos, pero no hay recorrido de foco
   por los raíles de Home ni modelo de navegación espacial. Un target de TV lo
   hace obligatorio en vez de deseable.
-
-### Componentes de UI
-
-Seguimientos de la revisión de la capa de componentes (`ActionButton`,
-`AppTextField`/`AppSearchField`, `AppIconButton`).
-
-- **Decidir la altura del campo.** `AppTextField` mantiene los 56dp de Material
-  mientras los botones usan `AppSizes.controlHeight` (48dp). O expón un
-  `AppSizes.fieldHeight` y documenta la diferencia, o alínealos.
-- **Recortar la superficie no usada restante.** `AppTextField.supportingText`
-  sigue sin usarse hoy; mantenlo solo donde se planee un call site real, para
-  que la API no acumule ramas muertas.
 
 ### Rendimiento del reproductor
 

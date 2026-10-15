@@ -1,7 +1,10 @@
 package com.misgus.pengu.core.watched
 
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaVideo
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.core.model.WatchProgress
 import com.misgus.pengu.core.model.WatchedEntry
 import com.misgus.pengu.core.repository.MetadataRepository
@@ -22,12 +25,12 @@ class WatchedBadgeResolverTest {
         runTest {
             val progress =
                 FakeProgress(
-                    entries = listOf(WatchedEntry("tt-movie", "movie")),
+                    entries = listOf(WatchedEntry("tt-movie", ContentType("movie"))),
                 )
             val resolver = WatchedBadgeResolver(progress, FakeMetadata())
             val watched =
                 resolver.resolve(
-                    listOf(WatchedCandidate("tt-movie", "movie"), WatchedCandidate("tt-other", "movie")),
+                    listOf(WatchedCandidate("tt-movie", ContentType("movie")), WatchedCandidate("tt-other", ContentType("movie"))),
                     today = today,
                 )
             assertEquals(setOf("tt-movie"), watched)
@@ -40,25 +43,25 @@ class WatchedBadgeResolverTest {
             val meta =
                 MetaDetail(
                     id = series,
-                    type = "series",
+                    type = ContentType("series"),
                     name = "Show",
                     videos =
                         listOf(
-                            MetaVideo(id = "$series:1:1", season = 1, episode = 1, released = "2024-01-01"),
-                            MetaVideo(id = "$series:1:2", season = 1, episode = 2, released = "2024-01-01"),
+                            MetaVideo(id = "$series:1:1", season = Season(1), episode = Episode(1), released = "2024-01-01"),
+                            MetaVideo(id = "$series:1:2", season = Season(1), episode = Episode(2), released = "2024-01-01"),
                         ),
                 )
             val progress =
                 FakeProgress(
-                    entries = listOf(WatchedEntry(series, "series", season = 1, episode = 1)),
+                    entries = listOf(WatchedEntry(series, ContentType("series"), season = Season(1), episode = Episode(1))),
                     all =
                         listOf(
                             WatchProgress(
                                 id = "1",
                                 contentId = series,
-                                contentType = "series",
-                                season = 1,
-                                episode = 1,
+                                contentType = ContentType("series"),
+                                season = Season(1),
+                                episode = Episode(1),
                                 position = 50.minutes,
                                 duration = 50.minutes,
                                 progressKey = "${series}_s1e1",
@@ -66,9 +69,9 @@ class WatchedBadgeResolverTest {
                             WatchProgress(
                                 id = "2",
                                 contentId = series,
-                                contentType = "series",
-                                season = 1,
-                                episode = 2,
+                                contentType = ContentType("series"),
+                                season = Season(1),
+                                episode = Episode(2),
                                 position = 50.minutes,
                                 duration = 50.minutes,
                                 progressKey = "${series}_s1e2",
@@ -76,7 +79,7 @@ class WatchedBadgeResolverTest {
                         ),
                 )
             val resolver = WatchedBadgeResolver(progress, FakeMetadata(meta))
-            val watched = resolver.resolve(listOf(WatchedCandidate(series, "series")), today = today)
+            val watched = resolver.resolve(listOf(WatchedCandidate(series, ContentType("series"))), today = today)
             assertEquals(setOf(series), watched)
         }
 
@@ -86,7 +89,7 @@ class WatchedBadgeResolverTest {
             val progress = FakeProgress()
             val metadata = FakeMetadata()
             val resolver = WatchedBadgeResolver(progress, metadata)
-            val watched = resolver.resolve(listOf(WatchedCandidate("tt-series", "series")), today = today)
+            val watched = resolver.resolve(listOf(WatchedCandidate("tt-series", ContentType("series"))), today = today)
             assertEquals(emptySet(), watched)
             assertEquals(0, metadata.detailCalls)
         }
@@ -106,15 +109,15 @@ class WatchedBadgeResolverTest {
 
         override suspend fun markWatched(
             contentId: String,
-            contentType: String,
-            season: Int?,
-            episode: Int?,
+            contentType: ContentType,
+            season: Season?,
+            episode: Episode?,
         ) = Unit
 
         override suspend fun unmarkWatched(
             contentId: String,
-            season: Int?,
-            episode: Int?,
+            season: Season?,
+            episode: Episode?,
         ) = Unit
     }
 
@@ -124,7 +127,7 @@ class WatchedBadgeResolverTest {
         var detailCalls = 0
 
         override suspend fun detail(
-            type: String,
+            type: ContentType,
             id: String,
         ): MetaDetail? {
             detailCalls++
@@ -132,7 +135,7 @@ class WatchedBadgeResolverTest {
         }
 
         override suspend fun similar(
-            type: String,
+            type: ContentType,
             id: String,
             genre: String?,
         ) = emptyList<Nothing>()

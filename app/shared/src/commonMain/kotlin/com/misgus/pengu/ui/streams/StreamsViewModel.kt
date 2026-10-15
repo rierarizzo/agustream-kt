@@ -2,6 +2,7 @@ package com.misgus.pengu.ui.streams
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.Stream
 import com.misgus.pengu.core.repository.StreamGroup
 import com.misgus.pengu.core.repository.StreamRepository
@@ -49,7 +50,7 @@ data class StreamsUiState(
 /** Loads the streams for one title or episode. */
 class StreamsViewModel(
     private val streams: StreamRepository,
-    private val type: String,
+    private val type: ContentType,
     private val id: String,
 ) : ViewModel() {
     private val _state = MutableStateFlow(StreamsUiState())

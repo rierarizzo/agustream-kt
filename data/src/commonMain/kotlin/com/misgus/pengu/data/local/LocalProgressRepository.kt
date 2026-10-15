@@ -1,6 +1,9 @@
 package com.misgus.pengu.data.local
 
+import com.misgus.pengu.core.model.ContentType
+import com.misgus.pengu.core.model.Episode
 import com.misgus.pengu.core.model.ProgressThresholds
+import com.misgus.pengu.core.model.Season
 import com.misgus.pengu.core.model.WatchProgress
 import com.misgus.pengu.core.model.WatchedEntry
 import com.misgus.pengu.core.repository.ProgressRepository
@@ -55,9 +58,9 @@ class LocalProgressRepository(
                 result +=
                     WatchedEntry(
                         contentId = contentId,
-                        contentType = row["content_type"].stringOrNull() ?: "",
-                        season = row["season"].intOrNull(),
-                        episode = row["episode"].intOrNull(),
+                        contentType = ContentType(row["content_type"].stringOrNull() ?: ""),
+                        season = row["season"].intOrNull()?.let(::Season),
+                        episode = row["episode"].intOrNull()?.let(::Episode),
                     )
             }
 
@@ -87,9 +90,9 @@ class LocalProgressRepository(
 
     override suspend fun markWatched(
         contentId: String,
-        contentType: String,
-        season: Int?,
-        episode: Int?,
+        contentType: ContentType,
+        season: Season?,
+        episode: Episode?,
     ) = mutex.withLock {
         val target = watched ?: return@withLock
         val key = markerKey(contentId, season, episode)
@@ -97,10 +100,10 @@ class LocalProgressRepository(
         val newRow =
             buildMap<String, kotlinx.serialization.json.JsonElement> {
                 put("content_id", JsonPrimitive(contentId))
-                put("content_type", JsonPrimitive(contentType))
+                put("content_type", JsonPrimitive(contentType.value))
                 put("watched_at", JsonPrimitive(Clock.System.now().toEpochMilliseconds()))
-                season?.let { put("season", JsonPrimitive(it)) }
-                episode?.let { put("episode", JsonPrimitive(it)) }
+                season?.let { put("season", JsonPrimitive(it.number)) }
+                episode?.let { put("episode", JsonPrimitive(it.number)) }
             }
         target.write(rows.filterNot { markerKeyOfRow(it) == key } + JsonObject(newRow))
         _changes.value += 1
@@ -108,8 +111,8 @@ class LocalProgressRepository(
 
     override suspend fun unmarkWatched(
         contentId: String,
-        season: Int?,
-        episode: Int?,
+        season: Season?,
+        episode: Episode?,
     ) = mutex.withLock {
         val target = watched ?: return@withLock
         val key = markerKey(contentId, season, episode)
@@ -131,14 +134,14 @@ class LocalProgressRepository(
 
     private fun markerKey(
         contentId: String,
-        season: Int?,
-        episode: Int?,
-    ) = "$contentId|${season ?: -1}|${episode ?: -1}"
+        season: Season?,
+        episode: Episode?,
+    ) = "$contentId|${season?.number ?: -1}|${episode?.number ?: -1}"
 
     private fun markerKeyOfRow(row: JsonObject) =
         markerKey(
             row["content_id"].stringOrNull() ?: "",
-            row["season"].intOrNull(),
-            row["episode"].intOrNull(),
+            row["season"].intOrNull()?.let(::Season),
+            row["episode"].intOrNull()?.let(::Episode),
         )
 }

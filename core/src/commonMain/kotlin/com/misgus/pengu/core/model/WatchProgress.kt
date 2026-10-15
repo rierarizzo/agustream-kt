@@ -7,11 +7,11 @@ import kotlin.time.Instant
 data class WatchProgress(
     val id: String,
     val contentId: String,
-    val contentType: String,
+    val contentType: ContentType,
     /** Episode video id, for series. */
     val videoId: String? = null,
-    val season: Int? = null,
-    val episode: Int? = null,
+    val season: Season? = null,
+    val episode: Episode? = null,
     /** Current playback position. */
     val position: Duration? = null,
     /** Total duration. */
@@ -42,9 +42,9 @@ data class WatchProgress(
 data class WatchedEntry(
     val contentId: String,
     /** `movie`, `series`, ... */
-    val contentType: String,
-    val season: Int? = null,
-    val episode: Int? = null,
+    val contentType: ContentType,
+    val season: Season? = null,
+    val episode: Episode? = null,
 ) {
     /** `true` for a title-level marker, `false` for an episode. */
     val isMarker: Boolean get() = season == null && episode == null

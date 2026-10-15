@@ -1,5 +1,6 @@
 package com.misgus.pengu.core.watched
 
+import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.ContentTypes
 import com.misgus.pengu.core.model.ProgressThresholds
 import com.misgus.pengu.core.model.WatchProgress
@@ -14,7 +15,7 @@ import kotlin.time.Instant
 /** A title to resolve a watched state for. */
 data class WatchedCandidate(
     val id: String,
-    val type: String,
+    val type: ContentType,
 )
 
 /**
