@@ -100,13 +100,21 @@ leer/escribir/borrar vive una sola vez.
   sesión viven en `data/`, nunca en el dominio.
 - **Almacén local**: `JsonFileStore`/`JsonMapStore` y los stores de sesión /
   valoraciones / series vistas. La resolución de rutas es un `expect` de
-  plataforma (`%APPDATA%\Agustream` en Windows, XDG en el resto). Las escrituras
+  plataforma (`%APPDATA%\Pengu` en Windows, XDG en el resto). Las escrituras
   pasan por un fichero temporal hermano y se renombran en su sitio, así que una
   escritura interrumpida no puede dejar un documento truncado, y una escritura
   fallida se reporta en vez de tragarse. Los ciclos de leer-modificar-escribir de
   los repositorios locales se serializan con un `Mutex`. El fichero de sesión se
   restringe al usuario actual donde el SO lo permite; es endurecimiento
   best-effort, no un keychain.
+- **Migración del directorio de configuración.** El proyecto pasó de
+  `Agustream` a `Pengu`, lo que también cambió el directorio en disco. En el
+  primer arranque que encuentra el directorio `Agustream` heredado y ninguno
+  `Pengu`, la capa de plataforma lo renombra en su sitio
+  (`PlatformFileIO.migrateConfigDirectory`), de modo que la sesión, los ajustes
+  y el progreso en caché se conservan. Una migración fallida deja el directorio
+  heredado intacto, y el renombrado no se reintenta una vez existe el directorio
+  `Pengu`.
 - **Los ajustes** viven en `settings.json` como un objeto JSON plano con claves
   punteadas, como el `settings.json` de VS Code (`animations.enabled`,
   `player.resumePlayback`, `player.autoPlayNext`, `poster.size`,
@@ -175,7 +183,7 @@ leer/escribir/borrar vive una sola vez.
   controles prominentes sobre artwork. Todos los sitios de uso dimensionan cada
   icono mediante esos tokens, para que el rail, la barra inferior y los campos
   de texto queden en el mismo tamaño óptico.
-- **Ciclo de vida de Compose.** `AgustreamApp` reutiliza el `ViewModelStoreOwner`
+- **Ciclo de vida de Compose.** `PenguApp` reutiliza el `ViewModelStoreOwner`
   del host cuando existe — una `Activity` de Android, para que los ViewModels de
   sección sobrevivan a un cambio de configuración — y cae a un owner con scope
   de composición donde no lo hay, como desktop. Los ViewModels de sección viven
@@ -185,7 +193,7 @@ leer/escribir/borrar vive una sola vez.
   (Android) desapila con el back del sistema. Las rutas apiladas tienen su propio
   `ViewModelStoreOwner` (`ContentArea`) que se limpia al desapilar, así que los
   ViewModels transitorios no se filtran.
-- **Onboarding y arranque de sesión.** `AgustreamApp` resuelve la sesión
+- **Onboarding y arranque de sesión.** `PenguApp` resuelve la sesión
   persistida una vez, antes que nada: muestra un splash hasta que termina, luego
   el onboarding (sin sesión) o el shell, para que un usuario recurrente nunca vea
   el inicio de sesión durante un frame. Es una puerta dura, así que las secciones
@@ -194,7 +202,7 @@ leer/escribir/borrar vive una sola vez.
   `signInMethods`, así que un backend que inicia sesión de otra forma renderiza
   otro formulario. El atajo de desktop `NUVIO_EMAIL` / `NUVIO_PASSWORD` se pasa
   como petición `autoSignIn`, aplicada solo cuando no hay sesión almacenada.
-- **Layout adaptable.** `AgustreamApp` mide la ventana una vez con
+- **Layout adaptable.** `PenguApp` mide la ventana una vez con
   `BoxWithConstraints` y publica un `WindowSize` (compact / medium / expanded, en
   los breakpoints de Material de 600 y 840 dp) más el ancho de ventana, a través
   de `LocalWindowSize` / `LocalWindowWidth`, para que una superficie elija un
@@ -238,7 +246,13 @@ leer/escribir/borrar vive una sola vez.
   `PagerState.isScrollInProgress` y marca todo scroll que el carrusel no inició
   él mismo, así cubre tanto un drag en teléfono como un swipe de rueda / trackpad
   en desktop, y el timer cede ante el usuario hasta que queda inactivo, momento en
-  que el hero vuelve a moverse solo. La pantalla vuelve a
+  que el hero vuelve a moverse solo. El pager es infinito (arranca cerca de la
+  mitad del rango y `page % items.size` mapea una página de vuelta a su ítem), así
+  el auto-avance siempre va hacia adelante: el último slide no recorre todas las
+  páginas hacia atrás para llegar a la primera. El avance hace snap con un
+  spring (`motionSpring`) y respeta `LocalMotionEnabled`, así que "desactivar
+  animaciones" salta al objetivo como el resto de transiciones. La pantalla
+  vuelve a
   elegir el set completo cada `FEATURED_ROTATION_INTERVAL` (10 minutos) mientras
   Home está visible, priorizando los ítems que no están en pantalla, así cambia
   con el tiempo y no en cada recomposición. La selección usa un `Random`
@@ -270,7 +284,15 @@ leer/escribir/borrar vive una sola vez.
   primero, con un layout de glyph mayor (36dp) para que el triángulo del play
   (~52% de alto) iguale la altura óptica de la fila — así que la fila se lee
   play, guardar, "More info"; el detalle mantiene el "Watch Now" con etiqueta y
-  añade puntuar y visto. El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
+  añade puntuar y visto. Los spacers alrededor de una fila de acciones descuentan
+  el padding vertical transparente del control (`HeroActionRowInset`, en
+  `ui/components/HeroActions.kt`), la banda entre el touch target de 48dp y su
+  glifo menor, así que la fila de iconos se lee tan cerca del texto como los gaps
+  texto-a-texto en vez de 12dp más lejos; el hero de detalle lo aplica arriba y
+  abajo de su fila, y el copy del teléfono lo aplica al gap metadata-acciones,
+  donde no hay sinopsis. El copy compacto además mantiene un margen inferior
+  mayor (64dp) para que la fila de iconos no se pegue a los puntos del paginador.
+  El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
   `LibraryRepository.changes`, así que un título guardado en cualquiera de las
   dos pantallas se ve como guardado en ambas.
 - **Edge-to-edge e insets del sistema.** Android ejecuta la activity edge-to-edge
@@ -318,23 +340,34 @@ leer/escribir/borrar vive una sola vez.
   El paginador del carrusel es una fila de puntos iguales de 7dp, centrada en el
   borde inferior del billboard: crema para la página activa y gris para el resto.
   En un teléfono se sienta más arriba (32dp), libre de la barra de gestos. El
-  swipe hace cross-fade en vez de deslizar: cada página cancela el offset
-  horizontal del pager en un `graphicsLayer` y su alpha sigue el mismo offset,
-  así que un billboard se disuelve a través del fondo de página en el siguiente.
-  El offset se lee dentro del bloque de layer, no en composición, así que un
-  swipe actualiza layers en vez de recomponer cada página compuesta por frame, y
-  el copy lee el mismo offset igual. El copy (título, metadata, sinopsis,
-  acciones) se desliza un poco contra el
-  swipe (`HERO_CONTENT_SLIDE_MAX`, 64dp) para que se lea la dirección, mientras
-  que el artwork solo hace cross-fade. La página enfocada se eleva con `zIndex`
-  a partir de `pagerState.currentPage` (lectura de una vez por cambio, no por
-  frame), para que sus botones posean los hits; los vecinos difuminados se
-  sientan en el mismo sitio y si no capturarían el click. En ventana ancha el rail flota sobre
-  el contenido, que reserva su ancho, así que la navegación nunca lo solapa.
+  pager es solo un driver de gesto y offset: sus páginas están vacías, y el
+  artwork y el copy se dibujan encima como capas separadas para la página
+  asentada y, mientras corre un swipe, su vecina. Mantener el alpha por primitiva
+  (una capa de backdrop, las washes compartidas, una capa de copy) en vez de
+  sobre una página compuesta entera saca al billboard del camino de buffer
+  offscreen que tomaría un alpha de página completa, y las washes se elevan fuera
+  de los slides, así que un cross-fade ya no dibuja un segundo gradiente a
+  pantalla completa. La vecina visible se resuelve con `derivedStateOf` sobre
+  `pagerState.currentPageOffsetFraction`, y el alpha y el deslizamiento se leen
+  dentro de cada `graphicsLayer`, así que un swipe actualiza layers en vez de
+  recomponer cada página compuesta por frame. El swipe hace cross-fade en vez de
+  deslizar: cada capa se disuelve a través del fondo de página en su vecina. El
+  copy (título, metadata, sinopsis, acciones) se desliza un poco contra el swipe
+  (`HERO_CONTENT_SLIDE_MAX`, 64dp) para que se lea la dirección, mientras que el
+  artwork se desplaza una fracción menor del ancho de página
+  (`HERO_BACKDROP_PARALLAX`, 5.5%) con un ligero overscan (`HERO_BACKDROP_SCALE`,
+  1.14), así que los dos slides se leen como capas en vez de una doble exposición
+  plana. La página asentada se dibuja última entre las capas, para que sus
+  botones posean los hits, y un drag que arranca en uno de esos botones se
+  reenvía al pager desde la fila de acciones (las capas de copy están sobre el
+  pager, y los hermanos no comparten el hit path), así que el swipe sigue
+  funcionando ahí mientras un tap cae al botón. En ventana ancha el rail flota
+  sobre el contenido, que reserva su ancho, así que la navegación nunca lo
+  solapa.
 - **Tipografía.** Inter se incluye mediante Compose Resources en `:app:shared` y
   es la tipografía renderizada. IBM Plex Sans queda aislada en su propio módulo
   `:app:fonts` para que las dos tipografías se puedan intercambiar para comparar
-  mediante `USE_IBM_PLEX_SANS` en `AgustreamTheme`. Cada target renderiza la
+  mediante `USE_IBM_PLEX_SANS` en `PenguTheme`. Cada target renderiza la
   misma tipografía, y el texto se escribe en `sp` para que el tamaño de fuente
   del sistema de Android siga funcionando. `LocalDensity` nunca se sobrescribe
   deliberadamente: ese es el hack común, y miente a cada componente sobre la
@@ -410,7 +443,7 @@ leer/escribir/borrar vive una sola vez.
   Library; ver la limitación más abajo.
 - **El tema** sigue Material 3 y es dato, no código. `BrandPalette`
   (`theme/Tokens.kt`) es una data class con los colores crudos de un tema,
-  `AppThemes` mapea el `AppTheme` persistido a una paleta, y `AgustreamTheme(theme)`
+  `AppThemes` mapea el `AppTheme` persistido a una paleta, y `PenguTheme(theme)`
   la elige y la proporciona por `LocalBrandPalette`, y luego construye el
   `darkColorScheme` completo a partir de ella (niveles surface-container,
   `outline`/`outlineVariant`, `inverse*` y los contenedores de error). La paleta
@@ -588,7 +621,7 @@ cubre los stores de fichero y los repositorios locales. El `commonTest` de
 
 - El reproductor de desktop necesita libmpv: en Windows está incluido
   (`libmpv-2.dll`, extraído de los recursos de la app), en Linux hay que instalar
-  el runtime `libmpv.so`. `AGUSTREAM_LIBMPV` puede apuntar a una librería
+  el runtime `libmpv.so`. `PENGU_LIBMPV` puede apuntar a una librería
   concreta.
 - Android usa un reproductor no-op hasta que se añada una superficie de vídeo
   nativa. El resto del target está cableado: permiso `INTERNET`, un directorio de
@@ -627,9 +660,12 @@ que cambian, no por esfuerzo.
 
 - **Pulido móvil y endurecimiento de release.** El layout compacto funciona,
   pero aún no está ajustado superficie por superficie: el espaciado y las
-  proporciones todavía necesitan una pasada en teléfonos reales. Por separado, el
-  build de release de Android está sin optimizar — `isMinifyEnabled` es `false` y
-  no hay baseline profile — así que se lee mucho más lento de lo necesario.
+  proporciones todavía necesitan una pasada en teléfonos reales. El build de
+  release de Android está minificado (`isMinifyEnabled` + `isShrinkResources`) e
+  incluye los baseline profiles de librería (Compose y compañía) vía
+  `profileinstaller`, pero todavía no tiene uno propio: generarlo requiere el
+  plugin `androidx.baselineprofile` con una corrida de macrobenchmark en un
+  dispositivo.
 - **Navegación con teclado / D-pad.** `Interaction.kt` cubre estados hover,
   focus y pressed, y el reproductor tiene atajos, pero no hay recorrido de foco
   por los raíles de Home ni modelo de navegación espacial. Un target de TV lo

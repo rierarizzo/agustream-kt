@@ -35,11 +35,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.misgus.agustream.MainKt"
+        mainClass = "com.misgus.pengu.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.misgus.agustream"
+            packageName = "com.misgus.pengu"
             packageVersion = "1.0.0"
         }
     }

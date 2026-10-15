@@ -1,11 +1,11 @@
-# Agustream — Guía para desarrolladores
+# Pengu — Guía para desarrolladores
 
 Mapa práctico del código para alguien que se incorpora al proyecto. Te dice
 **dónde vive cada cosa**, **dónde cambiar cosas** y **qué ideas de Kotlin /
 Compose Multiplatform** usa el código. Para el *porqué* de las decisiones, lee
 [`architecture-decisions.md`](architecture-decisions.md); este archivo es el *dónde*.
 
-> Agustream es un cliente Compose Multiplatform para el backend Nuvio que habla el
+> Pengu es un cliente Compose Multiplatform para el backend Nuvio que habla el
 > protocolo de addons de Stremio y reproduce vídeo con libmpv. Desktop (Windows)
 > es el target completamente cableado; el código compartido también compila para
 > Android.
@@ -112,7 +112,7 @@ Existen para no reimplementar la misma preocupación en cada pantalla:
 - **Tokens de diseño** (`theme/Tokens.kt`) — las paletas de tema (`BrandPalette`
   dentro de `AppThemes`), espaciado, tamaños (incluidos
   los anchos máximos de contenido/formulario/mensaje), alphas y scrims.
-  `AgustreamTheme(theme)` proporciona la paleta elegida por `LocalBrandPalette`;
+  `PenguTheme(theme)` proporciona la paleta elegida por `LocalBrandPalette`;
   `Modifier.focusRing` (`components/Interaction.kt`) dibuja el anillo de foco
   compartido.
 - **`runCatchingCancellable`** (`core/util`) — `runCatching` que nunca se traga la

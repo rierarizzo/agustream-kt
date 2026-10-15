@@ -11,7 +11,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "com.misgus.agustream.app.shared"
+        namespace = "com.misgus.pengu.app.shared"
         compileSdk =
             libs.versions.android.compileSdk
                 .get()
@@ -71,4 +71,10 @@ kotlin {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
+}
+
+compose.resources {
+    // Pinned so the generated resource package does not follow the root project
+    // name and change silently when the project is renamed.
+    packageOfResClass = "com.misgus.pengu.app.shared.generated.resources"
 }

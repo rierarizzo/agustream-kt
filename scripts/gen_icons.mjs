@@ -1,6 +1,6 @@
 // One-off generator: rebuilds AppIcons.kt from the Material Icons Round SVGs.
 // Source: @material-design-icons/svg (Apache-2.0), the classic Material Icons.
-// Run: node scripts/gen_icons.mjs > app/shared/src/commonMain/kotlin/com/misgus/agustream/ui/icons/AppIcons.kt
+// Run: node scripts/gen_icons.mjs > app/shared/src/commonMain/kotlin/com/misgus/pengu/ui/icons/AppIcons.kt
 
 const CDN = "https://cdn.jsdelivr.net/npm/@material-design-icons/svg@0.14.15/round";
 
@@ -98,7 +98,7 @@ for (const [, snake] of all) {
   paths.set(snake, await fetchIcon(snake));
 }
 
-out += `package com.misgus.agustream.ui.icons
+out += `package com.misgus.pengu.ui.icons
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
@@ -113,7 +113,7 @@ import androidx.compose.ui.unit.dp
  * Only the glyphs the app uses are kept, so the UI does not depend on
  * \`material-icons-extended\`. Each vector is built from the corresponding
  * Material Icons Round SVG path at the default 24dp size; call sites size it
- * with [com.misgus.agustream.ui.theme.AppIconSize].
+ * with [com.misgus.pengu.ui.theme.AppIconSize].
  *
  * Names mirror the previous \`Icons.*\` references so call sites only swap the
  * receiver. \`AutoMirrored\` groups carry \`autoMirror = true\`, which is what the

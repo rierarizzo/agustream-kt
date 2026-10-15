@@ -1,4 +1,4 @@
-rootProject.name = "agustream"
+rootProject.name = "pengu"
 
 pluginManagement {
     repositories {
