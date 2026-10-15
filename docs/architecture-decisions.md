@@ -151,10 +151,13 @@ so the atomic read/write/delete logic lives once.
   and `Modifier.focusRing` (in `Interaction.kt`) gives every focusable control
   the same keyboard ring.
 - **Icons are vendored, not a dependency.** `ui/icons/AppIcons.kt` holds the
-  Material Symbols glyphs the UI uses as `ImageVector`s (outlined and filled,
-  plus the auto-mirrored arrows), generated from the official SVGs at the
-  default axes. The app no longer depends on `materialIconsExtended` — frozen at
-  1.7.3 while the rest of Compose kept moving — so only the used glyphs ship.
+  Material Icons **Round** theme glyphs the UI uses as `ImageVector`s (filled and
+  outlined, plus the auto-mirrored arrows), each built lazily from the official
+  Round SVG path through `PathParser`; `scripts/gen_icons.mjs` regenerates the
+  file from `@material-design-icons/svg`. The app no longer depends on
+  `materialIconsExtended` — frozen at 1.7.3 while the rest of Compose kept
+  moving — so only the used glyphs ship. The Round theme has no separate outlined
+  house, gear or calendar, so those navigation items differ by colour, not fill.
   The `AppIconSize` scale in `theme/Tokens.kt` is the single source of icon
   size: `md` (24dp) is Material 3's default for navigation, fields and list
   affordances, `sm` (20dp) is for compact and in-button glyphs, and `lg` (28dp)
@@ -241,8 +244,8 @@ so the atomic read/write/delete logic lives once.
   watched and info buttons next to the call to action, so Home and the detail
   screen cannot drift in icon, size, colour or state. The Home billboard's play
   action is icon-only too — the same 48dp icon control as the row, tinted with
-  the primary colour so it still reads first, with a larger 34dp glyph layout so
-  the play arrow's ~58%-height triangle matches the row's optical height — so the
+  the primary colour so it still reads first, with a larger 36dp glyph layout so
+  the play arrow's ~52%-height triangle matches the row's optical height — so the
   row reads play, save, "More info"; the detail screen keeps the labelled "Watch
   Now" and adds rate and watched.
   Home's save is optimistic in `HomeViewModel` and reconciled through

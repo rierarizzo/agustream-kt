@@ -160,11 +160,15 @@ leer/escribir/borrar vive una sola vez.
   `Modifier.focusRing` (en `Interaction.kt`) da a cada control enfocable el mismo
   anillo de teclado.
 - **Los iconos se vendorizan, no son una dependencia.** `ui/icons/AppIcons.kt`
-  contiene los glifos de Material Symbols que usa la UI como `ImageVector`s
-  (outlined y filled, más las flechas auto-espejadas), generados desde los SVG
-  oficiales con los ejes por defecto. La app ya no depende de
+  contiene los glifos del tema **Round** de Material Icons que usa la UI como
+  `ImageVector`s (filled y outlined, más las flechas auto-espejadas), cada uno
+  construido de forma perezosa desde el path SVG oficial de Round mediante
+  `PathParser`; `scripts/gen_icons.mjs` regenera el fichero desde
+  `@material-design-icons/svg`. La app ya no depende de
   `materialIconsExtended` — congelado en 1.7.3 mientras el resto de Compose
-  seguía avanzando — así que solo se empaquetan los glifos usados. La escala
+  seguía avanzando — así que solo se empaquetan los glifos usados. El tema Round
+  no trae una versión outlined de home, settings ni calendar, así que esos items
+  de navegación se distinguen por color, no por relleno. La escala
   `AppIconSize` de `theme/Tokens.kt` es la única fuente del tamaño de icono:
   `md` (24dp) es el default de Material 3 para navegación, campos y listas,
   `sm` (20dp) es para glifos compactos y dentro de botones, y `lg` (28dp) es para
@@ -256,8 +260,8 @@ leer/escribir/borrar vive una sola vez.
   detalle no pueden desviarse en icono, tamaño, color ni estado. El billboard de
   Home muestra su acción de play también solo-icono — el mismo control de icono
   de 48dp que la fila, teñido con el color primario para que siga leyéndose
-  primero, con un layout de glyph mayor (34dp) para que el triángulo del play
-  (~58% de alto) iguale la altura óptica de la fila — así que la fila se lee
+  primero, con un layout de glyph mayor (36dp) para que el triángulo del play
+  (~52% de alto) iguale la altura óptica de la fila — así que la fila se lee
   play, guardar, "More info"; el detalle mantiene el "Watch Now" con etiqueta y
   añade puntuar y visto. El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
   `LibraryRepository.changes`, así que un título guardado en cualquiera de las
