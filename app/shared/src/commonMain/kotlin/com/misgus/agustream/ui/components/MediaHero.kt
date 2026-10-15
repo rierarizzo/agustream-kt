@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.ui.theme.AppAlpha
@@ -42,6 +43,8 @@ fun MediaTitle(
     logoHeight: Dp? = null,
     /** While the metadata loads, reserve the logo's space without drawing anything. */
     loading: Boolean = false,
+    /** Alignment of the name when it falls back to text; a logo centres itself. */
+    textAlign: TextAlign = TextAlign.Start,
 ) {
     // A fixed optical height keeps the logos in scale, capped by a max width so a
     // wide one cannot overflow the column. It is smaller on a phone.
@@ -71,6 +74,7 @@ fun MediaTitle(
                 name,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
+                textAlign = textAlign,
                 style = AppType.heroTitle(),
             )
     }
@@ -84,17 +88,22 @@ fun MediaTitle(
 @Composable
 fun MetadataRow(parts: List<String>) {
     if (parts.isEmpty()) return
+    // A phone steps the metadata down a role and tightens the separators, so it
+    // does not compete with the title above a shorter billboard.
+    val compact = LocalWindowSize.current == WindowSize.COMPACT
+    val style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge
+    val separatorPadding = if (compact) AppSpacing.xs else AppSpacing.sm
     Row(verticalAlignment = Alignment.CenterVertically) {
         parts.forEachIndexed { index, part ->
             if (index > 0) {
                 Text(
                     "•",
-                    style = MaterialTheme.typography.labelLarge,
+                    style = style,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = AppSpacing.sm),
+                    modifier = Modifier.padding(horizontal = separatorPadding),
                 )
             }
-            Text(part, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
+            Text(part, style = style, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }

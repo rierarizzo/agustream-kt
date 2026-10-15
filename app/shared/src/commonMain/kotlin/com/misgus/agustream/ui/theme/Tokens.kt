@@ -117,6 +117,15 @@ object AppColors {
     /** Dark scrim over media, used behind badges and progress tracks. */
     val mediaScrim = Color.Black.copy(alpha = 0.54f)
 
+    /**
+     * Flat dim over a hero's artwork, so it reads darker than the raw image.
+     *
+     * The wide billboard gets it from the tail of `heroWideLeft`; a phone, which
+     * has no edge scrim, paints it on its own.
+     */
+    val heroImageDim: Color
+        @Composable get() = LocalBrandPalette.current.background.copy(alpha = AppAlpha.HERO_IMAGE_DIM)
+
     /** Hero carousel dots over artwork: muted grey when idle, bright when active. */
     val heroIndicatorInactive: Color
         @Composable get() = LocalBrandPalette.current.indicator
@@ -226,7 +235,7 @@ object AppLogoSize {
     /** Optical height of the title logo on the wide detail billboard. */
     val detailHeight: Dp = 96.dp
 
-    /** Optical height of the title logo on a phone's detail billboard. */
+    /** Optical height of the title logo on a phone's billboard (home and detail). */
     val compactHeight: Dp = 56.dp
 
     /** Widest a logo may grow; a wider logo scales down to fit. */
@@ -263,6 +272,9 @@ object AppSynopsis {
 object AppIconSize {
     val sm: Dp = 20.dp
     val md: Dp = 24.dp
+
+    /** Prominent controls over artwork. */
+    val lg: Dp = 28.dp
 }
 
 /** Reusable overlay alphas, so scrims and shadows stay consistent. */
@@ -288,11 +300,6 @@ object AppAlpha {
 
     /** Opacity of an action whose real state is still being loaded. */
     const val ACTION_LOADING = 0.35f
-
-    /** Hero gradient stops, from the strong left edge to the soft right edge. */
-    const val HERO_LEFT_STRONG = 0.92f
-    const val HERO_LEFT_MEDIUM = 0.6f
-    const val HERO_LEFT_SOFT = 0.2f
 
     /** Mid stop of the hero's bottom fade into the page background. */
     const val HERO_BOTTOM_MID = 0.55f
@@ -342,23 +349,6 @@ object AppScrim {
                 0.4f to Color.Black.copy(alpha = AppAlpha.MEDIA_SCRIM_MEDIUM),
                 1f to LocalBrandPalette.current.background,
             )
-
-    /**
-     * Home billboard, left-to-right: fully opaque over the copy column and a
-     * flat [AppAlpha.HERO_IMAGE_DIM] over the rest, so the right-aligned artwork
-     * stays visible but reads a touch darker.
-     */
-    val heroHorizontal: Brush
-        @Composable get() {
-            val background = LocalBrandPalette.current.background
-            return Brush.horizontalGradient(
-                0f to background,
-                0.25f to background.copy(alpha = AppAlpha.HERO_LEFT_STRONG),
-                0.42f to background.copy(alpha = AppAlpha.HERO_LEFT_MEDIUM),
-                0.6f to background.copy(alpha = AppAlpha.HERO_LEFT_SOFT),
-                0.78f to background.copy(alpha = AppAlpha.HERO_IMAGE_DIM),
-            )
-        }
 
     /**
      * Wide desktop billboard, left-to-right: opaque over the left column and

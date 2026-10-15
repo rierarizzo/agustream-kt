@@ -27,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -46,8 +46,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import com.misgus.agustream.core.model.MetaPreview
-import com.misgus.agustream.ui.components.ActionButton
-import com.misgus.agustream.ui.components.ActionButtonStyle
+import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.ArtworkFilterQuality
 import com.misgus.agustream.ui.components.HeroActionRow
 import com.misgus.agustream.ui.components.HeroActionState
@@ -77,11 +76,37 @@ private const val HERO_IMAGE_WIDTH_FRACTION = 0.75f
 /** Aspect ratio used until the artwork has decoded, so the frame has a height. */
 private const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
 
+/**
+ * Height of the compact billboard as a multiple of its width.
+ *
+ * A phone cannot show the wide desktop composition, so it crops the same
+ * backdrop into a tall band: 1.2 keeps the centre of the artwork, where the
+ * subject usually is, and gives the centred logo and actions room to breathe.
+ */
+private const val HERO_COMPACT_HEIGHT_RATIO = 1.2f
+
 /** Widest the copy column ever grows, so the synopsis keeps a comfortable measure. */
 private val HERO_CONTENT_MAX_WIDTH = 840.dp
 
 /** Gap between the bottom of the billboard and the copy actions. */
 private val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
+
+/**
+ * Gap between the bottom of the compact billboard and the copy actions.
+ *
+ * Small on purpose: it keeps the actions just above the paginator and deep in
+ * the bottom fade, so they sit with the dots instead of floating up.
+ */
+private val HERO_COMPACT_CONTENT_BOTTOM_MARGIN = 44.dp
+
+/**
+ * Layout size of the billboard's play glyph.
+ *
+ * The Material play arrow only fills ~58% of its viewBox height, against the
+ * ~76% of the heart beside it, so the layout box is enlarged to make the drawn
+ * triangle the same optical height as the row instead of reading smaller.
+ */
+private val HERO_PLAY_ICON_SIZE = 34.dp
 
 /**
  * Vertical rhythm of the copy column, in order: title, metadata, synopsis,
@@ -92,6 +117,10 @@ private val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
 private val HERO_LOGO_METADATA_SPACE = 12.dp
 private val HERO_METADATA_SYNOPSIS_SPACE = 18.dp
 private val HERO_SYNOPSIS_ACTIONS_SPACE = 18.dp
+
+/** Tighter vertical rhythm on a phone, where the copy shares a shorter band. */
+private val HERO_COMPACT_LOGO_METADATA_SPACE = 8.dp
+private val HERO_COMPACT_METADATA_ACTIONS_SPACE = 12.dp
 
 /**
  * Widest the hero copy (not the artwork) slides during a page change. Small on
@@ -119,26 +148,21 @@ private val HERO_AUTO_ADVANCE_INTERVAL = 7.seconds
 private val HERO_MANUAL_COOLDOWN = 60.seconds
 
 /** Carousel paginator: dot size, gap, bottom inset and colour animation. */
-private val HERO_PAGINATOR_DOT_SIZE = 10.dp
-private val HERO_PAGINATOR_GAP = 8.dp
+private val HERO_PAGINATOR_DOT_SIZE = 7.dp
+private val HERO_PAGINATOR_GAP = 6.dp
 private val HERO_PAGINATOR_BOTTOM_MARGIN = 24.dp
+
+/** On a phone the paginator sits higher, clear of the gesture bar. */
+private val HERO_COMPACT_PAGINATOR_BOTTOM_MARGIN = 32.dp
 private const val HERO_PAGINATOR_ANIMATION_MS = 250
 
 /**
- * Height of the full-width billboard for [maxWidth], used on a phone where the
- * artwork spans the whole width. Sizing the frame to the artwork's own aspect
- * ratio lets `Fit` show the whole image, with no crop and no bars.
- */
-private fun heroHeight(
-    maxWidth: Dp,
-    aspectRatio: Float,
-): Dp = maxWidth / aspectRatio
-
-/**
- * Compact / Android billboard: in the scroll flow, full-bleed, complete artwork.
+ * Compact / Android billboard: in the scroll flow, full-bleed and cropped.
  *
- * A phone cannot show the wide desktop composition, so it keeps the simpler
- * full-width frame that scrolls with the content.
+ * A phone cannot show the wide desktop composition, so it crops the same
+ * backdrop into a tall band, centres the logo and the actions, washes it only
+ * with a bottom fade, and drops the synopsis, which has no room to read on a
+ * small screen.
  */
 @Composable
 internal fun Hero(
@@ -152,13 +176,9 @@ internal fun Hero(
     if (items.isEmpty()) return
     val density = LocalDensity.current
     val pagerState = rememberPagerState(pageCount = { items.size })
-    // Each page reports the aspect ratio of its decoded artwork; the billboard
-    // adopts the current page's, so `Fit` never has to letterbox or crop.
-    val aspects = remember(items) { mutableStateMapOf<Int, Float>() }
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val aspect = aspects[pagerState.currentPage] ?: HERO_FALLBACK_ASPECT_RATIO
-        val height = heroHeight(maxWidth, aspect)
+        val height = maxWidth * HERO_COMPACT_HEIGHT_RATIO
         HeroCarousel(
             items = items,
             pagerState = pagerState,
@@ -168,7 +188,7 @@ internal fun Hero(
             busyIds = busyIds,
             backdropWidthPx = with(density) { maxWidth.roundToPx().coerceAtLeast(1) },
             backdropHeightPx = with(density) { height.roundToPx().coerceAtLeast(1) },
-            onBackdropAspect = { page, ratio -> aspects[page] = ratio },
+            onBackdropAspect = { _, _ -> },
             onOpen = onOpen,
             onPlay = onPlay,
             onToggleSaved = onToggleSaved,
@@ -327,21 +347,23 @@ private fun HeroCarousel(
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = HERO_PAGINATOR_BOTTOM_MARGIN),
+                        .padding(bottom = if (compact) HERO_COMPACT_PAGINATOR_BOTTOM_MARGIN else HERO_PAGINATOR_BOTTOM_MARGIN),
             )
         }
     }
     HeroArtworkPreloader(
         items = items,
-        compact = compact,
         backdropWidthPx = backdropWidthPx,
         backdropHeightPx = backdropHeightPx,
-        logoHeightPx = with(density) { AppLogoSize.homeHeight.roundToPx().coerceAtLeast(1) },
+        logoHeightPx =
+            with(density) {
+                (if (compact) AppLogoSize.compactHeight else AppLogoSize.homeHeight).roundToPx().coerceAtLeast(1)
+            },
         logoMaxWidthPx = with(density) { AppLogoSize.maxWidth.roundToPx().coerceAtLeast(1) },
     )
 }
 
-/** One billboard slide: complete artwork under the background washes and the copy. */
+/** One billboard slide: cropped artwork under the background washes and the copy. */
 @Composable
 private fun HeroSlide(
     item: MetaPreview,
@@ -355,7 +377,7 @@ private fun HeroSlide(
     onPlay: () -> Unit,
     onToggleSaved: () -> Unit,
 ) {
-    val backdrop = if (compact) item.poster ?: item.background else item.background ?: item.poster
+    val backdrop = item.background ?: item.poster
     // The artwork cross-fades, but the copy slides a little against the swipe,
     // so the user can read whether the change is going forward or back.
     val slidePx = with(LocalDensity.current) { HERO_CONTENT_SLIDE_MAX.toPx() }
@@ -366,10 +388,10 @@ private fun HeroSlide(
             AsyncImage(
                 model = backdrop,
                 contentDescription = null,
-                // A phone frame tracks the artwork's aspect ratio, so `Fit` shows
-                // it whole; the desktop frame is a touch shorter, so `Crop` trims
-                // the bottom and keeps the top edge pinned.
-                contentScale = if (wide) ContentScale.Crop else ContentScale.Fit,
+                // Both frames are shorter than the wide artwork, so `Crop` trims
+                // it: the desktop keeps the top edge pinned, the phone keeps the
+                // centre, where the subject usually is.
+                contentScale = ContentScale.Crop,
                 alignment = if (wide) Alignment.TopCenter else Alignment.Center,
                 filterQuality = ArtworkFilterQuality,
                 onSuccess = { state ->
@@ -391,11 +413,18 @@ private fun HeroSlide(
             )
         }
         // Washes over the artwork, in draw order. The last child paints on top,
-        // and every one ends on the page background so the hero has no seam.
-        Box(Modifier.fillMaxSize().background(if (wide) AppScrim.heroWideLeft else AppScrim.heroHorizontal))
-        Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
-        Box(Modifier.fillMaxSize().background(AppScrim.heroTop))
-        Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
+        // and every one ends on the page background so the hero has no seam. Both
+        // frames dim the whole artwork; the wide billboard adds its edge scrims,
+        // while a phone keeps only the bottom fade, which the copy sits in.
+        if (wide) {
+            Box(Modifier.fillMaxSize().background(AppScrim.heroWideLeft))
+            Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
+            Box(Modifier.fillMaxSize().background(AppScrim.heroTop))
+            Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
+        } else {
+            Box(Modifier.fillMaxSize().background(AppColors.heroImageDim))
+            Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
+        }
         HeroCopy(
             item = item,
             compact = compact,
@@ -421,37 +450,47 @@ private fun BoxScope.HeroCopy(
     onToggleSaved: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val horizontalPadding = LocalWindowSize.current.screenPadding
     Column(
         modifier =
             modifier
-                .align(Alignment.BottomStart)
+                .align(if (compact) Alignment.BottomCenter else Alignment.BottomStart)
                 .padding(
-                    start = LocalWindowSize.current.screenPadding,
-                    end = LocalWindowSize.current.screenPadding,
-                    bottom = HERO_CONTENT_BOTTOM_MARGIN,
+                    start = horizontalPadding,
+                    end = horizontalPadding,
+                    bottom = if (compact) HERO_COMPACT_CONTENT_BOTTOM_MARGIN else HERO_CONTENT_BOTTOM_MARGIN,
                 ).widthIn(max = HERO_CONTENT_MAX_WIDTH),
+        horizontalAlignment = if (compact) Alignment.CenterHorizontally else Alignment.Start,
     ) {
         MediaTitle(
             name = item.name,
-            logo = if (compact) null else item.logo,
-            logoHeight = AppLogoSize.homeHeight,
+            logo = item.logo,
+            logoHeight = if (compact) AppLogoSize.compactHeight else AppLogoSize.homeHeight,
+            textAlign = if (compact) TextAlign.Center else TextAlign.Start,
         )
-        Spacer(Modifier.height(HERO_LOGO_METADATA_SPACE))
+        Spacer(Modifier.height(if (compact) HERO_COMPACT_LOGO_METADATA_SPACE else HERO_LOGO_METADATA_SPACE))
         MetadataRow(metadataParts(item.releaseInfo, genres = item.genres, rating = item.imdbRating))
-        Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))
-        item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
-            HeroSynopsis(text = synopsis)
+        if (compact) {
+            // No synopsis on a phone: there is no room to read it under the
+            // centred logo, so the actions follow the metadata directly.
+            Spacer(Modifier.height(HERO_COMPACT_METADATA_ACTIONS_SPACE))
+        } else {
+            Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))
+            item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
+                HeroSynopsis(text = synopsis)
+            }
             Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
         ) {
-            ActionButton(
-                text = stringResource(Res.string.action_watch_now),
+            AppIconButton(
                 icon = AppIcons.Filled.PlayArrow,
+                contentDescription = stringResource(Res.string.action_watch_now),
                 onClick = onPlay,
-                style = ActionButtonStyle.Accent,
+                tint = MaterialTheme.colorScheme.primary,
+                iconSize = HERO_PLAY_ICON_SIZE,
             )
             HeroActionRow(
                 actions = HeroActionState(saved = saved, savedBusy = savedBusy),
@@ -505,19 +544,17 @@ private fun HeroPaginator(
 @Composable
 private fun HeroArtworkPreloader(
     items: List<MetaPreview>,
-    compact: Boolean,
     backdropWidthPx: Int,
     backdropHeightPx: Int,
     logoHeightPx: Int,
     logoMaxWidthPx: Int,
 ) {
     val context = LocalPlatformContext.current
-    LaunchedEffect(items, compact, backdropWidthPx, backdropHeightPx, logoHeightPx, logoMaxWidthPx) {
+    LaunchedEffect(items, backdropWidthPx, backdropHeightPx, logoHeightPx, logoMaxWidthPx) {
         if (items.isEmpty()) return@LaunchedEffect
         val loader = SingletonImageLoader.get(context)
         items.forEach { item ->
-            val backdrop =
-                if (compact) item.poster ?: item.background else item.background ?: item.poster
+            val backdrop = item.background ?: item.poster
             backdrop?.let { url ->
                 loader.enqueue(
                     ImageRequest

@@ -239,8 +239,12 @@ so the atomic read/write/delete logic lives once.
 - **Billboards share their icon actions.** `HeroActionRow` and
   `HeroActionState` (`ui/components/HeroActions.kt`) render the save, rate,
   watched and info buttons next to the call to action, so Home and the detail
-  screen cannot drift in icon, size, colour or state. The Home billboard shows
-  save and the icon-only "More info"; the detail screen adds rate and watched.
+  screen cannot drift in icon, size, colour or state. The Home billboard's play
+  action is icon-only too — the same 48dp icon control as the row, tinted with
+  the primary colour so it still reads first, with a larger 34dp glyph layout so
+  the play arrow's ~58%-height triangle matches the row's optical height — so the
+  row reads play, save, "More info"; the detail screen keeps the labelled "Watch
+  Now" and adds rate and watched.
   Home's save is optimistic in `HomeViewModel` and reconciled through
   `LibraryRepository.changes`, so a title saved on either screen shows as saved
   on both.
@@ -266,15 +270,23 @@ so the atomic read/write/delete logic lives once.
   a gentle two-segment ramp) that melts into "Continue watching" without a hard
   seam, a subtle top fade, a right-edge vignette, and a flat
   `AppAlpha.HERO_IMAGE_DIM` kept over the artwork so it reads darker than the
-  raw image. On a phone the billboard spans the full width, sized to the
-  artwork's aspect ratio. The copy column is
+  raw image. On a phone the billboard spans the full width and crops the same
+  backdrop into a band 1.2 times its width (centre-aligned) instead of showing
+  the portrait poster whole, and washes it with the same flat dim as the wide one
+  plus the bottom fade: the copy is
+  centred horizontally and anchored to the bottom edge, the title always prefers
+  the logo
+  (`AppLogoSize.compactHeight`, text only as a fallback) and the synopsis is
+  dropped, since there is no room to read it under a centred logo. On a wide
+  window the copy column is
   bottom-anchored 100dp above the hero edge, up to 840dp wide, and shares the
   sections' left padding. The synopsis is a teaser — capped at the shared
   720dp measure (`AppSynopsis.maxWidth`, about 80 characters), three lines at
   most, the rest behind "More info". The same cap lives in `HeroSynopsis`, so
   Home and Detail wrap the description at the same width. The carousel
-  paginator is a row of equal dots, centred on the billboard's bottom edge:
-  white for the active page and grey for the rest. The swipe cross-fades rather
+  paginator is a row of equal 7dp dots, centred on the billboard's bottom edge:
+  cream for the active page and grey for the rest. On a phone it sits higher
+  (32dp), clear of the gesture bar. The swipe cross-fades rather
   than slides: each page cancels the pager's horizontal offset in a
   `graphicsLayer` and its alpha follows the same offset, so one billboard
   dissolves through the page background into the next. The copy (title,
@@ -382,7 +394,8 @@ so the atomic read/write/delete logic lives once.
   `Card`. A small component layer in `ui/components` keeps the Material defaults
   off the screen: `ActionButton` picks its container, content and disabled
   colours from an `ActionButtonStyle` weight (Filled on the inverse surface,
-  Accent on the amber `primary`/`onPrimary` for the billboards' "Watch Now",
+  Accent on the amber `primary`/`onPrimary` for the detail billboard's
+  "Watch Now",
   Tonal on a translucent on-surface fill, Outline on `outline`, Text
   label-only), leaves the content colour to the button's own `LocalContentColor`
   so a disabled label dims with its container, pins elevation to zero (the app

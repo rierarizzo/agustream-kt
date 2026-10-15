@@ -254,8 +254,12 @@ leer/escribir/borrar vive una sola vez.
   `HeroActionState` (`ui/components/HeroActions.kt`) renderizan los botones de
   guardar, puntuar, visto e info junto al call to action, así que Home y el
   detalle no pueden desviarse en icono, tamaño, color ni estado. El billboard de
-  Home muestra guardar y el "More info" solo-icono; el detalle añade puntuar y
-  visto. El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
+  Home muestra su acción de play también solo-icono — el mismo control de icono
+  de 48dp que la fila, teñido con el color primario para que siga leyéndose
+  primero, con un layout de glyph mayor (34dp) para que el triángulo del play
+  (~58% de alto) iguale la altura óptica de la fila — así que la fila se lee
+  play, guardar, "More info"; el detalle mantiene el "Watch Now" con etiqueta y
+  añade puntuar y visto. El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
   `LibraryRepository.changes`, así que un título guardado en cualquiera de las
   dos pantallas se ve como guardado en ambas.
 - **Edge-to-edge e insets del sistema.** Android ejecuta la activity edge-to-edge
@@ -281,14 +285,22 @@ leer/escribir/borrar vive una sola vez.
   watching" sin costura dura, un fundido superior sutil, una viñeta en el borde
   derecho, y un `AppAlpha.HERO_IMAGE_DIM` plano mantenido sobre el artwork para
   que se lea más oscuro que la imagen cruda. En un teléfono el billboard abarca
-  el ancho completo, dimensionado al aspect ratio del artwork. La columna de copy
+  el ancho completo y recorta el mismo backdrop en una banda 1.2 veces su ancho
+  (alineada al centro) en vez de mostrar el póster vertical entero, y lo lava con
+  el mismo dim plano que el ancho más el fundido inferior: el copy queda centrado
+  en horizontal y anclado al
+  borde inferior, el título prefiere siempre el logo
+  (`AppLogoSize.compactHeight`, el texto
+  solo como reserva) y la sinopsis se omite, porque no hay sitio para leerla bajo
+  un logo centrado. En ventana ancha la columna de copy
   está anclada abajo a 100dp del borde del hero, hasta 840dp de ancho, y comparte
   el padding izquierdo de las secciones. La sinopsis es un teaser — limitada a la
   medida compartida de 720dp (`AppSynopsis.maxWidth`, unos 80 caracteres), tres
   líneas como máximo, el resto tras "More info". El mismo límite vive en
   `HeroSynopsis`, así que Home y Detail envuelven la descripción al mismo ancho.
-  El paginador del carrusel es una fila de puntos iguales, centrada en el borde
-  inferior del billboard: blanco para la página activa y gris para el resto. El
+  El paginador del carrusel es una fila de puntos iguales de 7dp, centrada en el
+  borde inferior del billboard: crema para la página activa y gris para el resto.
+  En un teléfono se sienta más arriba (32dp), libre de la barra de gestos. El
   swipe hace cross-fade en vez de deslizar: cada página cancela el offset
   horizontal del pager en un `graphicsLayer` y su alpha sigue el mismo offset,
   así que un billboard se disuelve a través del fondo de página en el siguiente.
@@ -401,7 +413,8 @@ leer/escribir/borrar vive una sola vez.
   mantiene los defaults de Material fuera de la pantalla: `ActionButton` elige su
   contenedor, contenido y colores deshabilitados de un peso `ActionButtonStyle`
   (Filled sobre la superficie inversa, Accent sobre el `primary`/`onPrimary`
-  ámbar para el "Watch Now" de los billboards, Tonal sobre un relleno translúcido
+  ámbar para el "Watch Now" del billboard de detalle, Tonal sobre un relleno
+  translúcido
   de on-surface, Outline sobre `outline`, Text solo etiqueta), deja el color de
   contenido al `LocalContentColor` del propio botón para que una etiqueta
   deshabilitada se atenúe con su contenedor, fija la elevación a cero (la app es
