@@ -1,5 +1,6 @@
 package com.misgus.pengu.ui.components
 
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.VisualTransformation
 import com.misgus.pengu.ui.icons.AppIcons
 import com.misgus.pengu.ui.theme.AppIconSize
+import com.misgus.pengu.ui.theme.AppSizes
 
 /*
  * The app's text field.
@@ -43,7 +45,6 @@ fun AppTextField(
     leadingIcon: ImageVector? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     isError: Boolean = false,
-    supportingText: String? = null,
     enabled: Boolean = true,
     singleLine: Boolean = true,
     visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -53,14 +54,13 @@ fun AppTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier,
+        modifier = modifier.defaultMinSize(minHeight = AppSizes.fieldHeight),
         enabled = enabled,
         label = label?.let { text -> { Text(text) } },
         placeholder = placeholder?.let { text -> { Text(text) } },
         leadingIcon = leadingIcon?.let { icon -> { Icon(icon, contentDescription = null, modifier = Modifier.size(AppIconSize.md)) } },
         trailingIcon = trailingIcon,
         isError = isError,
-        supportingText = supportingText?.let { text -> { Text(text) } },
         singleLine = singleLine,
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
@@ -133,7 +133,4 @@ private fun appTextFieldColors() =
         unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
         focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
         unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        focusedSupportingTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        unfocusedSupportingTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        errorSupportingTextColor = MaterialTheme.colorScheme.error,
     )

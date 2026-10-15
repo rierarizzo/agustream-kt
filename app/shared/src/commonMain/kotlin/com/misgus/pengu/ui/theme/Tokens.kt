@@ -183,6 +183,16 @@ object AppSizes {
     /** Smallest side of an interactive target, per Material's touch guidance. */
     val minTouchTarget: Dp = 48.dp
 
+    /**
+     * Height of a form field.
+     *
+     * Taller than [controlHeight]: an outlined field reserves vertical room for
+     * the floating label, so forcing it down to the control height crowds both
+     * the label and the text. Kept here so the difference from a button is a
+     * deliberate decision instead of an accident of Material's default.
+     */
+    val fieldHeight: Dp = 56.dp
+
     /** Width of the focus ring drawn around interactive controls for keyboard/D-pad. */
     val focusRing: Dp = 2.dp
 
