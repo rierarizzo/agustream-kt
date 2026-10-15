@@ -9,9 +9,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import com.misgus.agustream.ui.icons.AppIcons
+import com.misgus.agustream.ui.theme.AppIconSize
+import com.misgus.agustream.ui.theme.AppSizes
 import com.misgus.agustream.ui.theme.AppSpacing
 import org.jetbrains.compose.resources.stringResource
+
+/**
+ * Transparent band above and below the glyph inside a billboard action control.
+ *
+ * [HeroActionRow] uses the shared 48dp icon control, whose glyph is
+ * [AppIconSize.md], so half of the difference is empty padding. A screen that
+ * spaces the row against text discounts it, so the optical gap matches the
+ * value it wrote instead of reading 12dp wider.
+ */
+val HeroActionRowInset: Dp = (AppSizes.minTouchTarget - AppIconSize.md) / 2
 
 /**
  * State of the icon actions next to a billboard's call to action.

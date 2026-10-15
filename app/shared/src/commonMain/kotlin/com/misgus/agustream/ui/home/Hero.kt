@@ -49,6 +49,7 @@ import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.BackdropFilterQuality
 import com.misgus.agustream.ui.components.HeroActionRow
+import com.misgus.agustream.ui.components.HeroActionRowInset
 import com.misgus.agustream.ui.components.HeroActionState
 import com.misgus.agustream.ui.components.HeroSynopsis
 import com.misgus.agustream.ui.components.MediaTitle
@@ -94,10 +95,11 @@ private val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
 /**
  * Gap between the bottom of the compact billboard and the copy actions.
  *
- * Small on purpose: it keeps the actions just above the paginator and deep in
- * the bottom fade, so they sit with the dots instead of floating up.
+ * Keeps the actions just above the paginator and deep in the bottom fade,
+ * without letting the icon row crowd the dots (the wide billboard has far more
+ * room below its row).
  */
-private val HERO_COMPACT_CONTENT_BOTTOM_MARGIN = 44.dp
+private val HERO_COMPACT_CONTENT_BOTTOM_MARGIN = 64.dp
 
 /**
  * Layout size of the billboard's play glyph.
@@ -116,11 +118,22 @@ private val HERO_PLAY_ICON_SIZE = 36.dp
  */
 private val HERO_LOGO_METADATA_SPACE = 12.dp
 private val HERO_METADATA_SYNOPSIS_SPACE = 18.dp
-private val HERO_SYNOPSIS_ACTIONS_SPACE = 18.dp
 
-/** Tighter vertical rhythm on a phone, where the copy shares a shorter band. */
+/**
+ * Same rhythm as the metadata-to-synopsis gap, discounting the transparent
+ * padding of the action row ([HeroActionRowInset]).
+ */
+private val HERO_SYNOPSIS_ACTIONS_SPACE = HERO_METADATA_SYNOPSIS_SPACE - HeroActionRowInset
+
+/**
+ * Tighter vertical rhythm on a phone, where the copy shares a shorter band.
+ *
+ * The actions follow the metadata directly (no synopsis), so their spacer
+ * discounts [HeroActionRowInset] too; the metadata stays a comfortable step
+ * below the title instead of the row floating away from it.
+ */
 private val HERO_COMPACT_LOGO_METADATA_SPACE = 8.dp
-private val HERO_COMPACT_METADATA_ACTIONS_SPACE = 12.dp
+private val HERO_COMPACT_METADATA_ACTIONS_SPACE = (12.dp - HeroActionRowInset).coerceAtLeast(0.dp)
 
 /**
  * Widest the hero copy (not the artwork) slides during a page change. Small on

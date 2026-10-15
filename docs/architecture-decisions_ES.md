@@ -270,7 +270,15 @@ leer/escribir/borrar vive una sola vez.
   primero, con un layout de glyph mayor (36dp) para que el triángulo del play
   (~52% de alto) iguale la altura óptica de la fila — así que la fila se lee
   play, guardar, "More info"; el detalle mantiene el "Watch Now" con etiqueta y
-  añade puntuar y visto. El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
+  añade puntuar y visto. Los spacers alrededor de una fila de acciones descuentan
+  el padding vertical transparente del control (`HeroActionRowInset`, en
+  `ui/components/HeroActions.kt`), la banda entre el touch target de 48dp y su
+  glifo menor, así que la fila de iconos se lee tan cerca del texto como los gaps
+  texto-a-texto en vez de 12dp más lejos; el hero de detalle lo aplica arriba y
+  abajo de su fila, y el copy del teléfono lo aplica al gap metadata-acciones,
+  donde no hay sinopsis. El copy compacto además mantiene un margen inferior
+  mayor (64dp) para que la fila de iconos no se pegue a los puntos del paginador.
+  El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
   `LibraryRepository.changes`, así que un título guardado en cualquiera de las
   dos pantallas se ve como guardado en ambas.
 - **Edge-to-edge e insets del sistema.** Android ejecuta la activity edge-to-edge

@@ -46,6 +46,7 @@ import com.misgus.agustream.ui.components.ActionButton
 import com.misgus.agustream.ui.components.ActionButtonStyle
 import com.misgus.agustream.ui.components.AppIconButton
 import com.misgus.agustream.ui.components.HeroActionRow
+import com.misgus.agustream.ui.components.HeroActionRowInset
 import com.misgus.agustream.ui.components.HeroActionState
 import com.misgus.agustream.ui.components.HeroGenres
 import com.misgus.agustream.ui.components.HeroSynopsis
@@ -326,7 +327,9 @@ private fun HeroContent(
             MediaTitle(state.name, state.logo, loading = !state.hasLoaded)
             Spacer(Modifier.height(AppSpacing.md))
             MetadataRow(metadataParts(state.releaseInfo, runtime = state.runtime, rating = state.imdbRating))
-            Spacer(Modifier.height(AppSpacing.lg))
+            // Discount the icon controls' transparent padding, so the row reads as
+            // close to the metadata and the synopsis as the text gaps do.
+            Spacer(Modifier.height(AppSpacing.lg - HeroActionRowInset))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg),
@@ -344,7 +347,7 @@ private fun HeroContent(
                     onRate = onRate,
                 )
             }
-            Spacer(Modifier.height(AppSpacing.lg))
+            Spacer(Modifier.height(AppSpacing.lg - HeroActionRowInset))
             // Show only the loaded description: the library preview can be a
             // different synopsis, and swapping it mid-view reads worse than a
             // short reserve. `minLines` keeps the layout stable.

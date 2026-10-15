@@ -254,7 +254,14 @@ so the atomic read/write/delete logic lives once.
   the primary colour so it still reads first, with a larger 36dp glyph layout so
   the play arrow's ~52%-height triangle matches the row's optical height — so the
   row reads play, save, "More info"; the detail screen keeps the labelled "Watch
-  Now" and adds rate and watched.
+  Now" and adds rate and watched. The spacers around an action row discount the
+  control's transparent vertical padding (`HeroActionRowInset`, in
+  `ui/components/HeroActions.kt`), the band between the 48dp touch target and its
+  smaller glyph, so the icon row reads as close to the text as the text-to-text
+  gaps do instead of 12dp wider; the detail hero applies it above and below its
+  row, and the phone copy applies it to the metadata-to-actions gap, where there
+  is no synopsis. The compact copy also keeps a larger bottom margin (64dp) so
+  the icon row does not crowd the paginator dots.
   Home's save is optimistic in `HomeViewModel` and reconciled through
   `LibraryRepository.changes`, so a title saved on either screen shows as saved
   on both.
