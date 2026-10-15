@@ -202,8 +202,11 @@ so the atomic read/write/delete logic lives once.
   (`HOME_HERO_SCREEN_FRACTION`, 55% of it), not from the window, so it keeps the
   height it has on a maximized window: resizing on either axis only reveals more
   or less of the artwork, and the sections below stay where they are. The
-  sections start right below the billboard with no overlap: the old upward pull over the hero's
-  faded bottom is gone, so a row can also be cut by the viewport edge. Section
+  first section is pulled up by `HOME_CONTENT_LIFT` (32dp) so it sits close to
+  the billboard's faded bottom instead of a full header gap below it; the lift is
+  a layout modifier that overlaps the hero and reports the reduced height, so the
+  scroll extent stays right, and it stays clear of the paginator and the copy at
+  the billboard's bottom. Section
   headers keep a fixed height too: the title sets it and the trailing see-all icon is centred
   on it and overflows into the padding, so the gap to the row below is the same
   with and without the button; an optional subtitle (the catalog's Movies /

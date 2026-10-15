@@ -33,6 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -190,6 +192,9 @@ private fun HomeContent(
                 } else {
                     HOME_HERO_MIN_HEIGHT
                 }
+            // Pull the rows up over the hero's faded bottom, so the first section
+            // does not sit a full header gap below it.
+            val liftPx = with(LocalDensity.current) { HOME_CONTENT_LIFT.roundToPx() }
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
             ) {
@@ -217,7 +222,7 @@ private fun HomeContent(
                         // No billboard to tuck under the status bar: reserve its height.
                         Spacer(Modifier.height(safeTopInset))
                 }
-                Column {
+                Column(modifier = Modifier.pullUp(liftPx)) {
                     if (state.continueWatching.isNotEmpty()) {
                         SectionHeader(title = stringResource(Res.string.home_continue_watching))
                         LazyRow(
@@ -345,6 +350,31 @@ private const val HOME_HERO_SCREEN_FRACTION = 0.55f
 
 /** Floor for the billboard height, so a short screen cannot shrink it under its copy. */
 private val HOME_HERO_MIN_HEIGHT = 480.dp
+
+/**
+ * How far the rows below the hero are raised, so the first section sits closer to
+ * the hero's faded bottom instead of a full header gap below it. `0.dp` restores
+ * the old spacing; larger values pull the rows further up and overlap the hero.
+ * It must stay clear of the paginator and the copy, which sit at the billboard's
+ * bottom (the phone's paginator is only ~32dp above the edge).
+ */
+private val HOME_CONTENT_LIFT = 32.dp
+
+/**
+ * Lifts the content by [px] pixels and shrinks the reported height by the same
+ * amount, so it overlaps the previous sibling instead of leaving a gap.
+ */
+private fun Modifier.pullUp(px: Int): Modifier =
+    if (px == 0) {
+        this
+    } else {
+        layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            layout(placeable.width, (placeable.height - px).coerceAtLeast(0)) {
+                placeable.place(0, -px)
+            }
+        }
+    }
 
 /** Extracts the four-digit year from a Stremio `releaseInfo` string. */
 internal fun yearOf(releaseInfo: String?): String? = releaseYear(releaseInfo)?.toString()

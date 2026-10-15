@@ -213,10 +213,12 @@ leer/escribir/borrar vive una sola vez.
   trabajo de la pantalla (`HOME_HERO_SCREEN_FRACTION`, 55% de ella), no de la
   ventana, así que conserva la altura que tiene en una ventana maximizada:
   redimensionar en cualquier eje solo revela más o menos artwork, y las
-  secciones de abajo se quedan en su sitio. Las secciones empiezan justo debajo
-  del billboard, sin solaparse: el antiguo tirón hacia arriba sobre el fondo
-  difuminado del hero se ha eliminado, así que una fila también puede quedar
-  cortada por el borde del viewport. Las cabeceras de sección mantienen también
+  secciones de abajo se quedan en su sitio. La primera sección se sube con
+  `HOME_CONTENT_LIFT` (32dp) para que quede cerca del fondo difuminado del
+  billboard en vez de a una cabecera entera por debajo; el lift es un modificador
+  de layout que solapa el hero y reporta la altura reducida, así que el alcance
+  del scroll sigue bien, y se mantiene libre del paginador y del copy en la parte
+  baja del billboard. Las cabeceras de sección mantienen también
   una altura fija: el título la fija y el
   icono "ver todo" de la derecha se centra en ella y desborda hacia el padding,
   así que el hueco con la fila de abajo es el mismo con y sin botón; un subtítulo
