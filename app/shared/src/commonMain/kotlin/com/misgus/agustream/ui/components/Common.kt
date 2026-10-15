@@ -224,6 +224,13 @@ fun SectionHeader(
 /** Sampling for photographic artwork: mipmapped bilinear avoids downscale aliasing. */
 val ArtworkFilterQuality = FilterQuality.Medium
 
+/**
+ * Sampling for a full-screen backdrop. It is drawn near its own scale, where
+ * mipmaps ([ArtworkFilterQuality]) cost more than they save, so plain bilinear
+ * is enough.
+ */
+val BackdropFilterQuality = FilterQuality.Low
+
 /** Sampling for text-like artwork (title logos): bicubic keeps the edges crisp. */
 val LogoFilterQuality = FilterQuality.High
 

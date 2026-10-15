@@ -283,7 +283,10 @@ leer/escribir/borrar vive una sola vez.
   rail en ventana ancha); las barras de navegación llevan su propio inset; el
   fondo del detalle, el reproductor y las puertas de onboarding/perfil pintan
   tras las barras mientras sus controles se sientan debajo; y el billboard de
-  Home se desplaza con el contenido (nunca se fija). En desktop el artwork abarca
+  Home se desplaza con el contenido (nunca se fija) en un `Column` +
+  `verticalScroll` plano, no un `LazyColumn`: el número de filas es pequeño y
+  acotado, y el reciclado lazy recompone cada fila (y libera el hero) al cruzar
+  el viewport, lo que cuesta más de lo que ahorra. En desktop el artwork abarca
   el 75% del ancho de la ventana, anclado a la esquina superior derecha de un
   marco de altura fija, y se recorta (`Crop`, alineado arriba); ensanchar la
   ventana revela más artwork en lugar de estirar el billboard, así que las
@@ -480,7 +483,10 @@ leer/escribir/borrar vive una sola vez.
   `FilterQuality`, porque Coil dibuja con `DefaultFilterQuality` (bilineal) y
   aliasea un póster reducido. El artwork usa `FilterQuality.Medium` (bilineal con
   mipmap), que es el muestreo correcto para minificación, y los logos usan
-  `FilterQuality.High` (bicúbico) para que sus bordes queden nítidos. En desktop
+  `FilterQuality.High` (bicúbico) para que sus bordes queden nítidos. Un backdrop
+  a pantalla completa usa `FilterQuality.Low` (bilineal plano,
+  `BackdropFilterQuality`): se dibuja cerca de su propia escala, donde los
+  mipmaps cuestan más de lo que aportan. En desktop
   el lado de decodificación también está corregido: el `SkiaImageDecoder` de Coil
   3.6.3 redimensiona con `SamplingMode.DEFAULT`, que Skiko define como vecino más
   cercano, así que `app/desktopApp` instala `MitchellImageDecoder`, un

@@ -47,7 +47,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import com.misgus.agustream.core.model.MetaPreview
 import com.misgus.agustream.ui.components.AppIconButton
-import com.misgus.agustream.ui.components.ArtworkFilterQuality
+import com.misgus.agustream.ui.components.BackdropFilterQuality
 import com.misgus.agustream.ui.components.HeroActionRow
 import com.misgus.agustream.ui.components.HeroActionState
 import com.misgus.agustream.ui.components.HeroSynopsis
@@ -400,7 +400,7 @@ private fun HeroSlide(
                 // centre, where the subject usually is.
                 contentScale = ContentScale.Crop,
                 alignment = if (wide) Alignment.TopCenter else Alignment.Center,
-                filterQuality = ArtworkFilterQuality,
+                filterQuality = BackdropFilterQuality,
                 onSuccess = { state ->
                     val image = state.result.image
                     if (image.width > 0 && image.height > 0) {

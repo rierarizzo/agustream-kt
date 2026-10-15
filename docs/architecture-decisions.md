@@ -267,7 +267,10 @@ so the atomic read/write/delete logic lives once.
   window); the navigation bars carry their own inset; the detail backdrop, the
   player and the onboarding/profile gates paint behind the bars while their
   controls sit below them; and the Home billboard scrolls with the content (it
-  is never pinned). On desktop the artwork spans 75% of the window width,
+  is never pinned) in a plain `Column` + `verticalScroll`, not a `LazyColumn`:
+  the row count is small and bounded, and lazy recycling re-composes each row
+  (and disposes the hero) as it crosses the viewport, which costs more than it
+  saves. On desktop the artwork spans 75% of the window width,
   pinned to the top-right corner of a frame with a fixed height, and cropped
   (`Crop`, top-aligned); widening the window reveals more artwork instead of
   stretching the billboard taller, so the sections below keep their place. It is
@@ -451,7 +454,9 @@ so the atomic read/write/delete logic lives once.
   Coil draws with `DefaultFilterQuality` (bilinear) and aliases a downscaled
   poster. Artwork uses `FilterQuality.Medium` (mipmapped bilinear), which is the
   right sampling for minification, and logos use `FilterQuality.High` (bicubic)
-  so their edges stay crisp. On desktop the decode side is fixed too: Coil
+  so their edges stay crisp. A full-screen backdrop uses `FilterQuality.Low`
+  (plain bilinear, `BackdropFilterQuality`): it is drawn near its own scale,
+  where mipmaps cost more than they save. On desktop the decode side is fixed too: Coil
   3.6.3's `SkiaImageDecoder` resizes with `SamplingMode.DEFAULT`, which Skiko
   defines as nearest-neighbour, so `app/desktopApp` installs
   `MitchellImageDecoder`, a cubic decoder that keeps Coil's size math and
