@@ -24,7 +24,6 @@ dependencies {
     implementation(libs.jna)
     implementation(libs.jna.platform)
     implementation(libs.logback)
-    implementation(libs.kotlinx.serialization.json)
 
     // Desktop playback engine: mediamp's mpv backend renders the video into the
     // Compose canvas, so the Compose controls overlay it in the same window.
