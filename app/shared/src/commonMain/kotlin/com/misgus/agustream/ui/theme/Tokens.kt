@@ -117,15 +117,6 @@ object AppColors {
     /** Dark scrim over media, used behind badges and progress tracks. */
     val mediaScrim = Color.Black.copy(alpha = 0.54f)
 
-    /**
-     * Flat dim over a hero's artwork, so it reads darker than the raw image.
-     *
-     * The wide billboard gets it from the tail of `heroWideLeft`; a phone, which
-     * has no edge scrim, paints it on its own.
-     */
-    val heroImageDim: Color
-        @Composable get() = LocalBrandPalette.current.background.copy(alpha = AppAlpha.HERO_IMAGE_DIM)
-
     /** Hero carousel dots over artwork: muted grey when idle, bright when active. */
     val heroIndicatorInactive: Color
         @Composable get() = LocalBrandPalette.current.indicator
@@ -391,17 +382,22 @@ object AppScrim {
         }
 
     /**
-     * Phone billboard, bottom-up: like [heroBottom], but the fade starts higher
-     * so the taller, centred copy sits deeper in the dark and the year, rating
-     * and genre line stay legible over the artwork.
+     * Phone billboard, bottom-up. Folds the flat [AppAlpha.HERO_IMAGE_DIM] that
+     * darkens the whole artwork and the bottom fade (which starts higher than
+     * [heroBottom]'s, so the taller, centred copy sits deeper in the dark) into a
+     * single gradient, darkening the artwork in one full-screen fill instead of
+     * two. The mid stop is the composite alpha `1 - (1 - dim)(1 - mid)`, so the
+     * result matches the stacked overlays it replaces.
      */
     val heroBottomCompact: Brush
         @Composable get() {
             val background = LocalBrandPalette.current.background
+            val dim = background.copy(alpha = AppAlpha.HERO_IMAGE_DIM)
+            val mid = background.copy(alpha = 1f - (1f - AppAlpha.HERO_IMAGE_DIM) * (1f - AppAlpha.HERO_BOTTOM_MID))
             return Brush.verticalGradient(
-                0f to Color.Transparent,
-                0.35f to Color.Transparent,
-                0.78f to background.copy(alpha = AppAlpha.HERO_BOTTOM_MID),
+                0f to dim,
+                0.35f to dim,
+                0.78f to mid,
                 1f to background,
             )
         }

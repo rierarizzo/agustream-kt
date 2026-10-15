@@ -279,8 +279,9 @@ so the atomic read/write/delete logic lives once.
   `AppAlpha.HERO_IMAGE_DIM` kept over the artwork so it reads darker than the
   raw image. On a phone the billboard spans the full width and crops the same
   backdrop into a band 1.3 times its width (centre-aligned) instead of showing
-  the portrait poster whole, and washes it with the same flat dim as the wide one
-  plus a bottom fade that starts higher than the wide one's, so the taller,
+  the portrait poster whole, and washes it with the same flat dim and a bottom
+  fade that starts higher than the wide one's, both folded into a single
+  gradient so the artwork is darkened in one full-screen fill, so the taller,
   centred copy sits deeper in the dark: the copy is
   centred horizontally and anchored to the bottom edge, the title always prefers
   the logo

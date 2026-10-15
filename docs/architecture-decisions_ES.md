@@ -296,9 +296,10 @@ leer/escribir/borrar vive una sola vez.
   que se lea más oscuro que la imagen cruda. En un teléfono el billboard abarca
   el ancho completo y recorta el mismo backdrop en una banda 1.3 veces su ancho
   (alineada al centro) en vez de mostrar el póster vertical entero, y lo lava con
-  el mismo dim plano que el ancho más un fundido inferior que arranca más arriba
-  que el del ancho, para que el copy más alto y centrado quede más metido en lo
-  oscuro: el copy queda centrado
+  el mismo dim plano y un fundido inferior que arranca más arriba que el del
+  ancho, ambos fundidos en un solo gradiente, así que el artwork se oscurece en
+  un único fill a pantalla completa, para que el copy más alto y centrado quede
+  más metido en lo oscuro: el copy queda centrado
   en horizontal y anclado al
   borde inferior, el título prefiere siempre el logo
   (`AppLogoSize.compactHeight`, el texto

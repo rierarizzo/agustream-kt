@@ -387,9 +387,10 @@ private fun HeroSlide(
     // The artwork cross-fades, but the copy slides a little against the swipe,
     // so the user can read whether the change is going forward or back.
     val slidePx = with(LocalDensity.current) { HERO_CONTENT_SLIDE_MAX.toPx() }
-    // The background shows through if the artwork never loads, so a slow or
-    // missing image never leaves a bright gap.
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    // The hero box behind the pager already paints the page background, so a
+    // slow or missing image never leaves a bright gap without a second
+    // full-screen fill per composed page.
+    Box(Modifier.fillMaxSize()) {
         if (!backdrop.isNullOrEmpty()) {
             AsyncImage(
                 model = backdrop,
@@ -419,16 +420,16 @@ private fun HeroSlide(
             )
         }
         // Washes over the artwork, in draw order. The last child paints on top,
-        // and every one ends on the page background so the hero has no seam. Both
-        // frames dim the whole artwork; the wide billboard adds its edge scrims,
-        // while a phone keeps only the bottom fade, which the copy sits in.
+        // and every one ends on the page background so the hero has no seam. The
+        // wide billboard needs its edge scrims in different directions; a phone
+        // folds its flat dim and bottom fade into one gradient, so the artwork is
+        // darkened in a single full-screen fill instead of two.
         if (wide) {
             Box(Modifier.fillMaxSize().background(AppScrim.heroWideLeft))
             Box(Modifier.fillMaxSize().background(AppScrim.heroBottom))
             Box(Modifier.fillMaxSize().background(AppScrim.heroTop))
             Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
         } else {
-            Box(Modifier.fillMaxSize().background(AppColors.heroImageDim))
             Box(Modifier.fillMaxSize().background(AppScrim.heroBottomCompact))
         }
         HeroCopy(
