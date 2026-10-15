@@ -350,7 +350,10 @@ leer/escribir/borrar vive una sola vez.
   (`HERO_BACKDROP_PARALLAX`, 5.5%) con un ligero overscan (`HERO_BACKDROP_SCALE`,
   1.14), así que los dos slides se leen como capas en vez de una doble exposición
   plana. La página asentada se dibuja última entre las capas, para que sus
-  botones posean los hits. En ventana ancha el rail flota
+  botones posean los hits, y un drag que arranca en uno de esos botones se
+  reenvía al pager desde la fila de acciones (las capas de copy están sobre el
+  pager, y los hermanos no comparten el hit path), así que el swipe sigue
+  funcionando ahí mientras un tap cae al botón. En ventana ancha el rail flota
   sobre el contenido, que reserva su ancho, así que la navegación nunca lo
   solapa.
 - **Tipografía.** Inter se incluye mediante Compose Resources en `:app:shared` y

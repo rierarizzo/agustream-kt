@@ -4,6 +4,8 @@ import agustream.app.shared.generated.resources.Res
 import agustream.app.shared.generated.resources.action_watch_now
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -31,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -38,6 +41,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
@@ -68,7 +74,9 @@ import com.misgus.agustream.ui.theme.WindowSize
 import com.misgus.agustream.ui.theme.motionSpring
 import com.misgus.agustream.ui.theme.motionTween
 import com.misgus.agustream.ui.theme.screenPadding
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
@@ -154,6 +162,13 @@ private val HERO_CONTENT_SLIDE_MAX = 64.dp
  */
 private const val HERO_BACKDROP_PARALLAX = 0.055f
 private const val HERO_BACKDROP_SCALE = 1.14f
+
+/**
+ * How far a drag on the action row must travel, or how fast it must fling, to
+ * commit to the next slide instead of snapping back.
+ */
+private val HERO_SWIPE_THRESHOLD = 48.dp
+private const val HERO_SWIPE_VELOCITY_THRESHOLD = 300f
 
 /**
  * How long a slide stays before the carousel advances to the next one.
@@ -309,6 +324,7 @@ private fun HeroCarousel(
     val density = LocalDensity.current
     val motionEnabled = LocalMotionEnabled.current
     val snapSpec = motionSpring()
+    val scope = rememberCoroutineScope()
     // Monotonic mark of the last manual interaction; auto-advance holds off until
     // a full cooldown has passed, then resumes once the user goes idle.
     var lastManualInteraction by remember(pagerState) { mutableStateOf<TimeMark?>(null) }
@@ -408,6 +424,9 @@ private fun HeroCarousel(
                         onOpen = { onOpen(items[page % items.size]) },
                         onPlay = { onPlay(items[page % items.size]) },
                         onToggleSaved = { onToggleSaved(items[page % items.size]) },
+                        pagerState = pagerState,
+                        scope = scope,
+                        onManualScroll = { lastManualInteraction = TimeSource.Monotonic.markNow() },
                         modifier =
                             Modifier.graphicsLayer {
                                 // Deferred to the layer phase: the offset changes
@@ -543,6 +562,9 @@ private fun BoxScope.HeroCopy(
     onOpen: () -> Unit,
     onPlay: () -> Unit,
     onToggleSaved: () -> Unit,
+    pagerState: PagerState,
+    scope: CoroutineScope,
+    onManualScroll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val horizontalPadding = LocalWindowSize.current.screenPadding
@@ -577,6 +599,7 @@ private fun BoxScope.HeroCopy(
             Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
         }
         Row(
+            modifier = Modifier.heroActionDrag(pagerState, scope, onManualScroll),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
         ) {
@@ -595,6 +618,73 @@ private fun BoxScope.HeroCopy(
         }
     }
 }
+
+/**
+ * Forwards a horizontal drag on the action row to the pager.
+ *
+ * The copy layers sit above the pager, so a drag that starts on one of their
+ * buttons is caught by the button and never reaches the pager: siblings do not
+ * share the hit path. This runs in the initial pass, drives the pager with the
+ * raw delta and snaps on release, while a tap still falls through to the button.
+ */
+private fun Modifier.heroActionDrag(
+    pagerState: PagerState,
+    scope: CoroutineScope,
+    onManualScroll: () -> Unit,
+): Modifier =
+    if (pagerState.pageCount <= 1) {
+        this
+    } else {
+        pointerInput(pagerState) {
+            awaitEachGesture {
+                val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                val thresholdPx = HERO_SWIPE_THRESHOLD.toPx()
+                val velocity = VelocityTracker().apply { addPosition(down.uptimeMillis, down.position) }
+                val startPage = pagerState.currentPage
+                var totalX = 0f
+                var totalY = 0f
+                var dragging = false
+                while (true) {
+                    val event = awaitPointerEvent(pass = PointerEventPass.Initial)
+                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                    velocity.addPosition(change.uptimeMillis, change.position)
+                    if (!change.pressed) {
+                        if (dragging) {
+                            onManualScroll()
+                            val flung = velocity.calculateVelocity().x.absoluteValue > HERO_SWIPE_VELOCITY_THRESHOLD
+                            val committed = totalX.absoluteValue > thresholdPx || flung
+                            val target =
+                                when {
+                                    !committed -> startPage
+                                    totalX > 0f -> startPage - 1
+                                    totalX < 0f -> startPage + 1
+                                    else -> startPage
+                                }
+                            scope.launch { pagerState.animateScrollToPage(target) }
+                        }
+                        break
+                    }
+                    val delta = change.position - change.previousPosition
+                    totalX += delta.x
+                    totalY += delta.y
+                    if (!dragging) {
+                        val horizontal = totalX.absoluteValue > viewConfiguration.touchSlop && totalX.absoluteValue > totalY.absoluteValue
+                        val vertical = totalY.absoluteValue > viewConfiguration.touchSlop && totalY.absoluteValue > totalX.absoluteValue
+                        when {
+                            vertical -> break
+                            horizontal -> {
+                                dragging = true
+                                onManualScroll()
+                            }
+                            else -> continue
+                        }
+                    }
+                    pagerState.dispatchRawDelta(-delta.x)
+                    change.consume()
+                }
+            }
+        }
+    }
 
 /** Carousel paginator: an equal dot per page, grey when idle and white when active. */
 @Composable

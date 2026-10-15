@@ -332,7 +332,10 @@ so the atomic read/write/delete logic lives once.
   slight overscan (`HERO_BACKDROP_SCALE`, 1.14), so the two slides read as layers
   instead of a flat double exposure. The settled page is drawn last among the
   layers, so its buttons
-  own the hits. On a
+  own the hits, and a drag that starts on one of those buttons is forwarded to
+  the pager from the action row (the copy layers sit above the pager, and
+  siblings do not share the hit path), so the swipe still works there while a tap
+  falls through. On a
   wide window the rail floats over the content,
   which reserves its width, so the navigation never overlaps it.
 - **Typography.** Inter is bundled through Compose Resources in `:app:shared`
