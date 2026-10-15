@@ -34,7 +34,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -284,7 +283,7 @@ private fun DetailBackdrop(
         animationSpec = motionTween(durationMillis = AppMotion.SLOW),
         label = "backdropAlpha",
     )
-    Box(Modifier.fillMaxSize().blur(MAX_BLUR * fade)) {
+    Box(Modifier.fillMaxSize()) {
         // Dark base so a slow or failed image never shows a bright gap; the
         // artwork fills the box on top when it can.
         Box(Modifier.fillMaxSize().background(AppScrim.detailBackdrop))
@@ -298,9 +297,10 @@ private fun DetailBackdrop(
         }
         Box(Modifier.fillMaxSize().background(AppScrim.mediaHorizontal))
         Box(Modifier.fillMaxSize().background(AppScrim.mediaBottom))
-        // Scroll-linked darkening and a light blur. It covers the whole
-        // viewport, so the artwork stays behind the content all the way down,
-        // never fully black.
+        // Scroll-linked darkening over the whole viewport, so the artwork stays
+        // behind the content all the way down, never fully black. No blur: a
+        // full-viewport blur re-renders the whole screen on every scroll frame
+        // (and is ignored below Android 12), so the artwork only darkens.
         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = HERO_FADE_MAX * fade)))
     }
 }
@@ -366,9 +366,6 @@ private val TOP_SCRIM_HEIGHT = 96.dp
 
 /** Taller hero is capped here on an expanded window, so the content stays close. */
 private val DETAIL_HERO_MAX_HEIGHT = 560.dp
-
-/** Blur applied to the artwork at the end of the page, in dp. */
-private val MAX_BLUR = 14.dp
 
 /** How dark the artwork gets at the end of the page. */
 private const val HERO_FADE_MAX = 0.9f

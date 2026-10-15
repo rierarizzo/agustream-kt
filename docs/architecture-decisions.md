@@ -194,7 +194,10 @@ so the atomic read/write/delete logic lives once.
   (the user's small / default / large choice still applies), the Home hero swaps
   the wide billboard for the poster crop without the title logo, the detail
   billboard is capped on an expanded window so the content stays close, and the
-  streams dialog clamps to the app window because it opens its own. The wide
+  streams dialog clamps to the app window because it opens its own. The detail
+  backdrop only darkens the artwork, with no blur: a full-viewport blur re-renders
+  the whole screen on every scroll frame and is ignored below Android 12, so the
+  scroll-linked effect is a plain scrim instead. The wide
   Home billboard takes its height from the screen work area
   (`HOME_HERO_SCREEN_FRACTION`, 55% of it), not from the window, so it keeps the
   height it has on a maximized window: resizing on either axis only reveals more

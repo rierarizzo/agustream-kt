@@ -206,7 +206,10 @@ leer/escribir/borrar vive una sola vez.
   hero de Home cambia el billboard ancho por el recorte del póster sin el logo
   del título, el billboard de detalle se limita en ventana expandida para que el
   contenido quede cerca, y el diálogo de streams se ajusta a la ventana de la app
-  porque abre la suya. El billboard ancho de Home toma su altura del área de
+  porque abre la suya. El fondo del detalle solo oscurece el artwork, sin blur:
+  un blur a pantalla completa re-renderiza toda la pantalla en cada frame de
+  scroll y se ignora por debajo de Android 12, así que el efecto ligado al scroll
+  es un scrim plano. El billboard ancho de Home toma su altura del área de
   trabajo de la pantalla (`HOME_HERO_SCREEN_FRACTION`, 55% de ella), no de la
   ventana, así que conserva la altura que tiene en una ventana maximizada:
   redimensionar en cualquier eje solo revela más o menos artwork, y las
