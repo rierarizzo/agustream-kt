@@ -68,3 +68,11 @@ Development shortcuts (environment variables, read for the run only):
 - Stremio addon protocol: `https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/protocol.md`
 - Nuvio backend (self-host): `https://github.com/NuvioMedia/self-host`
 - Compose Multiplatform: `https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-multiplatform.html`
+
+## License
+
+Pengu is licensed under the [GNU General Public License v3.0](LICENSE)
+(SPDX: `GPL-3.0`).
+
+Bundled third-party components (fonts, icons and the libmpv library used for
+playback) keep their own licenses; see [`licenses/`](licenses/README.md).
