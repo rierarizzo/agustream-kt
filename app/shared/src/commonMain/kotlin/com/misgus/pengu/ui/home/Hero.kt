@@ -59,7 +59,7 @@ internal const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
  *
  * A phone cannot show the wide desktop composition, so it crops the same
  * backdrop into a tall band: 1.3 keeps the centre of the artwork, where the
- * subject usually is, and gives the centred logo and actions room to breathe.
+ * subject usually is, and gives the logo and actions room to breathe.
  */
 internal const val HERO_COMPACT_HEIGHT_RATIO = 1.3f
 
@@ -178,9 +178,9 @@ private fun heroStartingPage(itemCount: Int): Int = (Int.MAX_VALUE / 2) - (Int.M
  * Compact / Android billboard: in the scroll flow, full-bleed and cropped.
  *
  * A phone cannot show the wide desktop composition, so it crops the same
- * backdrop into a tall band, centres the logo and the actions, washes it only
- * with a bottom fade, and drops the synopsis, which has no room to read on a
- * small screen.
+ * backdrop into a tall band, left-aligns the copy like the detail billboard and
+ * the rest of the content, washes it only with a bottom fade, and drops the
+ * synopsis, which has no room to read on a small screen.
  */
 @Composable
 internal fun Hero(

@@ -325,13 +325,13 @@ leer/escribir/borrar vive una sola vez.
   (alineada al centro) en vez de mostrar el póster vertical entero, y lo lava con
   el mismo dim plano y un fundido inferior que arranca más arriba que el del
   ancho, ambos fundidos en un solo gradiente, así que el artwork se oscurece en
-  un único fill a pantalla completa, para que el copy más alto y centrado quede
-  más metido en lo oscuro: el copy queda centrado
-  en horizontal y anclado al
+  un único fill a pantalla completa, para que el copy más alto quede
+  más metido en lo oscuro: el copy queda alineado
+  a la izquierda y anclado al
   borde inferior, el título prefiere siempre el logo
   (escalado al ancho del copy por `AppLogoSize.opticalHeight`, el texto
   solo como reserva) y la sinopsis se omite, porque no hay sitio para leerla bajo
-  un logo centrado. En ventana ancha la columna de copy
+  el logo. En ventana ancha la columna de copy
   está anclada abajo a 100dp del borde del hero, hasta 840dp de ancho, y comparte
   el padding izquierdo de las secciones. La sinopsis es un teaser — limitada a la
   medida compartida de 720dp (`AppSynopsis.maxWidth`, unos 80 caracteres), tres

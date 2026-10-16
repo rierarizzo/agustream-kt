@@ -411,7 +411,7 @@ object AppScrim {
     /**
      * Phone billboard, bottom-up. Folds the flat [AppAlpha.HERO_IMAGE_DIM] that
      * darkens the whole artwork and the bottom fade (which starts higher than
-     * [heroBottom]'s, so the taller, centred copy sits deeper in the dark) into a
+     * [heroBottom]'s, so the taller copy sits deeper in the dark) into a
      * single gradient, darkening the artwork in one full-screen fill instead of
      * two. The mid stop is the composite alpha `1 - (1 - dim)(1 - mid)`, so the
      * result matches the stacked overlays it replaces.

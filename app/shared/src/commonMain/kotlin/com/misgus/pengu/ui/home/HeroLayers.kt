@@ -144,25 +144,25 @@ internal fun BoxScope.HeroCopy(
     Column(
         modifier =
             modifier
-                .align(if (compact) Alignment.BottomCenter else Alignment.BottomStart)
+                .align(Alignment.BottomStart)
                 .padding(
                     start = horizontalPadding,
                     end = horizontalPadding,
                     bottom = if (compact) HERO_COMPACT_CONTENT_BOTTOM_MARGIN else HERO_CONTENT_BOTTOM_MARGIN,
                 ).widthIn(max = HERO_CONTENT_MAX_WIDTH),
-        horizontalAlignment = if (compact) Alignment.CenterHorizontally else Alignment.Start,
+        horizontalAlignment = Alignment.Start,
     ) {
         MediaTitle(
             name = item.name,
             logo = item.logo,
             logoHeight = AppLogoSize.homeHeight,
-            textAlign = if (compact) TextAlign.Center else TextAlign.Start,
+            textAlign = TextAlign.Start,
         )
         Spacer(Modifier.height(if (compact) HERO_COMPACT_LOGO_METADATA_SPACE else HERO_LOGO_METADATA_SPACE))
         MetadataRow(metadataParts(item.releaseInfo, genres = item.genres, rating = item.imdbRating, contentType = item.type))
         if (compact) {
             // No synopsis on a phone: there is no room to read it under the
-            // centred logo, so the actions follow the metadata directly.
+            // logo, so the actions follow the metadata directly.
             Spacer(Modifier.height(HERO_COMPACT_METADATA_ACTIONS_SPACE))
         } else {
             Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))

@@ -306,12 +306,12 @@ so the atomic read/write/delete logic lives once.
   backdrop into a band 1.3 times its width (centre-aligned) instead of showing
   the portrait poster whole, and washes it with the same flat dim and a bottom
   fade that starts higher than the wide one's, both folded into a single
-  gradient so the artwork is darkened in one full-screen fill, so the taller,
-  centred copy sits deeper in the dark: the copy is
-  centred horizontally and anchored to the bottom edge, the title always prefers
+  gradient so the artwork is darkened in one full-screen fill, so the taller
+  copy sits deeper in the dark: the copy is
+  left-aligned and anchored to the bottom edge, the title always prefers
   the logo (scaled to the copy width by `AppLogoSize.opticalHeight`, text only as
   a fallback) and the synopsis is
-  dropped, since there is no room to read it under a centred logo. On a wide
+  dropped, since there is no room to read it under the logo. On a wide
   window the copy column is
   bottom-anchored 100dp above the hero edge, up to 840dp wide, and shares the
   sections' left padding. The synopsis is a teaser — capped at the shared

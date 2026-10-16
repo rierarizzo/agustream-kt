@@ -45,7 +45,7 @@ fun MediaTitle(
     logoHeight: Dp? = null,
     /** While the metadata loads, reserve the logo's space without drawing anything. */
     loading: Boolean = false,
-    /** Alignment of the name when it falls back to text; a logo centres itself. */
+    /** Alignment of the name when it falls back to text; the logo follows the column. */
     textAlign: TextAlign = TextAlign.Start,
 ) {
     // The logo box: a fixed optical height on a wide window, scaled to the copy
