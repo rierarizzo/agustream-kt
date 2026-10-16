@@ -532,24 +532,30 @@ so the atomic read/write/delete logic lives once.
   Library grid. A grid uses the size as its minimum cell width and a rail derives its
   height from it (`width / 0.58`), so the card aspect is the same everywhere and
   every surface can be resized from a single key.
-- **Window**: the app keeps the **native window decoration** (title bar,
-  minimize, maximize, close and resizing are OS-managed), which avoids the
-  glitches a custom title bar can cause on Windows. Compose Desktop draws its
-  own resizers only when the window is undecorated, so nothing custom is needed.
-  The window opens at 1280x720 and that is also its **minimum** (set as
-  `minimumSize` on the AWT window), so the OS lets it grow and maximise but
-  never shrink below the size it started with.
-  The only window behaviour routed through `WindowController` is **fullscreen**,
-  which the player owns; the previous placement is restored on exit. It also
-  exposes the screen work-area height, the reference the Home billboard is sized
-  from. The app
-  keeps the **native window decoration** and only themes it: on Windows it opts
-  into the DWM immersive dark mode and, on Windows 11, paints the caption, the
-  text and the border from `AppWindowChrome` and forces rounded corners
-  (`WindowAppearance.kt`), because AWT does not follow the OS dark mode on its
-  own. Keeping the native frame is what preserves snap, maximise, the window
-  animations and high contrast, and it matches on Linux, where the window
-  manager draws the decoration.
+- **Window**: the desktop window keeps its **native frame** (`WS_CAPTION`,
+  `WS_THICKFRAME`) but erases the OS-drawn non-client area, so the Compose title
+  bar is the caption. On Windows a native `WindowProc` (JNA, via
+  `SetWindowLongPtr`) answers `WM_NCCALCSIZE` — return `0`, shrinking the client
+  rect by the frame metrics so a maximized window does not bleed — and
+  `WM_NCHITTEST`: `HTCAPTION` over the bar, `HTMINBUTTON`/`HTMAXBUTTON`/`HTCLOSE`
+  over the buttons and `HTLEFT…` over the edges. The caption buttons take
+  priority over the top resize border, so the top strip over them still lights
+  them up (and the full-height buttons reach the window's top edge) instead of
+  resizing. That is what preserves native
+  drag, Aero Snap, maximize, resize and the Windows 11 Snap Layouts flyout. The
+  Compose content lives in a Skia child window, so a second procedure hooked on
+  it returns the button hit results and mirrors the non-client mouse messages
+  back into the content: the Compose buttons animate and handle the click while
+  the parent owns the caption and the borders. The frame (`WindowsWindowProc` in
+  `:app:desktopApp`) follows Animeko's implementation, trimmed to the pieces the
+  app needs (no touch/pen bridge, no Windows 10 glass, no per-node Compose hit
+  test). `AppSizes.titleBarHeight` and `AppWindowChrome` feed the bar; the window
+  opens at 1280x720 and that is also its **minimum** (set as `minimumSize` on the
+  AWT window). Keeping the native frame is what preserves snap, maximize, the
+  window animations and high contrast. macOS and Linux keep the native
+  decoration; only **fullscreen** is routed through `WindowController` there,
+  which the player owns, and it exposes the screen work-area height the Home
+  billboard is sized from.
 
 ## Player
 
@@ -592,18 +598,15 @@ hides the fullscreen toggle where the window cannot fullscreen itself
 (`WindowController.supportsFullScreen`), which is Android; desktop keeps it.
 
 On desktop, fullscreen is a user toggle routed through `WindowController`, and
-leaving the player always exits it so the navigation returns. The controller
-drives the native `ComposeWindow` directly, because Compose's `Maximized`
-transition never clears its fullscreen bit, and exclusive fullscreen clears the
-maximize bit on entry without restoring it on exit: the window is taken out of
-fullscreen through `Floating` first and its previous placement is re-applied
-afterwards. Leaving fullscreen also nudges the window size by a pixel and back
-(in two dispatches), because the exclusive-fullscreen resize does not re-layout
-the Compose scene: without it the player controls keep the fullscreen size until
-the window is resized by hand. The nudge runs before re-maximizing, because
-`setSize` on a maximized frame unmaximizes it. These steps are workarounds for
-Compose Desktop / AWT behaviour, isolated in the composition root, and can be
-simplified if it is fixed upstream.
+leaving the player always exits it so the navigation returns. On Windows the
+controller flips the window styles through a native helper
+(`WindowsWindowUtils.setUndecoratedFullscreen`): it saves the styles, rect and
+maximized state, removes `WS_CAPTION`/`WS_THICKFRAME`, resizes to the monitor and
+restores everything on exit. Because the frame stays native there is no exclusive
+fullscreen, no maximize dance and no pixel nudge; the title bar simply leaves the
+composition while fullscreen. The other desktop targets still use the
+`Floating`/exclusive workarounds, which can be removed once they move to the
+custom frame too.
 
 Background playback is not wired yet, so `MainActivity.onStop` pauses the player
 unless the stop is a configuration change; that callback is the seam where a
@@ -663,20 +666,6 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   Linux build adds `mediamp-mpv-runtime-linux-x64` and
   `mediamp-ffmpeg-runtime-linux-x64` next to them. The Linux runtime is GPL-3.0,
   not LGPL, so the distribution's licensing has to account for it.
-- **Undecorated window with a custom title bar — priority.** Animeko, the
-  reference Compose Multiplatform app, keeps its window borderless and draws its
-  own title bar: a `WindowProc` handles `WM_NCCALCSIZE`/`WM_NCHITTEST` for the
-  frame and the drag/resize, and Compose renders the title and the window
-  buttons. That is why its borderless fullscreen is a plain style toggle with no
-  workarounds: there are no native insets to go stale, and the frame owns the
-  resize. Our window keeps the native decoration, so removing it for fullscreen
-  leaves AWT's cached insets behind and the Compose scene does not re-layout (the
-  exclusive path only works because `fullScreenWindow = null` resets that state).
-  Moving the desktop window to the same model — undecorated window, custom title
-  bar, and the DWM theming replaced by it — removes the fullscreen nudge, the
-  maximize dance and the exclusive mode in one move. It is the first desktop
-  window item to pick up.
-
 ### Product / UX
 
 - **Mobile polish and release hardening.** The compact layout works, but it is

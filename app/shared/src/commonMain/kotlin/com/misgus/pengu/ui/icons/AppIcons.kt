@@ -8,7 +8,8 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.dp
 
 /**
- * Icon set vendored from Material Icons, Round theme (Apache License 2.0).
+ * Icon set vendored from Material Icons, Round theme (Apache License 2.0),
+ * plus the window-caption glyphs from Fluent UI System Icons (MIT).
  *
  * Only the glyphs the app uses are kept, so the UI does not depend on
  * `material-icons-extended`. Each vector is built from the corresponding
@@ -79,6 +80,19 @@ object AppIcons {
             val Logout: ImageVector by lazy { rounded("Logout", LOGOUT, autoMirror = true) }
         }
     }
+
+    /**
+     * Window caption glyphs, vendored from Fluent UI System Icons (MIT), the set
+     * Windows 11 uses. They share one 48-unit viewport and a uniform stroke, so
+     * minimize/maximize/close read as a consistent set (the Material glyphs do
+     * not). Used by the desktop title bar only.
+     */
+    object Window {
+        val Minimize: ImageVector by lazy { rounded("FluentSubtract", FLUENT_SUBTRACT, viewport = 48f) }
+        val Maximize: ImageVector by lazy { rounded("FluentSquare", FLUENT_SQUARE, viewport = 48f) }
+        val Restore: ImageVector by lazy { rounded("FluentSquareMultiple", FLUENT_SQUARE_MULTIPLE, viewport = 48f) }
+        val Close: ImageVector by lazy { rounded("FluentDismiss", FLUENT_DISMISS, viewport = 48f) }
+    }
 }
 
 /**
@@ -91,14 +105,15 @@ private fun rounded(
     pathData: String,
     fillType: PathFillType = PathFillType.NonZero,
     autoMirror: Boolean = false,
+    viewport: Float = 24f,
 ): ImageVector =
     ImageVector
         .Builder(
             name = name,
-            defaultWidth = 24.dp,
-            defaultHeight = 24.dp,
-            viewportWidth = 24f,
-            viewportHeight = 24f,
+            defaultWidth = viewport.dp,
+            defaultHeight = viewport.dp,
+            viewportWidth = viewport,
+            viewportHeight = viewport,
             autoMirror = autoMirror,
         ).apply {
             addPath(
@@ -113,6 +128,26 @@ private const val ARROW_BACK =
         ".996.996 0 1 0 1.41-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"
 private const val ARROW_DROP_DOWN =
     "m8.71 11.71 2.59 2.59c.39.39 1.02.39 1.41 0l2.59-2.59c.63-.63.18-1.71-.71-1.71H9.41c-.89 0-1.33 1.08-.7 1.71z"
+private const val FLUENT_SUBTRACT =
+    "M6 23.5C6 22.6716 6.67157 22 7.5 22H40.5C41.3284 22 42 22.6716 42 23.5C42 24.3284 41.3284 25 40.5 25H7.5" +
+        "C6.67157 25 6 24.3284 6 23.5Z"
+private const val FLUENT_SQUARE =
+    "M6 12.25C6 8.79822 8.79822 6 12.25 6H35.75C39.2018 6 42 8.79822 42 12.25V35.75C42 39.2018 39.2018 42 35.75 42H12.25" +
+        "C8.79822 42 6 39.2018 6 35.75V12.25ZM12.25 8.5C10.1789 8.5 8.5 10.1789 8.5 12.25V35.75C8.5 37.8211 10.1789 39.5" +
+        " 12.25 39.5H35.75C37.8211 39.5 39.5 37.8211 39.5 35.75V12.25C39.5 10.1789 37.8211 8.5 35.75 8.5H12.25Z"
+private const val FLUENT_SQUARE_MULTIPLE =
+    "M16.4974 10H13.9941C14.1254 6.66412 16.8712 4 20.2392 4H34.7392C39.8479 4 43.9892 8.14137 43.9892 13.25V27.75" +
+        "C43.9892 31.1144 41.3309 33.8579 38 33.9947V31.4911C39.9494 31.3572 41.4892 29.7334 41.4892 27.75V13.25" +
+        "C41.4892 9.52208 38.4672 6.5 34.7392 6.5H20.2392C18.2522 6.5 16.6261 8.04549 16.4974 10ZM10.25 12" +
+        "C6.79822 12 4 14.7982 4 18.25V37.75C4 41.2018 6.79822 44 10.25 44H29.75C33.2018 44 36 41.2018 36 37.75V18.25" +
+        "C36 14.7982 33.2018 12 29.75 12H10.25ZM6.5 18.25C6.5 16.1789 8.17893 14.5 10.25 14.5H29.75C31.8211 14.5 33.5 16.1789" +
+        " 33.5 18.25V37.75C33.5 39.8211 31.8211 41.5 29.75 41.5H10.25C8.17893 41.5 6.5 39.8211 6.5 37.75V18.25Z"
+private const val FLUENT_DISMISS =
+    "M8.38388 6.61612C7.89573 6.12796 7.10427 6.12796 6.61612 6.61612C6.12796 7.10427 6.12796 7.89573 6.61612 8.38388" +
+        "L22.2322 24L6.6164 39.6158C6.12824 40.104 6.12824 40.8954 6.6164 41.3836C7.10455 41.8718 7.89601 41.8718 8.38416 41.3836" +
+        "L24 25.7678L39.6153 41.3831C40.1035 41.8713 40.895 41.8713 41.3831 41.3831C41.8713 40.895 41.8713 40.1035 41.3831 39.6153" +
+        "L25.7678 24L41.3834 8.38437C41.8716 7.89622 41.8716 7.10476 41.3834 6.6166C40.8952 6.12845 40.1038 6.12845 39.6156 6.6166" +
+        "L24 22.2322L8.38388 6.61612Z"
 private const val AUDIOTRACK =
     "M12 5v8.55c-.94-.54-2.1-.75-3.33-.32-1.34.48-2.37 1.67-2.61 3.07a4.007 4.007 0 0 0 4.59 4.65c1.96-.31 3.35-2.1" +
         "1 3.35-4.1V7h2c1.1 0 2-.9 2-2s-.9-2-2-2h-2c-1.1 0-2 .9-2 2z"

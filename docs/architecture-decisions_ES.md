@@ -571,25 +571,32 @@ leer/escribir/borrar vive una sola vez.
   mínimo de celda y un raíl deriva su altura de él (`width / 0.58`), así que el
   aspect de la tarjeta es el mismo en todas partes y cada superficie se puede
   redimensionar desde una sola clave.
-- **Ventana**: la app mantiene la **decoración nativa de ventana** (barra de
-  título, minimizar, maximizar, cerrar y redimensionar son gestionados por el
-  SO), lo que evita los glitches que una barra de título custom puede causar en
-  Windows. Compose Desktop dibuja sus propios resizers solo cuando la ventana no
-  tiene decoración, así que no hace falta nada custom. La ventana se abre a
-  1280x720 y ese es también su **mínimo** (fijado como `minimumSize` en la
-  ventana AWT), así que el SO la deja crecer y maximizar pero nunca encoger por
-  debajo del tamaño con el que empezó. El único comportamiento de ventana
-  enrutado por `WindowController` es **pantalla completa**, que posee el
-  reproductor; la colocación anterior se restaura al salir. También expone la
-  altura del área de trabajo de la pantalla, la referencia desde la que se
-  dimensiona el billboard de Home. La app mantiene la
-  **decoración nativa de ventana** y solo la tematiza: en Windows opta por el
-  modo oscuro inmersivo de DWM y, en Windows 11, pinta el caption, el texto y el
-  borde desde `AppWindowChrome` y fuerza esquinas redondeadas
-  (`WindowAppearance.kt`), porque AWT no sigue el modo oscuro del SO por sí solo.
-  Mantener el marco nativo es lo que preserva snap, maximizar, las animaciones de
-  ventana y el alto contraste, y coincide en Linux, donde el gestor de ventanas
-  dibuja la decoración.
+- **Ventana**: la ventana de desktop conserva su **marco nativo** (`WS_CAPTION`,
+  `WS_THICKFRAME`) pero borra el área non-client dibujada por el SO, así que la
+  barra de título Compose es el caption. En Windows un `WindowProc` nativo (JNA,
+  vía `SetWindowLongPtr`) responde `WM_NCCALCSIZE` — devolver `0`, encogiendo el
+  rect de cliente con las métricas del marco para que una ventana maximizada no
+  se salga — y `WM_NCHITTEST`: `HTCAPTION` sobre la barra,
+  `HTMINBUTTON`/`HTMAXBUTTON`/`HTCLOSE` sobre los botones y `HTLEFT…` sobre los
+  bordes. Los botones de caption tienen prioridad sobre el borde superior de
+  redimensionado, así que la franja de arriba sobre ellos igual los ilumina (y
+  los botones a altura completa llegan al borde superior de la ventana) en vez
+  de redimensionar. Eso es lo que preserva el drag nativo, Aero Snap, maximizar,
+  redimensionar y el flyout de Snap Layouts de Windows 11. El contenido Compose
+  vive en una ventana hija Skia, así que un segundo procedimiento enganchado a
+  ella devuelve los resultados de hit de los botones y refleja los mensajes de
+  ratón non-client de vuelta al contenido: los botones Compose animan y manejan
+  el clic mientras el padre es dueño del caption y de los bordes. El marco
+  (`WindowsWindowProc` en `:app:desktopApp`) sigue la implementación de Animeko,
+  recortada a lo que la app necesita (sin puente touch/pen, sin glass de Windows
+  10, sin hit test por nodo de Compose). `AppSizes.titleBarHeight` y
+  `AppWindowChrome` alimentan la barra; la ventana se abre a 1280x720 y ese es
+  también su **mínimo** (fijado como `minimumSize` en la ventana AWT). Mantener
+  el marco nativo es lo que preserva snap, maximizar, las animaciones de ventana
+  y el alto contraste. macOS y Linux conservan la decoración nativa; allí solo se
+  enruta **pantalla completa** por `WindowController`, que posee el reproductor,
+  y expone la altura del área de trabajo de la pantalla desde la que se
+  dimensiona el billboard de Home.
 
 ## Reproductor
 
@@ -635,18 +642,15 @@ Android; desktop lo mantiene.
 
 En desktop, el fullscreen es un toggle del usuario que pasa por
 `WindowController`, y salir del reproductor siempre lo desactiva para que vuelva
-la navegación. El controlador maneja directamente el `ComposeWindow` nativo,
-porque la transición `Maximized` de Compose nunca limpia su bit de fullscreen, y
-el fullscreen exclusivo limpia el bit de maximizado al entrar sin restaurarlo al
-salir: la ventana sale de fullscreen a través de `Floating` y su placement previo
-se vuelve a aplicar después. Salir de fullscreen además empuja el tamaño de la
-ventana un píxel y lo devuelve (en dos despachos), porque el resize del fullscreen
-exclusivo no vuelve a medir la escena Compose: sin eso los controles del
-reproductor conservan el tamaño de fullscreen hasta que la ventana se
-redimensiona a mano. El empujón corre antes de re-maximizar, porque `setSize`
-sobre una ventana maximizada la des-maximiza. Estos pasos son workarounds del
-comportamiento de Compose Desktop / AWT, aislados en el composition root, y
-pueden simplificarse si se arregla aguas arriba.
+la navegación. En Windows el controlador cambia los estilos de la ventana con un
+helper nativo (`WindowsWindowUtils.setUndecoratedFullscreen`): guarda los
+estilos, el rect y el estado maximizado, quita `WS_CAPTION`/`WS_THICKFRAME`,
+redimensiona al monitor y restaura todo al salir. Como el marco sigue siendo
+nativo, no hay fullscreen exclusivo, ni baile de maximizado, ni empujón de
+píxeles; la barra de título simplemente sale de la composición mientras dura el
+fullscreen. Los demás targets de desktop todavía usan los workarounds de
+`Floating`/exclusivo, que pueden eliminarse cuando adopten también el marco
+custom.
 
 La reproducción en segundo plano no está cableada todavía, así que
 `MainActivity.onStop` pausa el reproductor salvo que el stop sea un cambio de
@@ -711,21 +715,6 @@ que cambian, no por esfuerzo.
   `mediamp-ffmpeg-runtime-linux-x64` junto a ellos. El runtime de Linux es
   GPL-3.0, no LGPL, así que el licenciamiento de la distribución tiene que
   tenerlo en cuenta.
-- **Ventana undecorada con barra de título propia — prioridad.** Animeko, la
-  app Compose Multiplatform de referencia, mantiene su ventana borderless y
-  dibuja su propia barra: un `WindowProc` gestiona `WM_NCCALCSIZE`/`WM_NCHITTEST`
-  para el marco y el drag/resize, y Compose pinta el título y los botones de
-  ventana. Por eso su fullscreen borderless es un simple toggle de estilo sin
-  workarounds: no hay insets nativos que quedarse obsoletos, y el frame es dueño
-  del resize. Nuestra ventana conserva la decoración nativa, así que quitarla
-  para fullscreen deja atrás los insets cacheados de AWT y la escena Compose no
-  se vuelve a medir (el camino exclusivo solo funciona porque
-  `fullScreenWindow = null` resetea ese estado). Llevar la ventana de desktop al
-  mismo modelo — ventana undecorada, barra propia y el tematizado DWM
-  reemplazado por ella — elimina de una vez el nudge de fullscreen, el baile de
-  maximizado y el modo exclusivo. Es el primer ítem de ventana de desktop a
-  abordar.
-
 ### Producto / UX
 
 - **Pulido móvil y endurecimiento de release.** El layout compacto funciona,

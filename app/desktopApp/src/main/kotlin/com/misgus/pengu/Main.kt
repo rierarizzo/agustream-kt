@@ -1,16 +1,22 @@
 package com.misgus.pengu
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.misgus.pengu.core.model.Addon
@@ -33,8 +39,11 @@ import com.misgus.pengu.player.MediampPlayerService
 import com.misgus.pengu.ui.PenguApp
 import com.misgus.pengu.ui.services.AppServices
 import com.misgus.pengu.ui.theme.AppWindowChrome
-import com.misgus.pengu.ui.theme.PenguThemePalette
-import kotlinx.coroutines.delay
+import com.misgus.pengu.ui.theme.PenguTheme
+import com.misgus.pengu.window.WindowsWindowFrameState
+import com.misgus.pengu.window.WindowsWindowTitleBar
+import com.misgus.pengu.window.WindowsWindowUtils
+import com.misgus.pengu.window.isWindowsOs
 import java.awt.Dimension
 
 fun main(args: Array<String>) {
@@ -72,6 +81,8 @@ fun main(args: Array<String>) {
         // main dispatcher; commands are then valid from the UI thread and its coroutines.
         val player = remember { MediampPlayerService() }
         val windowState = rememberWindowState(width = WINDOW_WIDTH, height = WINDOW_HEIGHT)
+        // The custom frame is Windows-only; other targets keep the native decoration.
+        val frameState = remember { if (isWindowsOs()) WindowsWindowFrameState() else null }
         val windowController = remember { ComposeWindowController(windowState) }
         val services =
             remember {
@@ -92,16 +103,17 @@ fun main(args: Array<String>) {
                 )
             }
 
-        // The native title bar is painted outside `PenguTheme`, so provide the
-        // selected palette here too, and let a theme change reach DWM.
         val appSettings by services.settings.state.collectAsState()
-        PenguThemePalette(appSettings.theme) {
+        val isFullScreen by windowController.isFullScreen.collectAsState()
+        val closeApp: () -> Unit = {
+            backend.close()
+            player.dispose()
+            exitApplication()
+        }
+
+        PenguTheme(appSettings.theme) {
             Window(
-                onCloseRequest = {
-                    backend.close()
-                    player.dispose()
-                    exitApplication()
-                },
+                onCloseRequest = closeApp,
                 state = windowState,
                 title = WINDOW_TITLE,
             ) {
@@ -116,38 +128,36 @@ fun main(args: Array<String>) {
                             with(density) { WINDOW_HEIGHT.roundToPx() },
                         )
                 }
-                // Read the chrome colours in the composition: they follow the selected
-                // theme, and an effect cannot read a composable getter itself.
-                val captionColor = AppWindowChrome.titleBar
-                val titleBarColor = AppWindowChrome.foreground
-                val borderColor = AppWindowChrome.border
-                val windowColor = AppWindowChrome.windowBackground
-                // AWT does not follow the OS dark mode for the native title bar, so
-                // ask DWM. The native peer may not exist on the first frame; retry.
-                LaunchedEffect(window, captionColor, titleBarColor, borderColor) {
-                    val caption = captionColor.toAwtColor()
-                    val title = titleBarColor.toAwtColor()
-                    val border = borderColor.toAwtColor()
-                    repeat(DARK_TITLE_BAR_ATTEMPTS) {
-                        if (applyDarkTitleBar(window, caption = caption, text = title, border = border)) return@LaunchedEffect
-                        delay(TITLE_BAR_RETRY_DELAY_MS)
-                    }
-                }
-                // Give the controller the native window so fullscreen can be
-                // applied without Compose's stuck-fullscreen transition.
-                SideEffect {
-                    windowController.attach(window)
-                }
                 // Paint the native window with the app background so resizing does
                 // not flash the default white surface before Compose's next frame.
+                val windowColor = AppWindowChrome.windowBackground
                 SideEffect {
                     applyBackground(window, windowColor.toAwtColor())
                 }
-                PenguApp(
-                    services = services,
-                    initialSource = initialSource,
-                    autoSignIn = credentialsFromEnvironment(environment),
-                )
+                // Install the custom frame once the native window exists.
+                SideEffect {
+                    frameState?.let { windowController.attach(window, it) }
+                }
+                Column(Modifier.fillMaxSize()) {
+                    if (frameState != null && !isFullScreen) {
+                        val maximized = windowState.placement == WindowPlacement.Maximized
+                        WindowsWindowTitleBar(
+                            state = frameState,
+                            title = WINDOW_TITLE,
+                            isMaximized = maximized,
+                            onMinimize = { WindowsWindowUtils.minimize(window) },
+                            onToggleMaximize = { WindowsWindowUtils.toggleMaximize(window, !maximized) },
+                            onClose = closeApp,
+                        )
+                    }
+                    Box(Modifier.weight(1f).fillMaxWidth()) {
+                        PenguApp(
+                            services = services,
+                            initialSource = initialSource,
+                            autoSignIn = credentialsFromEnvironment(environment),
+                        )
+                    }
+                }
             }
         }
     }
@@ -200,9 +210,6 @@ private fun initialSource(args: Array<String>): String? {
     return args.firstOrNull { it.startsWith(flag) }?.substring(flag.length)
 }
 
-/** Frames to wait for the native window peer before giving up on the dark title bar. */
-private const val DARK_TITLE_BAR_ATTEMPTS = 20
-
 /** Size the desktop window opens with, and the smallest it can be resized to. */
 private val WINDOW_WIDTH: Dp = 1280.dp
 private val WINDOW_HEIGHT: Dp = 720.dp
@@ -212,6 +219,3 @@ private val WINDOW_HEIGHT: Dp = 720.dp
  * the `:app:shared` module.
  */
 private const val WINDOW_TITLE = "Pengu"
-
-/** Delay between dark-title-bar retries, in milliseconds. */
-private const val TITLE_BAR_RETRY_DELAY_MS = 50L

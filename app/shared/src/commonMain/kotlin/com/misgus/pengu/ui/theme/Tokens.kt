@@ -172,6 +172,12 @@ object AppSizes {
     /** Diameter of the dot that marks the selected section on the bottom bar. */
     val navIndicator: Dp = 4.dp
 
+    /** Height of the desktop custom title bar. */
+    val titleBarHeight: Dp = 40.dp
+
+    /** Width of one caption button (minimize / maximize / close) on the title bar. */
+    val captionButtonWidth: Dp = 46.dp
+
     /**
      * Height of a primary control (call-to-action button, action icon box).
      *
@@ -511,27 +517,33 @@ object PosterCaption {
 }
 
 /**
- * Colours for surfaces that live outside the composition.
+ * Colours for the desktop window chrome.
  *
- * The native desktop title bar is painted by AWT before Compose draws, so it
- * cannot read `MaterialTheme`; it reads the selected [LocalBrandPalette] instead,
- * and the desktop composition root captures these values in the composition so
- * an effect can hand them to DWM.
+ * The custom title bar and the window background behind Compose read the selected
+ * [LocalBrandPalette] through these tokens, so the chrome stays one decision next
+ * to the caption metrics in [AppSizes]. The composition root draws the bar inside
+ * `PenguTheme`, so `MaterialTheme` is available there too.
  */
 object AppWindowChrome {
-    /** Native title-bar colour; matches the page background and the rail. */
+    /** Title-bar background; matches the page background and the rail. */
     val titleBar: Color
-        @Composable get() = LocalBrandPalette.current.background
-
-    /** Native window border, matched to the title bar so the frame disappears. */
-    val border: Color
         @Composable get() = LocalBrandPalette.current.background
 
     /** Window background behind Compose, so a resize does not flash. */
     val windowBackground: Color
         @Composable get() = LocalBrandPalette.current.background
 
-    /** Native title-bar text and caption buttons. */
+    /** Title-bar text and caption-button glyphs. */
     val foreground: Color
         @Composable get() = LocalBrandPalette.current.textPrimary
+
+    /** Caption-button background while hovered or pressed. */
+    val captionHover: Color
+        @Composable get() = LocalBrandPalette.current.surfaceHigh
+
+    /** Close-button background while hovered or pressed. */
+    val captionClose: Color = Color(0xFFC42B1C)
+
+    /** Glyph on the close button while hovered or pressed. */
+    val captionCloseForeground: Color = Color.White
 }

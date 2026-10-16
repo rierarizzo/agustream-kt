@@ -6,6 +6,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import com.misgus.pengu.ui.window.WindowController
+import com.misgus.pengu.window.WindowsWindowFrameProc
+import com.misgus.pengu.window.WindowsWindowFrameState
+import com.misgus.pengu.window.WindowsWindowUtils
+import com.misgus.pengu.window.isWindowsOs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,17 +19,18 @@ import javax.swing.SwingUtilities
 /**
  * [WindowController] backed by a Compose Desktop [WindowState].
  *
- * The window uses its native decoration, so this routes fullscreen (the
- * placement before entering fullscreen is remembered and restored on exit) and
- * reports the screen work area the Home billboard is sized from.
+ * On Windows the window keeps its native frame but the non-client area is erased
+ * and hit-tested by [WindowsWindowFrameProc], so the Compose title bar behaves
+ * like a real caption (native drag, snap, maximize, resize and Snap Layouts) and
+ * fullscreen is a plain style flip. On the other desktop targets the window keeps
+ * the native decoration and only fullscreen is routed here.
  *
- * Fullscreen is driven through the native [ComposeWindow] rather than only
- * through [WindowState.placement] because Compose's `Maximized` transition never
- * clears its fullscreen bit, and exclusive fullscreen clears the maximize bit on
- * entry without restoring it on exit. The window is therefore taken out of
- * fullscreen through `Floating` first and its previous placement is re-applied
- * afterwards. These are workarounds for Compose Desktop / AWT behaviour and can
- * be simplified if it is fixed upstream.
+ * Fullscreen on Windows is driven by [WindowsWindowUtils], which saves and
+ * restores the styles, rect and maximized state. Compose's `Maximized` transition
+ * never clears its fullscreen bit, so the fallback path still takes the window
+ * out of fullscreen through `Floating` first and re-applies the previous
+ * placement afterwards; those workarounds exist for the native-decoration path
+ * and can be removed once every target uses the custom frame.
  */
 class ComposeWindowController(
     private val windowState: WindowState,
@@ -50,14 +55,39 @@ class ComposeWindowController(
 
     private var window: ComposeWindow? = null
 
-    /** Binds the native window once the composition has created it. */
-    fun attach(window: ComposeWindow) {
+    private var frameProc: WindowsWindowFrameProc? = null
+
+    /**
+     * Binds the native window once the composition has created it.
+     *
+     * On Windows it also installs the window procedure that draws the custom
+     * frame. Installing is idempotent, because the composition calls this on every
+     * frame; a failed install (the Skia peer not ready yet) is retried next frame.
+     */
+    fun attach(
+        window: ComposeWindow,
+        frameState: WindowsWindowFrameState,
+    ) {
         this.window = window
+        if (!isWindowsOs() || frameProc != null) return
+        // The Skia child window may not exist on the very first frame; close the
+        // half-installed frame and retry on the next composition.
+        val proc = runCatching { WindowsWindowFrameProc(window, frameState) }.getOrNull()
+        if (proc == null || !proc.isChildHooked) {
+            proc?.close()
+            return
+        }
+        frameProc = proc
     }
 
     override fun setFullScreen(value: Boolean) {
         val native = window ?: return
         if (value == _isFullScreen.value) return
+        if (isWindowsOs()) {
+            WindowsWindowUtils.setUndecoratedFullscreen(native, value)
+            _isFullScreen.value = value
+            return
+        }
         val device = native.graphicsConfiguration.device
         if (value) {
             previousPlacement =
