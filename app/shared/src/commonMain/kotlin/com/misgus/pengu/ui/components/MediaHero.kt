@@ -92,7 +92,7 @@ fun MediaTitle(
                 decodeSize = Size.ORIGINAL,
                 maxBitmapSize = LogoMaxBitmapSize,
                 fadeIn = true,
-                modifier = Modifier.height(height).widthIn(max = AppLogoSize.maxWidth),
+                modifier = Modifier.height(height).widthIn(max = AppLogoSize.maxWidthForWindow()),
             )
         else ->
             Text(

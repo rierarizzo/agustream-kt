@@ -493,10 +493,12 @@ so the atomic read/write/delete logic lives once.
   `MitchellImageDecoder`, a cubic decoder that keeps Coil's size math and
   reduces once at decode time. Together they both sharpen the artwork and cut
   the bitmap memory the renderer has to scale every frame. Title logos are
-  contained in a box — an optical height plus a `maxWidth` guard
+  contained in a box — an optical height plus a width guard
   (`AppLogoSize`), drawn with `ContentScale.Fit` — so a square logo cannot
   tower over the copy and a very wide one cannot overflow its column. On a phone
-  `opticalHeight` scales the box to the copy width: a fixed height there was the
+  the guard drops to 60% of the window (`maxWidthForWindow`), so a wide wordmark
+  cannot take over the screen, and `opticalHeight` scales the box to the copy
+  width: a fixed height there was the
   only binding limit, which boxed a square logo to a sliver while a wide one
   still filled the column, so the two shapes now read at a similar weight. The
   logos are then trimmed to the bounding box of their non-transparent pixels

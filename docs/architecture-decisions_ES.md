@@ -528,10 +528,12 @@ leer/escribir/borrar vive una sola vez.
   decodificador cúbico que mantiene las matemáticas de tamaño de Coil y reduce
   una vez en el momento de decodificar. Juntos afilan el artwork y reducen la
   memoria de bitmap que el renderer tiene que escalar cada frame. Los logos de
-  título se contienen en una caja — una altura óptica más una guarda
-  `maxWidth` (`AppLogoSize`), dibujados con `ContentScale.Fit` — para que un logo
+  título se contienen en una caja — una altura óptica más una guarda de ancho
+  (`AppLogoSize`), dibujados con `ContentScale.Fit` — para que un logo
   cuadrado no se eleve sobre el copy y uno muy ancho no desborde su columna. En
-  un teléfono `opticalHeight` escala la caja al ancho del copy: una altura fija
+  un teléfono la guarda baja al 60% de la ventana (`maxWidthForWindow`), para que
+  un wordmark ancho no se apodere de la pantalla, y `opticalHeight` escala la
+  caja al ancho del copy: una altura fija
   ahí era el único límite, y encajonaba un logo cuadrado a una franja mientras
   uno ancho seguía llenando la columna, así que ambas formas leen con un peso
   similar. Los logos además se recortan al bounding box de sus píxeles no

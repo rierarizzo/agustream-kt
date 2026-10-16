@@ -236,10 +236,11 @@ object AppScale {
 /**
  * Sizing for the title artwork (logo) on a billboard.
  *
- * A logo is contained in a box: an optical height plus a [maxWidth] guard, so a
- * square logo cannot tower over the copy while a very wide one cannot overflow
- * its column. Both billboards read these values, so they stay in sync, and
- * [opticalHeight] scales the box down on a phone.
+ * A logo is contained in a box: an optical height plus a width guard, so a square
+ * logo cannot tower over the copy while a very wide one cannot take over the
+ * screen. Both billboards read these values, so they stay in sync,
+ * [maxWidthForWindow] trims the width guard on a phone and [opticalHeight] scales
+ * the box down there.
  */
 object AppLogoSize {
     /** Optical height of the title logo on the wide home billboard. */
@@ -248,8 +249,30 @@ object AppLogoSize {
     /** Optical height of the title logo on the wide detail billboard. */
     val detailHeight: Dp = 96.dp
 
-    /** Widest a logo may grow; a wider logo scales down to fit. */
+    /** Widest a logo may grow on a wide window; a wider logo scales down to fit. */
     val maxWidth: Dp = 520.dp
+
+    /**
+     * Share of a compact window the logo box may span.
+     *
+     * A phone's copy column is nearly the whole window, so the wide guard alone
+     * let a wide wordmark fill the screen and dominate the billboard. Capping it
+     * keeps the logo in proportion with the rest of the copy.
+     */
+    private const val COMPACT_MAX_WIDTH_FRACTION = 0.6f
+
+    /**
+     * Widest the logo box may grow on the current window.
+     *
+     * A wide window uses [maxWidth]. A phone caps it to
+     * [COMPACT_MAX_WIDTH_FRACTION] of the window, so a wide wordmark cannot span
+     * the full width.
+     */
+    @Composable
+    fun maxWidthForWindow(): Dp {
+        if (LocalWindowSize.current != WindowSize.COMPACT) return maxWidth
+        return minOf(maxWidth, LocalWindowWidth.current * COMPACT_MAX_WIDTH_FRACTION)
+    }
 
     /**
      * Optical height of the logo box on the current window.
