@@ -3,6 +3,7 @@ package com.misgus.pengu.ui.components
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
@@ -73,9 +74,11 @@ fun MediaTitle(
     /** Alignment of the name when it falls back to text; the logo follows the column. */
     textAlign: TextAlign = TextAlign.Start,
 ) {
-    // The logo box: a fixed optical height on a wide window, scaled to the copy
-    // width on a phone (see [AppLogoSize.opticalHeight]), so a square logo does
-    // not read tiny next to a wide one while both stay inside the column.
+    // The logo box hugs the artwork, capped at an optical height on a wide window
+    // and a share of the window width on a phone (see [AppLogoSize.maxWidthForWindow])
+    // so a square logo cannot tower over the copy. Hugging the content keeps the
+    // gap to the metadata the same for every logo: a fixed box would centre a
+    // short, wide wordmark and leave a gap that grew with its aspect.
     val height = AppLogoSize.opticalHeight(logoHeight ?: AppLogoSize.detailHeight)
     when {
         loading ->
@@ -92,7 +95,7 @@ fun MediaTitle(
                 decodeSize = Size.ORIGINAL,
                 maxBitmapSize = LogoMaxBitmapSize,
                 fadeIn = true,
-                modifier = Modifier.height(height).widthIn(max = AppLogoSize.maxWidthForWindow()),
+                modifier = Modifier.heightIn(max = height).widthIn(max = AppLogoSize.maxWidthForWindow()),
             )
         else ->
             Text(
