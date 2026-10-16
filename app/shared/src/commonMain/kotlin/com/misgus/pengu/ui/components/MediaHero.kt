@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import coil3.size.Size
 import coil3.transform.Transformation
 import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.media_rating
@@ -49,6 +50,17 @@ internal val LogoTrimTransformation: Transformation = TrimTransparentTransformat
 /** The trim as a request list, reused so [RemoteImage]'s remembered request is stable. */
 internal val LogoTransformations: List<Transformation> = listOf(LogoTrimTransformation)
 
+/**
+ * Cap on the decoded logo bitmap.
+ *
+ * Logos decode at their own resolution ([Size.ORIGINAL]) instead of the layout's, so
+ * the transparent canvas does not shrink the artwork below the size it is drawn at.
+ * The cap keeps a very large source from allocating a huge bitmap: it is reduced
+ * once at decode (a source under the cap keeps every pixel). Logos are wide and
+ * short, so the cap rarely binds.
+ */
+internal val LogoMaxBitmapSize: Size = Size(2_048, 2_048)
+
 /** Title logo when the metadata provides one, otherwise the name as a headline. */
 @Composable
 fun MediaTitle(
@@ -77,6 +89,8 @@ fun MediaTitle(
                 contentScale = ContentScale.Fit,
                 filterQuality = LogoFilterQuality,
                 transformations = LogoTransformations,
+                decodeSize = Size.ORIGINAL,
+                maxBitmapSize = LogoMaxBitmapSize,
                 fadeIn = true,
                 modifier = Modifier.height(height).widthIn(max = AppLogoSize.maxWidth),
             )

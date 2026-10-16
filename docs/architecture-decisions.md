@@ -505,7 +505,11 @@ so the atomic read/write/delete logic lives once.
   a series wordmark can be a 50px strip inside an 800x310 PNG, and `Fit` would
   scale that whole canvas. Trimming makes the box measure artwork, not padding,
   and the Home preloader carries the same transformation so both requests share
-  Coil's cache entry. The Home
+  Coil's cache entry. Logos also decode at their own resolution
+  (`Size.ORIGINAL`, capped at `LogoMaxBitmapSize`): deriving the decode size from
+  the box would shrink the content to the canvas's share of the box, so a padded
+  wordmark was decoded below the size it is drawn at and then upscaled, which
+  read as jagged. The Home
   hero preloads the next slide's backdrop and logo through the singleton loader,
   sized to the billboard, and re-arms as the page advances, so swiping paints
   from cache instead of starting a network round-trip mid-gesture without the

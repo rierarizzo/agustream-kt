@@ -22,8 +22,11 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import coil3.SingletonImageLoader
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import coil3.request.maxBitmapSize
 import coil3.request.transformations
+import coil3.size.Size
 import com.misgus.pengu.core.model.MetaPreview
+import com.misgus.pengu.ui.components.LogoMaxBitmapSize
 import com.misgus.pengu.ui.components.LogoTrimTransformation
 import com.misgus.pengu.ui.theme.AppColors
 import com.misgus.pengu.ui.theme.motionTween
@@ -155,15 +158,13 @@ internal fun HeroArtworkPreloader(
     pagerState: PagerState,
     backdropWidthPx: Int,
     backdropHeightPx: Int,
-    logoHeightPx: Int,
-    logoMaxWidthPx: Int,
 ) {
     if (items.size <= 1) return
     val context = LocalPlatformContext.current
     // Reading `currentPage` here re-arms the preload only when the page settles,
     // not on every scroll frame.
     val nextPage = (pagerState.currentPage + 1) % items.size
-    LaunchedEffect(items, nextPage, backdropWidthPx, backdropHeightPx, logoHeightPx, logoMaxWidthPx) {
+    LaunchedEffect(items, nextPage, backdropWidthPx, backdropHeightPx) {
         val loader = SingletonImageLoader.get(context)
         val item = items[nextPage]
         val backdrop = item.background ?: item.poster
@@ -181,7 +182,8 @@ internal fun HeroArtworkPreloader(
                 ImageRequest
                     .Builder(context)
                     .data(url)
-                    .size(logoMaxWidthPx, logoHeightPx)
+                    .size(Size.ORIGINAL)
+                    .maxBitmapSize(LogoMaxBitmapSize)
                     .transformations(LogoTrimTransformation)
                     .build(),
             )

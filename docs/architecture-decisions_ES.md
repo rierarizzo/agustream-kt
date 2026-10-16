@@ -541,7 +541,12 @@ leer/escribir/borrar vive una sola vez.
   franja de 50px dentro de un PNG de 800x310, y `Fit` escalaría todo el lienzo.
   Recortarlos hace que la caja mida artwork, no padding, y el precargador de Home
   lleva la misma transformación para que ambas peticiones compartan la entrada
-  de caché de Coil. El hero de Home precarga el backdrop y el logo de la
+  de caché de Coil. Se decodifican además a su propia resolución
+  (`Size.ORIGINAL`, limitada por `LogoMaxBitmapSize`): derivar el tamaño de
+  decodificación de la caja encogía el contenido a la porción del lienzo, así que
+  un wordmark con padding se decodificaba por debajo del tamaño al que se dibuja
+  y luego se escalaba hacia arriba, lo que se veía dentado. El hero de Home
+  precarga el backdrop y el logo de la
   siguiente diapositiva a
   través del loader singleton, dimensionados al billboard, y se re-arma según
   avanza la página, para que deslizar pinte desde caché en vez de empezar una

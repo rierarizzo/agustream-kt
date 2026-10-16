@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.ui.components.HeroActionRowInset
-import com.misgus.pengu.ui.theme.AppLogoSize
 import com.misgus.pengu.ui.theme.LocalMotionEnabled
 import com.misgus.pengu.ui.theme.LocalWindowSize
 import com.misgus.pengu.ui.theme.WindowSize
@@ -421,11 +420,6 @@ private fun HeroCarousel(
         pagerState = pagerState,
         backdropWidthPx = backdropWidthPx,
         backdropHeightPx = backdropHeightPx,
-        logoHeightPx =
-            with(density) {
-                AppLogoSize.opticalHeight(AppLogoSize.homeHeight).roundToPx().coerceAtLeast(1)
-            },
-        logoMaxWidthPx = with(density) { AppLogoSize.maxWidth.roundToPx().coerceAtLeast(1) },
     )
 }
 

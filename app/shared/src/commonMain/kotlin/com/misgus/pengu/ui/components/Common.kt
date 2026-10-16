@@ -43,7 +43,9 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import coil3.request.maxBitmapSize
 import coil3.request.transformations
+import coil3.size.Size
 import coil3.transform.Transformation
 import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.action_see_all
@@ -250,7 +252,9 @@ val LogoFilterQuality = FilterQuality.High
  *
  * [transformations] are applied before the image is measured, so a transformation
  * that changes the image's size also changes the box it asks for (title logos trim
- * their transparent border this way).
+ * their transparent border this way). [decodeSize] pins the decode resolution
+ * instead of deriving it from the layout, and [maxBitmapSize] caps it so a huge
+ * source is reduced once at decode rather than allocated whole.
  */
 @Composable
 fun RemoteImage(
@@ -260,23 +264,26 @@ fun RemoteImage(
     contentScale: ContentScale = ContentScale.Crop,
     filterQuality: FilterQuality = ArtworkFilterQuality,
     transformations: List<Transformation> = emptyList(),
+    decodeSize: Size? = null,
+    maxBitmapSize: Size? = null,
     /** Fade the image in once it has loaded, instead of popping. */
     fadeIn: Boolean = false,
 ) {
     if (url.isNullOrEmpty()) return
+    val needsRequest = transformations.isNotEmpty() || decodeSize != null || maxBitmapSize != null
     val model =
-        if (transformations.isEmpty()) {
+        if (!needsRequest) {
             url
         } else {
             val context = LocalPlatformContext.current
             // Remembered so a recomposition reuses the request instead of
             // rebuilding it (and its cache key) every frame.
-            remember(url, transformations, context) {
-                ImageRequest
-                    .Builder(context)
-                    .data(url)
-                    .transformations(transformations)
-                    .build()
+            remember(url, transformations, decodeSize, maxBitmapSize, context) {
+                val builder = ImageRequest.Builder(context).data(url)
+                if (transformations.isNotEmpty()) builder.transformations(transformations)
+                if (decodeSize != null) builder.size(decodeSize)
+                if (maxBitmapSize != null) builder.maxBitmapSize(maxBitmapSize)
+                builder.build()
             }
         }
     if (!fadeIn) {
