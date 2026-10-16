@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.misgus.pengu.ui.icons.AppIcons
 import com.misgus.pengu.ui.theme.AppSizes
@@ -84,6 +85,7 @@ internal fun WindowsWindowTitleBar(
             icon = if (isMaximized) AppIcons.Filled.Restore else AppIcons.Filled.Maximize,
             contentDescription = if (isMaximized) "Restore" else "Maximize",
             onClick = onToggleMaximize,
+            iconSize = if (isMaximized) restoreIconSize else captionIconSize,
             modifier = Modifier.onGloballyPositioned { state.maximizeRect = it.boundsInWindow() },
         )
         CaptionButton(
@@ -109,6 +111,7 @@ private fun CaptionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     close: Boolean = false,
+    iconSize: Dp = captionIconSize,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
@@ -134,7 +137,18 @@ private fun CaptionButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = tint,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier.size(iconSize),
         )
     }
 }
+
+/**
+ * Caption glyphs sized to their drawn bounds, not their viewport.
+ *
+ * The Material restore (`filter_none`) fills a 22-unit box, while maximize
+ * (`crop_square`) fills 16, so at the shared size the restore's front square
+ * comes out ~larger than the maximize square. Rendering it at [restoreIconSize]
+ * brings that front square back to the maximize size.
+ */
+private val captionIconSize: Dp = 16.dp
+private val restoreIconSize: Dp = 14.dp
