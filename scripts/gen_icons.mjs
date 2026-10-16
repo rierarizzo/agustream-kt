@@ -15,7 +15,8 @@ const groups = {
     ["Search", "search"],
     ["Settings", "settings"],
     ["Home", "home"],
-    ["Favorite", "favorite"],
+    ["Bookmark", "bookmark"],
+    ["Add", "add"],
     ["CalendarToday", "calendar_today"],
     ["Refresh", "refresh"],
     ["Check", "check"],
@@ -49,7 +50,7 @@ const groups = {
     ["CheckCircle", "check_circle_outline"],
     ["CalendarToday", "calendar_today"],
     ["CalendarMonth", "calendar_month"],
-    ["FavoriteBorder", "favorite_border"],
+    ["BookmarkBorder", "bookmark_border"],
     ["Audiotrack", "audiotrack"],
   ],
 };

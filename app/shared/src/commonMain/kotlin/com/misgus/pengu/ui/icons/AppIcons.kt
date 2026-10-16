@@ -30,7 +30,8 @@ object AppIcons {
         val Search: ImageVector by lazy { rounded("Search", SEARCH) }
         val Settings: ImageVector by lazy { rounded("Settings", SETTINGS) }
         val Home: ImageVector by lazy { rounded("Home", HOME) }
-        val Favorite: ImageVector by lazy { rounded("Favorite", FAVORITE) }
+        val Bookmark: ImageVector by lazy { rounded("Bookmark", BOOKMARK) }
+        val Add: ImageVector by lazy { rounded("Add", ADD) }
         val CalendarToday: ImageVector by lazy { rounded("CalendarToday", CALENDAR_TODAY) }
         val Refresh: ImageVector by lazy { rounded("Refresh", REFRESH) }
         val Check: ImageVector by lazy { rounded("Check", CHECK) }
@@ -66,7 +67,7 @@ object AppIcons {
         val CheckCircle: ImageVector by lazy { rounded("CheckCircle", CHECK_CIRCLE_OUTLINE) }
         val CalendarToday: ImageVector by lazy { rounded("CalendarToday", CALENDAR_TODAY) }
         val CalendarMonth: ImageVector by lazy { rounded("CalendarMonth", CALENDAR_MONTH) }
-        val FavoriteBorder: ImageVector by lazy { rounded("FavoriteBorder", FAVORITE_BORDER) }
+        val BookmarkBorder: ImageVector by lazy { rounded("BookmarkBorder", BOOKMARK_BORDER) }
         val Audiotrack: ImageVector by lazy { rounded("Audiotrack", AUDIOTRACK) }
     }
 
@@ -111,6 +112,9 @@ private fun rounded(
             )
         }.build()
 
+private const val ADD =
+    "M18 13h-5v5c0 .55-.45 1-1 1s-1-.45-1-1v-5H6c-.55 0-1-.45-1-1s.45-1 1-1h5V6c0-.55.45-1 1-1s1 .45 1 1v5h5c.55 0 " +
+        "1 .45 1 1s-.45 1-1 1z"
 private const val ARROW_BACK =
     "M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42a.996.996 0 0 0-1.41 0l-6.59 6.59a.996.996 0 0 0 0 1.41l6.59 6.59a" +
         ".996.996 0 1 0 1.41-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"
@@ -119,6 +123,10 @@ private const val ARROW_DROP_DOWN =
 private const val AUDIOTRACK =
     "M12 5v8.55c-.94-.54-2.1-.75-3.33-.32-1.34.48-2.37 1.67-2.61 3.07a4.007 4.007 0 0 0 4.59 4.65c1.96-.31 3.35-2.1" +
         "1 3.35-4.1V7h2c1.1 0 2-.9 2-2s-.9-2-2-2h-2c-1.1 0-2 .9-2 2z"
+private const val BOOKMARK =
+    "M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"
+private const val BOOKMARK_BORDER =
+    "M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15-5-2.18L7 18V6c0-.55.45-1 1-1h8c.55 0 1 .45 1 1v12z"
 private const val CALENDAR_MONTH =
     "M17 2c-.55 0-1 .45-1 1v1H8V3c0-.55-.45-1-1-1s-1 .45-1 1v1H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 " +
         "2-.9 2-2V6c0-1.1-.9-2-2-2h-1V3c0-.55-.45-1-1-1zm2 18H5V10h14v10zm-8-7c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45" +
@@ -160,14 +168,6 @@ private const val ERROR_OUTLINE =
 private const val EXPLORE =
     "M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12" +
         "s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"
-private const val FAVORITE =
-    "M13.35 20.13c-.76.69-1.93.69-2.69-.01l-.11-.1C5.3 15.27 1.87 12.16 2 8.28c.06-1.7.93-3.33 2.34-4.29 2.64-1.8 5" +
-        ".9-.96 7.66 1.1 1.76-2.06 5.02-2.91 7.66-1.1 1.41.96 2.28 2.59 2.34 4.29.14 3.88-3.3 6.99-8.55 11.76l-.1.09z"
-private const val FAVORITE_BORDER =
-    "M19.66 3.99c-2.64-1.8-5.9-.96-7.66 1.1-1.76-2.06-5.02-2.91-7.66-1.1-1.4.96-2.28 2.58-2.34 4.29-.14 3.88 3.3 6." +
-        "99 8.55 11.76l.1.09c.76.69 1.93.69 2.69-.01l.11-.1c5.25-4.76 8.68-7.87 8.55-11.75-.06-1.7-.94-3.32-2.34-4.28zM" +
-        "12.1 18.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14." +
-        "96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"
 private const val FILTER_NONE =
     "M2 5c-.55 0-1 .45-1 1v15c0 1.1.9 2 2 2h15c.55 0 1-.45 1-1s-.45-1-1-1H4c-.55 0-1-.45-1-1V6c0-.55-.45-1-1-1zm19-" +
         "4H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-1 16H8c-.55 0-1-.45-1-1V4c0-.55.45-1" +

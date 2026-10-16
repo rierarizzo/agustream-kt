@@ -7,8 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.action_more_info
-import com.misgus.pengu.app.shared.generated.resources.detail_my_list
+import com.misgus.pengu.app.shared.generated.resources.detail_add_to_library
 import com.misgus.pengu.app.shared.generated.resources.detail_rate
+import com.misgus.pengu.app.shared.generated.resources.detail_remove_from_library
 import com.misgus.pengu.app.shared.generated.resources.status_watched
 import com.misgus.pengu.ui.icons.AppIcons
 import com.misgus.pengu.ui.theme.AppIconSize
@@ -47,10 +48,12 @@ data class HeroActionState(
 /**
  * The icon-only actions next to a billboard's call to action.
  *
- * Save is always present; rate and watched are added when their handlers are
- * passed (the detail screen), and [onInfo] appends the "more info" action (the
- * home billboard, where it replaces the old labelled button). One definition
- * keeps these buttons identical wherever a billboard appears.
+ * Save is turned into the library toggle: an add control that fills with the
+ * library glyph once the title is in the library. Rate and watched are added
+ * when their handlers are passed (the detail screen), and [onInfo] appends the
+ * "more info" action (the home billboard, where it replaces the old labelled
+ * button). One definition keeps these buttons identical wherever a billboard
+ * appears.
  */
 @Composable
 fun HeroActionRow(
@@ -63,8 +66,11 @@ fun HeroActionRow(
 ) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         AppIconButton(
-            icon = if (actions.saved) AppIcons.Filled.Favorite else AppIcons.Outlined.FavoriteBorder,
-            contentDescription = stringResource(Res.string.detail_my_list),
+            icon = if (actions.saved) AppIcons.Filled.Bookmark else AppIcons.Filled.Add,
+            contentDescription =
+                stringResource(
+                    if (actions.saved) Res.string.detail_remove_from_library else Res.string.detail_add_to_library,
+                ),
             onClick = onToggleSaved,
             enabled = !actions.savedBusy,
             selected = actions.saved,

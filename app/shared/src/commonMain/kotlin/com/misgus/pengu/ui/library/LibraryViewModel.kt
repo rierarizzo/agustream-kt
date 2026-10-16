@@ -53,7 +53,7 @@ class LibraryViewModel(
     override fun onAccountCleared() = clear()
 
     init {
-        // A write elsewhere (e.g. "add to favorites" from the detail screen)
+        // A write elsewhere (e.g. "add to library" from the detail screen)
         // must refresh the grid, so the repositories are observable too.
         viewModelScope.launch { library.changes.drop(1).collect { load(force = true) } }
         viewModelScope.launch { progress.changes.drop(1).collect { load(force = true) } }

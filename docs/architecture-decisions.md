@@ -257,13 +257,13 @@ so the atomic read/write/delete logic lives once.
   cropped artwork. Metadata is one builder, so the star, separators, the type
   name and rating formatting cannot diverge.
 - **Billboards share their icon actions.** `HeroActionRow` and
-  `HeroActionState` (`ui/components/HeroActions.kt`) render the save, rate,
+  `HeroActionState` (`ui/components/HeroActions.kt`) render the library, rate,
   watched and info buttons next to the call to action, so Home and the detail
   screen cannot drift in icon, size, colour or state. The Home billboard's play
   action is icon-only too — the same 48dp icon control as the row, tinted with
   the primary colour so it still reads first, with a larger 36dp glyph layout so
   the play arrow's ~52%-height triangle matches the row's optical height — so the
-  row reads play, save, "More info"; the detail screen keeps the labelled "Watch
+  row reads play, add, "More info"; the detail screen keeps the labelled "Watch
   Now" and adds rate and watched. The spacers around an action row discount the
   control's transparent vertical padding (`HeroActionRowInset`, in
   `ui/components/HeroActions.kt`), the band between the 48dp touch target and its
@@ -272,8 +272,8 @@ so the atomic read/write/delete logic lives once.
   row, and the phone copy applies it to the metadata-to-actions gap, where there
   is no synopsis. The compact copy also keeps a larger bottom margin (64dp) so
   the icon row does not crowd the paginator dots.
-  Home's save is optimistic in `HomeViewModel` and reconciled through
-  `LibraryRepository.changes`, so a title saved on either screen shows as saved
+  Home's library toggle is optimistic in `HomeViewModel` and reconciled through
+  `LibraryRepository.changes`, so a title added on either screen shows as added
   on both.
 - **Edge-to-edge and system insets.** Android runs the activity edge-to-edge
   (`enableEdgeToEdge`, with light system-bar icons forced because the app always
@@ -458,7 +458,7 @@ so the atomic read/write/delete logic lives once.
   `AppSearchField` variant (leading magnifier, clear action) for Search and
   streams. `AppIconButton` is the one icon control — media headers, the player
   (back, play/pause, seek, subtitles, audio, fullscreen and the centred play
-  button), the detail screen's save/rate/watched toggles and the text fields'
+  button), the detail screen's library/rate/watched toggles and the text fields'
   clear/password actions — so every one gets the 48dp target, an optional
   `mediaScrim` and a load dim, and carries its state on the glyph rather than on
   the surface: no background box or ripple, the icon brightens on hover or focus

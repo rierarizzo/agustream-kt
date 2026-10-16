@@ -275,13 +275,13 @@ leer/escribir/borrar vive una sola vez.
   formato de la valoración no pueden divergir.
 - **Los billboards comparten sus acciones de icono.** `HeroActionRow` y
   `HeroActionState` (`ui/components/HeroActions.kt`) renderizan los botones de
-  guardar, puntuar, visto e info junto al call to action, así que Home y el
+  biblioteca, puntuar, visto e info junto al call to action, así que Home y el
   detalle no pueden desviarse en icono, tamaño, color ni estado. El billboard de
   Home muestra su acción de play también solo-icono — el mismo control de icono
   de 48dp que la fila, teñido con el color primario para que siga leyéndose
   primero, con un layout de glyph mayor (36dp) para que el triángulo del play
   (~52% de alto) iguale la altura óptica de la fila — así que la fila se lee
-  play, guardar, "More info"; el detalle mantiene el "Watch Now" con etiqueta y
+  play, añadir, "More info"; el detalle mantiene el "Watch Now" con etiqueta y
   añade puntuar y visto. Los spacers alrededor de una fila de acciones descuentan
   el padding vertical transparente del control (`HeroActionRowInset`, en
   `ui/components/HeroActions.kt`), la banda entre el touch target de 48dp y su
@@ -290,9 +290,9 @@ leer/escribir/borrar vive una sola vez.
   abajo de su fila, y el copy del teléfono lo aplica al gap metadata-acciones,
   donde no hay sinopsis. El copy compacto además mantiene un margen inferior
   mayor (64dp) para que la fila de iconos no se pegue a los puntos del paginador.
-  El guardado de Home es optimista en `HomeViewModel` y se reconcilia con
-  `LibraryRepository.changes`, así que un título guardado en cualquiera de las
-  dos pantallas se ve como guardado en ambas.
+  El toggle de biblioteca de Home es optimista en `HomeViewModel` y se reconcilia
+  con `LibraryRepository.changes`, así que un título añadido en cualquiera de las
+  dos pantallas se ve como añadido en ambas.
 - **Edge-to-edge e insets del sistema.** Android ejecuta la activity edge-to-edge
   (`enableEdgeToEdge`, con iconos de barra de sistema claros forzados porque la
   app siempre pinta oscuro), y el `Scaffold` ya no reserva las barras del sistema
@@ -489,8 +489,8 @@ leer/escribir/borrar vive una sola vez.
   limpiar) para Search y streams. `AppIconButton` es el único control de icono —
   cabeceras de media, el reproductor (atrás, play/pausa, avance, subtítulos,
   audio, pantalla completa y el botón de play centrado), los toggles de
-  guardar/puntuar/visto del detalle y las acciones de limpiar/contraseña de los
-  campos — así que todos reciben el target de 48dp, un `mediaScrim` opcional y
+  biblioteca/puntuar/visto del detalle y las acciones de limpiar/contraseña de
+  los campos — así que todos reciben el target de 48dp, un `mediaScrim` opcional y
   un atenuado de carga, y llevan su estado en el glifo y no en la superficie: sin
   caja de fondo ni ripple; el ícono se ilumina en hover o foco y se vuelve ámbar
   al seleccionarse; ninguna pantalla llama a un `IconButton`,

@@ -15,7 +15,7 @@ enum class AppSection(
 ) {
     HOME("Home", AppIcons.Outlined.Home, AppIcons.Filled.Home),
     SEARCH("Search", AppIcons.Outlined.Search, AppIcons.Filled.Search),
-    LIBRARY("Library", AppIcons.Outlined.FavoriteBorder, AppIcons.Filled.Favorite),
+    LIBRARY("Library", AppIcons.Outlined.BookmarkBorder, AppIcons.Filled.Bookmark),
     CALENDAR("Calendar", AppIcons.Outlined.CalendarToday, AppIcons.Filled.CalendarToday),
     SETTINGS("Settings", AppIcons.Outlined.Settings, AppIcons.Filled.Settings),
 }

@@ -146,7 +146,8 @@
     <string name="detail_error_library">Could not update your library.</string>
     <string name="detail_error_watched">Could not update the watched state.</string>
     <string name="detail_error_rating">Could not save your rating.</string>
-    <string name="detail_my_list">My List</string>
+    <string name="detail_add_to_library">Add to my library</string>
+    <string name="detail_remove_from_library">Remove from library</string>
     <string name="detail_rate">Rate</string>
     <string name="detail_episodes">Episodes</string>
     <string name="detail_you_may_also_like">You May Also Like</string>
