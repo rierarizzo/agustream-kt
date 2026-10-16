@@ -75,7 +75,7 @@ fun PlayerControls(
     onSeek: (Duration) -> Unit,
     onSeekBy: (Duration) -> Unit,
     onVolumeChanged: (Double) -> Unit,
-    onToggleFullscreen: () -> Unit,
+    onToggleFullscreen: (() -> Unit)?,
     onSubtitles: () -> Unit,
     onAudio: () -> Unit,
     onBack: () -> Unit,
@@ -151,7 +151,7 @@ private fun BottomBar(
     onSeek: (Duration) -> Unit,
     onSeekBy: (Duration) -> Unit,
     onVolumeChanged: (Double) -> Unit,
-    onToggleFullscreen: () -> Unit,
+    onToggleFullscreen: (() -> Unit)?,
     onSubtitles: () -> Unit,
     onAudio: () -> Unit,
     modifier: Modifier = Modifier,
@@ -238,12 +238,14 @@ private fun BottomBar(
                 onClick = onAudio,
                 tint = AppColors.playerControl,
             )
-            AppIconButton(
-                icon = AppIcons.Filled.Fullscreen,
-                contentDescription = stringResource(Res.string.player_fullscreen),
-                onClick = onToggleFullscreen,
-                tint = AppColors.playerControl,
-            )
+            onToggleFullscreen?.let { toggle ->
+                AppIconButton(
+                    icon = AppIcons.Filled.Fullscreen,
+                    contentDescription = stringResource(Res.string.player_fullscreen),
+                    onClick = toggle,
+                    tint = AppColors.playerControl,
+                )
+            }
         }
     }
 }

@@ -34,6 +34,7 @@ plugins {
 include(":app:androidApp")
 include(":app:desktopApp")
 include(":app:fonts")
+include(":app:player")
 include(":app:shared")
 include(":core")
 include(":data")

@@ -2,8 +2,8 @@
 
 This document records the decisions taken while migrating the original Flutter
 app (reference only; it has since been removed) to Compose Multiplatform.
-Desktop is the only target wired up for now; Android compiles against the same
-shared code.
+Desktop (Windows) and Android are both wired up end to end against the same
+shared code; each composition root picks its own player engine.
 
 ## Goal
 
@@ -18,9 +18,10 @@ or the playback engine directly.
 :core      pure domain (models, repository contracts, watched rules, player contract)
 :data      implementations (Stremio addons, Nuvio/Supabase, local JSON store)
 :app:fonts   alternate typeface (IBM Plex Sans) assets as Compose Resources
-:app:shared  Compose UI + ViewModels (depends on :core and :app:fonts)
+:app:player  shared PlayerService adapter over mediamp's player contract
+:app:shared  Compose UI + ViewModels (depends on :core, :app:player and :app:fonts)
 :app:desktopApp  composition root: mpv player (mediamp), window control, main()
-:app:androidApp  Android composition root (no-op player for now)
+:app:androidApp  composition root: ExoPlayer player (mediamp), MainActivity
 ```
 
 `ui -> domain` and `data -> domain` (dependency inversion): the data layer
@@ -72,9 +73,8 @@ so the atomic read/write/delete logic lives once.
   season is, without the compiler noticing.
 - **`PlayerService` is a contract**, with a neutral `PlayerState` and a
   `videoOutput: VideoOutput?` handle so the UI can embed the native surface
-  without depending on the engine. `VideoOutput` is an empty marker; the
-  desktop `VideoSurfaceRenderer` extends it and draws the video as Compose
-  content.
+  without depending on the engine. `VideoOutput` is an empty marker; the shared
+  `VideoSurfaceRenderer` extends it and draws the video as Compose content.
 
 ## Data (`:data`)
 
@@ -553,19 +553,63 @@ so the atomic read/write/delete logic lives once.
 
 ## Player
 
-`PlayerService` is implemented on desktop by `MediampPlayerService`, a thin
-adapter over **[mediamp](https://github.com/open-ani/mediamp)**'s mpv backend,
-created in the composition root so the engine stays out of the shared UI.
-mediamp renders the video into the Compose/Skia canvas (D3D11 on Windows,
-OpenGL on Linux, Metal on macOS) and draws it through `VideoSurfaceRenderer`, so
-the video is ordinary Compose content and the Compose controls stack on top of
-it in the same window — a native `wid` surface or a separate overlay window
-would either cover the controls or drift out of sync. Commands, position,
-tracks and volume go through mediamp's `MediampPlayer` API (mpv's client API
-under the hood); external addon subtitles are added with the underlying mpv
-command. mediamp's per-platform runtime bundles a matching libmpv and FFmpeg
-(LGPL on Windows/macOS, GPL-3.0 on Linux). Watch progress reporting, resume,
-subtitles/audio selection and next-episode autoplay are unchanged.
+`PlayerService` is implemented in the composition roots by `MediampPlayerService`,
+a thin subclass of the shared `MediampPlayerAdapter` (`:app:player`) over
+**[mediamp](https://github.com/open-ani/mediamp)**. The adapter holds the contract
+logic once; each root only wires its engine (mpv or ExoPlayer): the surface, the
+volume and the external-subtitle handling. The engine stays out of the shared UI
+and is picked per target.
+
+On desktop, mediamp resolves to its **mpv** backend: it renders the video into
+the Compose/Skia canvas (D3D11 on Windows, OpenGL on Linux, Metal on macOS) and
+draws it through `VideoSurfaceRenderer`, so the video is ordinary Compose
+content and the Compose controls stack on top of it in the same window — a
+native `wid` surface or a separate overlay window would either cover the
+controls or drift out of sync. External addon subtitles are added with the
+underlying mpv command, and mediamp's per-platform runtime bundles a matching
+libmpv and FFmpeg (LGPL on Windows/macOS, GPL-3.0 on Linux).
+
+On Android, mediamp resolves to its **ExoPlayer (media3)** backend: it embeds a
+`PlayerView` through `AndroidView` behind the same `VideoSurfaceRenderer` handle,
+so the Compose controls stack on top of the video there too. media3 only accepts
+side-loaded subtitle files when the media is prepared, so selecting an external
+addon subtitle reloads the same source with the file attached and resumes at the
+current position; embedded tracks, audio selection and position/duration come
+through the same mediamp API. ExoPlayer exposes no mediamp
+`AudioLevelController`, so the volume is set on the native player.
+
+Commands, position, tracks and volume go through mediamp's `MediampPlayer` API in
+both cases. Watch progress reporting, resume, subtitles/audio selection and
+next-episode autoplay are unchanged.
+
+The player owns the screen on a phone: `PlayerScreen` calls the platform
+`PlayerWindowMode` (`ui/platform`), which locks the host activity to sensor
+landscape and hides the system bars (immersive), restoring both when the player
+leaves; the bars come back on a swipe. Android 16+ ignores the orientation lock
+on large screens. The Android activity declares the orientation `configChanges`,
+so rotating does not recreate it (and does not restart the video). The overlay
+hides the fullscreen toggle where the window cannot fullscreen itself
+(`WindowController.supportsFullScreen`), which is Android; desktop keeps it.
+
+On desktop, fullscreen is a user toggle routed through `WindowController`, and
+leaving the player always exits it so the navigation returns. The controller
+drives the native `ComposeWindow` directly, because Compose's `Maximized`
+transition never clears its fullscreen bit, and exclusive fullscreen clears the
+maximize bit on entry without restoring it on exit: the window is taken out of
+fullscreen through `Floating` first and its previous placement is re-applied
+afterwards. Leaving fullscreen also nudges the window size by a pixel and back
+(in two dispatches), because the exclusive-fullscreen resize does not re-layout
+the Compose scene: without it the player controls keep the fullscreen size until
+the window is resized by hand. The nudge runs before re-maximizing, because
+`setSize` on a maximized frame unmaximizes it. These steps are workarounds for
+Compose Desktop / AWT behaviour, isolated in the composition root, and can be
+simplified if it is fixed upstream.
+
+Background playback is not wired yet, so `MainActivity.onStop` pauses the player
+unless the stop is a configuration change; that callback is the seam where a
+media session and a foreground service would keep playing instead.
+`PlayerService.pause()` exists for that lifecycle call and never *starts*
+playback, unlike `playOrPause()`.
 
 ## Testing
 
@@ -581,11 +625,11 @@ parsing, badge resolver with fakes) and the defensive parsers/mappers.
   libmpv and FFmpeg per platform: no system install and no `PENGU_LIBMPV` are
   needed. The Linux runtime is GPL-3.0 (mpv's X11 output); Windows and macOS are
   LGPL.
-- Android uses a no-op player until a native video surface is added. The rest
-  of the target is wired: `INTERNET` permission, a `Context`-based app directory
-  and a persisted session. `AppServices.playbackSupported` is `false` for the
-  no-op player, so the UI reports that playback is unavailable instead of
-  opening a player that only errors.
+- Android uses **mediamp**'s ExoPlayer (media3) backend, which pulls media3 and
+  Compose UI into the APK but needs no bundled native runtime. media3 only
+  accepts side-loaded subtitle files when the media is prepared, so choosing an
+  external addon subtitle reloads the source and briefly re-buffers at the same
+  position; embedded tracks, audio selection and the rest are unaffected.
 - The Nuvio addon metadata/edit screens are still placeholders, as they were
   in the Flutter app.
 - **Calendar** uses a Cinemeta convention when an addon exposes it: a
@@ -610,6 +654,28 @@ not a one-file change. They are grouped by the axis they change, not by effort.
   change, but a usable account also needs `LibraryRepository`,
   `ProgressRepository` and `AddonRepository` against the Stremio datastore.
   The auth adapter is the small part; the data repositories are the bulk.
+
+### Playback
+
+- **The Linux runtime, when the Linux target is addressed.** The desktop
+  composition root declares only the Windows libmpv/FFmpeg runtimes
+  (`mediamp-mpv-runtime-windows-x64`, `mediamp-ffmpeg-runtime-windows-x64`); a
+  Linux build adds `mediamp-mpv-runtime-linux-x64` and
+  `mediamp-ffmpeg-runtime-linux-x64` next to them. The Linux runtime is GPL-3.0,
+  not LGPL, so the distribution's licensing has to account for it.
+- **Undecorated window with a custom title bar — priority.** Animeko, the
+  reference Compose Multiplatform app, keeps its window borderless and draws its
+  own title bar: a `WindowProc` handles `WM_NCCALCSIZE`/`WM_NCHITTEST` for the
+  frame and the drag/resize, and Compose renders the title and the window
+  buttons. That is why its borderless fullscreen is a plain style toggle with no
+  workarounds: there are no native insets to go stale, and the frame owns the
+  resize. Our window keeps the native decoration, so removing it for fullscreen
+  leaves AWT's cached insets behind and the Compose scene does not re-layout (the
+  exclusive path only works because `fullScreenWindow = null` resets that state).
+  Moving the desktop window to the same model — undecorated window, custom title
+  bar, and the DWM theming replaced by it — removes the fullscreen nudge, the
+  maximize dance and the exclusive mode in one move. It is the first desktop
+  window item to pick up.
 
 ### Product / UX
 

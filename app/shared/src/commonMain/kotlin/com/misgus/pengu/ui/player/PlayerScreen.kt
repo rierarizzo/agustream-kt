@@ -38,6 +38,7 @@ import com.misgus.pengu.core.model.Subtitle
 import com.misgus.pengu.core.player.MediaTrack
 import com.misgus.pengu.core.player.PlaybackTarget
 import com.misgus.pengu.core.util.runCatchingCancellable
+import com.misgus.pengu.ui.platform.PlayerWindowMode
 import com.misgus.pengu.ui.services.AppServices
 import com.misgus.pengu.ui.services.LocalAppServices
 import com.misgus.pengu.ui.shell.LocalSnackbarHost
@@ -72,6 +73,10 @@ fun PlayerScreen(
     val reporter = remember(target) { PlaybackProgressReporter(services.progress, services.settings, target) }
     val focusRequester = remember { FocusRequester() }
 
+    // The player owns the screen on Android (landscape + immersive); desktop
+    // keeps its windowed, decorated frame.
+    PlayerWindowMode()
+
     var controlsVisible by remember { mutableStateOf(true) }
     var lastInteraction by remember { mutableLongStateOf(0L) }
     var addonSubtitles by remember { mutableStateOf<List<Subtitle>>(emptyList()) }
@@ -88,6 +93,13 @@ fun PlayerScreen(
             scope.launch { reporter.flush(force = true) }
             player.stop()
         }
+    }
+
+    // Leaving the player always returns to a windowed window, so the navigation
+    // comes back. Keyed on the screen, not the target, so autoplay-next does not
+    // drop fullscreen between episodes.
+    DisposableEffect(Unit) {
+        onDispose { window.setFullScreen(false) }
     }
 
     LaunchedEffect(target) {
@@ -196,8 +208,12 @@ fun PlayerScreen(
                             true
                         }
                         Key.F -> {
-                            window.setFullScreen(!window.isFullScreen.value)
-                            true
+                            if (window.supportsFullScreen) {
+                                window.setFullScreen(!window.isFullScreen.value)
+                                true
+                            } else {
+                                false
+                            }
                         }
                         Key.Escape -> {
                             onBack()
@@ -239,7 +255,12 @@ fun PlayerScreen(
                 player.setVolume(it)
                 revealControls()
             },
-            onToggleFullscreen = { window.setFullScreen(!window.isFullScreen.value) },
+            onToggleFullscreen =
+                if (window.supportsFullScreen) {
+                    { window.setFullScreen(!window.isFullScreen.value) }
+                } else {
+                    null
+                },
             onSubtitles = { showSubtitleMenu = true },
             onAudio = { showAudioMenu = true },
             onBack = onBack,

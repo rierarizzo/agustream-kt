@@ -12,10 +12,16 @@ kotlin {
 }
 dependencies {
     implementation(project(":app:shared"))
+    implementation(project(":app:player"))
     implementation(project(":data"))
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.profileinstaller)
+
+    // Android playback engine: mediamp resolves its all-in-one bundle to the
+    // ExoPlayer (media3) backend on Android and embeds a `PlayerView` through
+    // `AndroidView`, so the Compose controls stack on top of the video.
+    implementation(libs.mediamp.all)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)

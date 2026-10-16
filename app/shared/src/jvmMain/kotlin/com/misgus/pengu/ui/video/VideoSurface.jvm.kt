@@ -3,6 +3,7 @@ package com.misgus.pengu.ui.video
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.misgus.pengu.core.player.PlayerService
+import com.misgus.pengu.player.VideoSurfaceRenderer
 
 /**
  * Draws the player's video output as Compose content.

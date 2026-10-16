@@ -17,6 +17,15 @@ interface WindowController {
     val isFullScreen: StateFlow<Boolean>
 
     /**
+     * Whether [setFullScreen] actually does something on this target.
+     *
+     * Desktop can fullscreen its window; a platform that is always fullscreen
+     * (Android) reports `false` so the player hides the toggle instead of
+     * offering a no-op control.
+     */
+    val supportsFullScreen: Boolean
+
+    /**
      * Height of the screen's work area (the display minus the taskbar), or
      * `0.dp` when it cannot be read.
      *
@@ -33,6 +42,8 @@ interface WindowController {
 class NoopWindowController : WindowController {
     private val _isFullScreen = MutableStateFlow(false)
     override val isFullScreen: StateFlow<Boolean> = _isFullScreen.asStateFlow()
+
+    override val supportsFullScreen: Boolean = false
 
     override val screenWorkAreaHeight: Dp = 0.dp
 

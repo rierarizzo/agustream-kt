@@ -1,12 +1,13 @@
 # Pengu
 
-A desktop client for Windows 11 (and Linux later) that connects to the **Nuvio**
-backend, is compatible with the **Stremio addon protocol**, and plays with
-**mpv** (via mediamp). Complementary to Nuvio, not a replacement.
+A Compose Multiplatform client for Windows 11, Android (and Linux later) that
+connects to the **Nuvio** backend, is compatible with the **Stremio addon
+protocol**, and plays with **mediamp** (mpv on desktop, ExoPlayer on Android).
+Complementary to Nuvio, not a replacement.
 
 This repository is the **Compose Multiplatform** implementation, migrated from
-the original Flutter app. Desktop is the only target wired up end to end for
-now; the shared code is multiplatform and the Android app compiles against it.
+the original Flutter app. Desktop and Android are both wired up end to end
+against the same shared code; each composition root picks its player engine.
 
 ## Stack
 
@@ -17,7 +18,7 @@ now; the shared code is multiplatform and the Android app compiles against it.
 | HTTP | Ktor client (CIO on desktop, OkHttp on Android) |
 | JSON | kotlinx.serialization (defensive `JsonElement` parsing) |
 | Images | Coil 3 |
-| Playback | mpv via mediamp, rendered into the Compose canvas (desktop), isolated behind `PlayerService` |
+| Playback | mediamp (mpv on desktop, ExoPlayer on Android), isolated behind `PlayerService` |
 | Accounts/sync | Nuvio API (Supabase) |
 | Sources | Stremio addons (HTTP/JSON) |
 
@@ -25,7 +26,7 @@ now; the shared code is multiplatform and the Android app compiles against it.
 
 ```
 app/desktopApp   composition root: window, mpv player (mediamp), main()
-app/androidApp   Android composition root
+app/androidApp   composition root: Activity, ExoPlayer player (mediamp)
 app/fonts        IBM Plex Sans assets as Compose Resources (kept for comparison)
 app/shared       Compose UI and ViewModels
 core             pure domain: models, repository contracts, watched rules

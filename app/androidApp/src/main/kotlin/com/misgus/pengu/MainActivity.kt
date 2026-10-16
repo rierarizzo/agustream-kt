@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.misgus.pengu.core.player.NoopPlayerService
 import com.misgus.pengu.data.BackendBundle
 import com.misgus.pengu.data.BackendKind
 import com.misgus.pengu.data.addons.StremioCatalogRepository
@@ -19,6 +18,7 @@ import com.misgus.pengu.data.store.FileSessionStore
 import com.misgus.pengu.data.store.AppPaths
 import com.misgus.pengu.data.store.JsonMapStore
 import com.misgus.pengu.data.store.JsonSettingsRepository
+import com.misgus.pengu.player.MediampPlayerService
 import com.misgus.pengu.ui.PenguApp
 import com.misgus.pengu.ui.services.AppServices
 import com.misgus.pengu.ui.window.NoopWindowController
@@ -27,12 +27,12 @@ import com.misgus.pengu.ui.window.NoopWindowController
  * Android entry point.
  *
  * Desktop keeps its own composition root in `:app:desktopApp`; this one wires
- * the shared backend and a no-op player. The player reports a clear error until
- * a native video surface is added; [AppServices.playbackSupported] lets the UI
- * tell the user instead of failing silently.
+ * the shared backend and the ExoPlayer player. Both composition roots pick the
+ * concrete engine, so the shared UI only ever sees [com.misgus.pengu.core.player.PlayerService].
  */
 class MainActivity : ComponentActivity() {
     private lateinit var backend: BackendBundle
+    private lateinit var player: MediampPlayerService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // The app always paints a dark surface, so the system-bar icons are
@@ -46,6 +46,9 @@ class MainActivity : ComponentActivity() {
 
         // Gives the platform layer a real, persistent app directory.
         initPlatform(this)
+
+        // Built on the UI thread, as ExoPlayer requires, and owned by the activity.
+        player = MediampPlayerService(this)
 
         val httpClient = createHttpClient()
         backend = createBackend(
@@ -64,7 +67,7 @@ class MainActivity : ComponentActivity() {
             streams = StremioStreamRepository(addons, httpClient),
             catalogs = StremioCatalogRepository(addons, httpClient),
             subtitles = StremioSubtitleRepository(addons, httpClient),
-            player = NoopPlayerService(),
+            player = player,
             window = NoopWindowController(),
             addons = addons,
         )
@@ -74,8 +77,18 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStop() {
+        // Background playback is not wired yet (it needs a media session and a
+        // foreground service), so leaving the app pauses. This is the seam where
+        // that policy would live; a configuration change (rotation) must not
+        // pause, because the same session continues once it finishes.
+        if (!isChangingConfigurations) player.pause()
+        super.onStop()
+    }
+
     override fun onDestroy() {
-        // Releases the HTTP client owned by the backend.
+        // Releases the player engine and the HTTP client owned by the backend.
+        player.dispose()
         backend.close()
         super.onDestroy()
     }

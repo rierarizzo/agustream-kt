@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(project(":app:shared"))
+    implementation(project(":app:player"))
     implementation(project(":core"))
     implementation(project(":data"))
 

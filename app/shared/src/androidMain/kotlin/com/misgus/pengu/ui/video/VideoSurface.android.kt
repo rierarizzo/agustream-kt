@@ -1,26 +1,26 @@
 package com.misgus.pengu.ui.video
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.misgus.pengu.app.shared.generated.resources.Res
-import com.misgus.pengu.app.shared.generated.resources.error_playback_unavailable
 import com.misgus.pengu.core.player.PlayerService
-import org.jetbrains.compose.resources.stringResource
+import com.misgus.pengu.player.VideoSurfaceRenderer
 
 /**
- * Android has no native video surface wired up yet; the abstraction is in place
- * so a `PlayerView`-backed actual can be added later without touching the UI.
+ * Draws the player's video output as Compose content.
+ *
+ * On Android the ExoPlayer backend embeds a `PlayerView` through `AndroidView`,
+ * which the engine's [VideoSurfaceRenderer] exposes, so the Compose controls
+ * stack on top of it.
  */
 @Composable
 actual fun VideoSurface(
     player: PlayerService,
     modifier: Modifier,
 ) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(stringResource(Res.string.error_playback_unavailable))
+    val renderer = player.videoOutput as? VideoSurfaceRenderer
+    if (renderer == null) {
+        EmptyVideoSurface(modifier)
+        return
     }
+    renderer.Draw(modifier)
 }

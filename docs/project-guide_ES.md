@@ -6,9 +6,8 @@ Compose Multiplatform** usa el código. Para el *porqué* de las decisiones, lee
 [`architecture-decisions.md`](architecture-decisions.md); este archivo es el *dónde*.
 
 > Pengu es un cliente Compose Multiplatform para el backend Nuvio que habla el
-> protocolo de addons de Stremio y reproduce vídeo con mpv (vía mediamp). Desktop (Windows)
-> es el target completamente cableado; el código compartido también compila para
-> Android.
+> protocolo de addons de Stremio y reproduce vídeo con mediamp (mpv en desktop,
+> ExoPlayer en Android). Desktop y Android son ambos targets completamente cableados.
 
 ---
 
@@ -16,8 +15,9 @@ Compose Multiplatform** usa el código. Para el *porqué* de las decisiones, lee
 
 ```
 app/desktopApp   Composition root: ventana, reproductor mpv (mediamp), main()
-app/androidApp   Composition root: Activity, reproductor no-op
+app/androidApp   Composition root: Activity, reproductor ExoPlayer (mediamp)
 app/fonts        Assets de IBM Plex Sans (se mantienen para comparar)
+app/player       Adaptador compartido de PlayerService sobre mediamp (lo usan ambos roots)
 app/shared       UI Compose + ViewModels (toda la UI del producto)
 core             Dominio puro: modelos, contratos de repositorio, reglas, constantes
 data             Implementaciones: addons Stremio, backend Nuvio, ficheros locales
@@ -30,7 +30,7 @@ ui  ──▶ core ◀── data
 ```
 
 - `core` no depende de nada (ni UI, ni red, ni plataforma). Mantenlo así.
-- `data` y `app:shared` dependen solo de `core`.
+- `data` depende solo de `core`; `app:shared` depende de `core` y `app:player`.
 - **Solo los composition roots** (`app:desktopApp`, `app/androidApp`) pueden
   importar `data`. Si algún día quieres `data` desde una pantalla, lo que quieres
   es una interfaz de repositorio nueva en `core`.
@@ -81,8 +81,9 @@ Ejemplo: el usuario toca un póster en Home y pulsa **Watch now**.
 4. Al pulsar **Watch now** se abre `StreamsDialog` → `StreamsViewModel` →
    `StreamRepository.all(...)` → `StremioStreamRepository` (agrega addons).
 5. Al elegir un stream se apila `ContentRoute.Player(PlaybackTarget…)`.
-6. `PlayerScreen` llama a `PlayerService.open(target)`. En desktop es
-   `MediampPlayerService` (mpv vía mediamp); en Android es `NoopPlayerService`.
+6. `PlayerScreen` llama a `PlayerService.open(target)`. Ambos composition roots
+   instalan un `MediampPlayerService`: el backend mpv de mediamp en desktop, su
+   backend ExoPlayer en Android.
 7. `PlaybackProgressReporter` guarda el progreso a través de `ProgressRepository`
    mientras se reproduce.
 
@@ -106,8 +107,8 @@ Existen para no reimplementar la misma preocupación en cada pantalla:
 - **`ProfileScope`** (`data/backend`) — `AccountRepository.requireProfileId()` /
   `requireActiveProfile()`, usado por cada repositorio Nuvio con scope de perfil.
 - **`VideoOutput`** (`core/player`) — marcador tipado de la salida de plataforma
-  del reproductor; `VideoSurfaceRenderer` (en `app/shared/jvmMain`) lo extiende y
-  dibuja el vídeo como contenido Compose.
+  del reproductor; `VideoSurfaceRenderer` (en `app/player`) lo extiende
+  y dibuja el vídeo como contenido Compose, sea cual sea el motor cableado.
 - **`ContentTypes` / `CatalogExtras` / `ProgressThresholds` / `releaseYear()`**
   (`core/model`) — el vocabulario del protocolo y los umbrales, definidos una vez.
 - **Tokens de diseño** (`theme/Tokens.kt`) — las paletas de tema (`BrandPalette`
@@ -126,8 +127,9 @@ Existen para no reimplementar la misma preocupación en cada pantalla:
 Léelas una vez y el código deja de parecer mágico.
 
 **`expect` / `actual`** — declara una API de plataforma en `commonMain` e
-impleméntala por target. Ejemplos: `PlatformBackHandler`, `VideoSurface`,
-`createHttpClient`, `FilePicker`. Cuando añadas comportamiento específico de
+impleméntala por target. Ejemplos: `PlatformBackHandler`, `PlayerWindowMode`,
+`VideoSurface`, `createHttpClient`, `FilePicker`. Cuando añadas comportamiento
+específico de
 plataforma, añade el `expect` en `commonMain` y los `actual` en `jvmMain` /
 `androidMain`.
 
@@ -241,7 +243,8 @@ existe, y contrólalo con `StandardTestDispatcher` + `advanceUntilIdle()` (ver
 
 **Añadir un motor de reproducción**
 1. Implementa `core/.../player/PlayerService.kt`.
-2. Conéctalo en el composition root (`Main.kt` en desktop). La UI ya lee
+2. Conéctalo en el composition root (`Main.kt` en desktop, `MainActivity.kt` en
+   Android) y devuelve la superficie del motor por `videoOutput`. La UI ya lee
    `canPlay` para desactivar la reproducción en targets sin motor.
 
 **Añadir un ajuste**

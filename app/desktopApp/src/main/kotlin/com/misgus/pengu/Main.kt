@@ -133,6 +133,11 @@ fun main(args: Array<String>) {
                         delay(TITLE_BAR_RETRY_DELAY_MS)
                     }
                 }
+                // Give the controller the native window so fullscreen can be
+                // applied without Compose's stuck-fullscreen transition.
+                SideEffect {
+                    windowController.attach(window)
+                }
                 // Paint the native window with the app background so resizing does
                 // not flash the default white surface before Compose's next frame.
                 SideEffect {

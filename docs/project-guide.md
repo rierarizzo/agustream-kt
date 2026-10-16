@@ -6,8 +6,8 @@ Multiplatform ideas** the code relies on. For the *why* behind decisions, read
 [`architecture-decisions.md`](architecture-decisions.md); this file is the *where*.
 
 > Pengu is a Compose Multiplatform client for the Nuvio backend that speaks
-> the Stremio addon protocol and plays video with mpv (via mediamp). Desktop (Windows) is
-> the fully wired target; the shared code also builds for Android.
+> the Stremio addon protocol and plays video with mediamp (mpv on desktop,
+> ExoPlayer on Android). Desktop and Android are both fully wired targets.
 
 ---
 
@@ -15,8 +15,9 @@ Multiplatform ideas** the code relies on. For the *why* behind decisions, read
 
 ```
 app/desktopApp   Composition root: window, mpv player (mediamp), main()
-app/androidApp   Composition root: Activity, no-op player
+app/androidApp   Composition root: Activity, ExoPlayer player (mediamp)
 app/fonts        IBM Plex Sans assets (kept for comparison)
+app/player       Shared PlayerService adapter over mediamp (both roots use it)
 app/shared       Compose UI + ViewModels (the whole product UI)
 core             Pure domain: models, repository contracts, rules, constants
 data             Implementations: Stremio addons, Nuvio backend, local files
@@ -29,7 +30,7 @@ ui  ──▶ core ◀── data
 ```
 
 - `core` depends on nothing (no UI, no network, no platform). Keep it that way.
-- `data` and `app:shared` depend on `core` only.
+- `data` depends on `core` only; `app:shared` depends on `core` and `app:player`.
 - **Only the composition roots** (`app:desktopApp`, `app/androidApp`) may import
   `data`. If you ever find yourself wanting `data` from a screen, you want a new
   repository interface in `core` instead.
@@ -80,8 +81,9 @@ Example: user taps a poster on Home and presses **Watch now**.
 4. Pressing **Watch now** opens `StreamsDialog` → `StreamsViewModel` →
    `StreamRepository.all(...)` → `StremioStreamRepository` (aggregates addons).
 5. Selecting a stream pushes `ContentRoute.Player(PlaybackTarget…)`.
-6. `PlayerScreen` calls `PlayerService.open(target)`. On desktop that is
-   `MediampPlayerService` (mpv via mediamp); on Android it is `NoopPlayerService`.
+6. `PlayerScreen` calls `PlayerService.open(target)`. Both composition roots
+   install a `MediampPlayerService`: mediamp's mpv backend on desktop, its
+   ExoPlayer backend on Android.
 7. `PlaybackProgressReporter` saves progress through `ProgressRepository` while
    playing.
 
@@ -103,8 +105,8 @@ These exist so the same concern is not re-implemented per screen:
 - **`ProfileScope`** (`data/backend`) — `AccountRepository.requireProfileId()` /
   `requireActiveProfile()`, used by every profile-scoped Nuvio repository.
 - **`VideoOutput`** (`core/player`) — typed marker for the player's platform
-  output; `VideoSurfaceRenderer` (in `app/shared/jvmMain`) extends it and draws
-  the video as Compose content.
+  output; `VideoSurfaceRenderer` (in `app/player`) extends it and draws the video
+  as Compose content, whichever engine is wired in.
 - **`ContentTypes` / `CatalogExtras` / `ProgressThresholds` / `releaseYear()`**
   (`core/model`) — the protocol vocabulary and thresholds, defined once.
 - **Design tokens** (`theme/Tokens.kt`) — the theme palettes (`BrandPalette`
@@ -122,8 +124,8 @@ These exist so the same concern is not re-implemented per screen:
 Read these once and the code stops looking magical.
 
 **`expect` / `actual`** — declare a platform API in `commonMain`, implement it per
-target. Examples: `PlatformBackHandler`, `VideoSurface`, `createHttpClient`,
-`FilePicker`. When you add a platform-specific behavior, add the `expect` in
+target. Examples: `PlatformBackHandler`, `PlayerWindowMode`, `VideoSurface`,
+`createHttpClient`, `FilePicker`. When you add a platform-specific behavior, add the `expect` in
 `commonMain` and the `actual`s in `jvmMain` / `androidMain`.
 
 **`StateFlow` + `ViewModel`** — a ViewModel holds an immutable `data class …UiState`
@@ -237,8 +239,9 @@ not exist, and drive it with `StandardTestDispatcher` + `advanceUntilIdle()`
 
 **Add a player engine**
 1. Implement `core/.../player/PlayerService.kt`.
-2. Wire it in the composition root (`Main.kt` on desktop). The UI already reads
-   `canPlay` to disable playback on targets without an engine.
+2. Wire it in the composition root (`Main.kt` on desktop, `MainActivity.kt` on
+   Android) and return the engine's surface through `videoOutput`. The UI already
+   reads `canPlay` to disable playback on targets without an engine.
 
 **Add a setting**
 1. Add a field to `AppSettings` (`core/.../repository/SettingsRepository.kt`).

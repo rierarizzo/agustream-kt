@@ -63,6 +63,14 @@ interface PlayerService {
 
     fun playOrPause()
 
+    /**
+     * Pauses playback, keeping the loaded media.
+     *
+     * Used by the app lifecycle (backgrounding) and worth keeping distinct from
+     * [playOrPause] so a lifecycle callback never *starts* playback by accident.
+     */
+    fun pause()
+
     fun seek(position: Duration)
 
     fun seekBy(offset: Duration)

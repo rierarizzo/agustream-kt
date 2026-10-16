@@ -28,6 +28,8 @@ class NoopPlayerService(
 
     override fun playOrPause() = Unit
 
+    override fun pause() = Unit
+
     override fun seek(position: Duration) = Unit
 
     override fun seekBy(offset: Duration) = Unit

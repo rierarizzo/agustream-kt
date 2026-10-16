@@ -40,11 +40,14 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            // `WindowInsetsControllerCompat`, used by the player's immersive mode.
+            implementation(libs.androidx.core.ktx)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
         }
         commonMain.dependencies {
             api(project(":core"))
+            implementation(project(":app:player"))
             implementation(project(":app:fonts"))
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
