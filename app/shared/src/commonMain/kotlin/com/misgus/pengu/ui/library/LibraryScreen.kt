@@ -26,7 +26,7 @@ import com.misgus.pengu.ui.components.PosterTile
 import com.misgus.pengu.ui.components.SkeletonPosterGrid
 import com.misgus.pengu.ui.components.SyncingIndicator
 import com.misgus.pengu.ui.components.toUserMessage
-import com.misgus.pengu.ui.icons.AppIcons
+import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.services.LocalAppServices
 import com.misgus.pengu.ui.shell.ContentNavigator
 import com.misgus.pengu.ui.shell.ContentRoute
@@ -74,13 +74,13 @@ private fun LibraryContent(
         state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && !state.hasLoaded ->
             Message(
-                icon = AppIcons.Outlined.ErrorOutline,
+                icon = Boxicons.Error,
                 title = stringResource(Res.string.library_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.items.isEmpty() ->
             Message(
-                icon = AppIcons.Outlined.Inbox,
+                icon = Boxicons.Inbox,
                 title = stringResource(Res.string.empty_nothing_to_show),
                 message = stringResource(Res.string.library_empty_message),
             )

@@ -45,7 +45,7 @@ import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.action_see_all
 import com.misgus.pengu.app.shared.generated.resources.status_syncing
 import com.misgus.pengu.app.shared.generated.resources.status_watched
-import com.misgus.pengu.ui.icons.AppIcons
+import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.theme.AppColors
 import com.misgus.pengu.ui.theme.AppSizes
 import com.misgus.pengu.ui.theme.AppSpacing
@@ -64,8 +64,10 @@ fun Modifier.sectionHeading(): Modifier = semantics { heading() }
 /**
  * Mirrors the content in a right-to-left layout.
  *
- * Material ships auto-mirrored variants for arrows but not for chevrons, so a
- * directional chevron is flipped here instead of swapping the icon at every use.
+ * Boxicons ships no auto-mirrored variants, so the arrow and sign-in/out
+ * glyphs flip through `ImageVector`'s `autoMirror` and a directional chevron,
+ * which the Icon API does not mirror, is flipped here instead of swapping the
+ * icon at every use.
  */
 @Composable
 fun Modifier.mirrorInRtl(): Modifier =
@@ -87,7 +89,7 @@ fun WatchedBadge(iconSize: Int = 14) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            imageVector = AppIcons.Filled.Check,
+            imageVector = Boxicons.Check,
             contentDescription = stringResource(Res.string.status_watched),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(iconSize.dp),
@@ -196,7 +198,7 @@ fun SectionHeader(
             }
             if (onSeeAll != null) {
                 AppIconButton(
-                    icon = AppIcons.Filled.ChevronRight,
+                    icon = Boxicons.ChevronRight,
                     contentDescription = stringResource(Res.string.action_see_all),
                     onClick = onSeeAll,
                     iconModifier = Modifier.mirrorInRtl(),
@@ -306,7 +308,7 @@ fun PosterImage(
 private fun PosterFallback() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Icon(
-            imageVector = AppIcons.Outlined.Movie,
+            imageVector = Boxicons.Movie,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )

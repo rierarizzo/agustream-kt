@@ -169,9 +169,6 @@ object AppSizes {
      */
     val bottomBarHeight: Dp = 64.dp
 
-    /** Diameter of the dot that marks the selected section on the bottom bar. */
-    val navIndicator: Dp = 4.dp
-
     /** Height of the desktop custom title bar. */
     val titleBarHeight: Dp = 40.dp
 

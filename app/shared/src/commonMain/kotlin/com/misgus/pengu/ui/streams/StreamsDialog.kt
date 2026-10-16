@@ -58,7 +58,7 @@ import com.misgus.pengu.ui.components.AppIconButton
 import com.misgus.pengu.ui.components.AppSearchField
 import com.misgus.pengu.ui.components.Message
 import com.misgus.pengu.ui.components.PosterImage
-import com.misgus.pengu.ui.icons.AppIcons
+import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.services.LocalAppServices
 import com.misgus.pengu.ui.shell.RouteViewModelStoreOwner
 import com.misgus.pengu.ui.theme.AppMotion
@@ -169,12 +169,12 @@ private fun Header(
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
         ) {
             AppIconButton(
-                icon = AppIcons.Filled.Refresh,
+                icon = Boxicons.Refresh,
                 contentDescription = stringResource(Res.string.action_refresh),
                 onClick = onRefresh,
             )
             AppIconButton(
-                icon = AppIcons.Filled.Close,
+                icon = Boxicons.Close,
                 contentDescription = stringResource(Res.string.action_close),
                 onClick = onClose,
             )
@@ -211,12 +211,12 @@ private fun Content(
             }
         state.error != null && !state.hasLoaded ->
             Message(
-                icon = AppIcons.Outlined.ErrorOutline,
+                icon = Boxicons.Error,
                 title = stringResource(Res.string.streams_error),
             )
         state.entries.isEmpty() ->
             Message(
-                icon = AppIcons.Outlined.SearchOff,
+                icon = Boxicons.SearchOff,
                 title =
                     if (state.groups.isEmpty()) {
                         stringResource(Res.string.streams_empty)
@@ -261,7 +261,7 @@ private fun StreamCard(
         verticalAlignment = Alignment.Top,
     ) {
         AppIconButton(
-            icon = AppIcons.Filled.PlayArrow,
+            icon = Boxicons.Play,
             contentDescription = stringResource(Res.string.action_play),
             onClick = onPlay,
         )
@@ -281,7 +281,7 @@ private fun StreamCard(
             Text(it, style = MaterialTheme.typography.bodyMedium)
         }
         AppIconButton(
-            icon = AppIcons.Outlined.ContentCopy,
+            icon = Boxicons.Copy,
             contentDescription = stringResource(Res.string.streams_copy_link),
             onClick = {
                 (stream.url ?: stream.externalUrl)?.let { clipboard.setText(AnnotatedString(it)) }

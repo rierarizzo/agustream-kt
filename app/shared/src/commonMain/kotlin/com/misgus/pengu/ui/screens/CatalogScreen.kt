@@ -48,7 +48,7 @@ import com.misgus.pengu.ui.components.Message
 import com.misgus.pengu.ui.components.MetaPosterCard
 import com.misgus.pengu.ui.components.SkeletonPosterGrid
 import com.misgus.pengu.ui.components.sectionHeading
-import com.misgus.pengu.ui.icons.AppIcons
+import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.services.LocalAppServices
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.AppType
@@ -105,7 +105,7 @@ fun CatalogScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AppIconButton(
-                icon = AppIcons.AutoMirrored.Filled.ArrowBack,
+                icon = Boxicons.ArrowBack,
                 contentDescription = stringResource(Res.string.action_back),
                 onClick = onBack,
             )
@@ -140,13 +140,13 @@ private fun CatalogContent(
         state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
         state.error != null && !state.hasLoaded ->
             Message(
-                icon = AppIcons.Outlined.ErrorOutline,
+                icon = Boxicons.Error,
                 title = stringResource(Res.string.catalog_error_title),
                 message = stringResource(Res.string.error_try_again_later),
             )
         state.items.isEmpty() ->
             Message(
-                icon = AppIcons.Outlined.Inbox,
+                icon = Boxicons.Inbox,
                 title = stringResource(Res.string.empty_nothing_to_show),
                 message = stringResource(Res.string.catalog_empty_message),
             )

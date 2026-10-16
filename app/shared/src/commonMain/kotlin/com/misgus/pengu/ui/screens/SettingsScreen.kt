@@ -74,7 +74,7 @@ import com.misgus.pengu.ui.components.ActionButtonStyle
 import com.misgus.pengu.ui.components.AppTextField
 import com.misgus.pengu.ui.components.sectionHeading
 import com.misgus.pengu.ui.components.toUserMessage
-import com.misgus.pengu.ui.icons.AppIcons
+import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.onboarding.SignInForm
 import com.misgus.pengu.ui.platform.openInDefaultApp
 import com.misgus.pengu.ui.platform.pickVideoFile
@@ -191,7 +191,7 @@ private fun AccountCard() {
                         }
                     }
                 },
-                icon = AppIcons.AutoMirrored.Outlined.Logout,
+                icon = Boxicons.Logout,
                 style = ActionButtonStyle.Tonal,
                 enabled = !signingOut,
                 loading = signingOut,
@@ -367,7 +367,7 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
                 ActionButton(
                     text = stringResource(Res.string.settings_play_url),
                     onClick = { onOpenPlayer(PlaybackTarget.raw(url.trim())) },
-                    icon = AppIcons.Filled.PlayArrow,
+                    icon = Boxicons.Play,
                     enabled = url.isNotBlank(),
                 )
                 ActionButton(
@@ -377,7 +377,7 @@ private fun PlaybackCard(onOpenPlayer: (PlaybackTarget) -> Unit) {
                             pickVideoFile()?.let { onOpenPlayer(PlaybackTarget.raw(it)) }
                         }
                     },
-                    icon = AppIcons.Outlined.FolderOpen,
+                    icon = Boxicons.FolderOpen,
                     style = ActionButtonStyle.Tonal,
                 )
             }

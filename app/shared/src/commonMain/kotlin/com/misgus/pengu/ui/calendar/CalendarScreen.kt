@@ -65,7 +65,7 @@ import com.misgus.pengu.ui.components.mirrorInRtl
 import com.misgus.pengu.ui.components.rememberInteraction
 import com.misgus.pengu.ui.components.sectionHeading
 import com.misgus.pengu.ui.components.toUserMessage
-import com.misgus.pengu.ui.icons.AppIcons
+import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.shell.ContentNavigator
 import com.misgus.pengu.ui.shell.ContentRoute
 import com.misgus.pengu.ui.theme.AppCorner
@@ -108,13 +108,13 @@ private fun CalendarContent(
     when {
         state.error != null && state.entries.isEmpty() ->
             Message(
-                icon = AppIcons.Outlined.ErrorOutline,
+                icon = Boxicons.Error,
                 title = stringResource(Res.string.calendar_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.hasLoaded && state.entries.isEmpty() ->
             Message(
-                icon = AppIcons.Outlined.CalendarMonth,
+                icon = Boxicons.CalendarMonth,
                 title = stringResource(Res.string.calendar_no_upcoming),
                 message = stringResource(Res.string.calendar_no_upcoming_message),
             )
@@ -168,7 +168,7 @@ private fun MonthHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AppIconButton(
-            icon = AppIcons.Filled.ChevronLeft,
+            icon = Boxicons.ChevronLeft,
             contentDescription = stringResource(Res.string.calendar_prev_month),
             onClick = onPrevious,
             iconModifier = Modifier.mirrorInRtl(),
@@ -190,7 +190,7 @@ private fun MonthHeader(
             }
         }
         AppIconButton(
-            icon = AppIcons.Filled.ChevronRight,
+            icon = Boxicons.ChevronRight,
             contentDescription = stringResource(Res.string.calendar_next_month),
             onClick = onNext,
             iconModifier = Modifier.mirrorInRtl(),

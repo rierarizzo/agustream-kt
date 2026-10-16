@@ -19,14 +19,12 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -97,7 +95,7 @@ fun LeftNav(
  * paints the page background with a hairline on its top edge, so it reads as
  * chrome rather than a separate panel, and the system-bar insets live on the
  * container so the background reaches the window edge. Like the rail, the glyph
- * carries the state and a small amber dot under the selected item reinforces it.
+ * carries the state (amber when selected).
  */
 @Composable
 fun BottomNav(
@@ -151,9 +149,7 @@ fun BottomNav(
  *
  * The glyph carries the state — amber when selected, brighter on hover, focus or
  * press — with no state-layer box, so both navigations read as bare icons. Press
- * joins the cue so a touch, which has no hover, still answers. A small amber dot
- * under the selected item reinforces it in both: the glyph tint alone is easy to
- * miss on the rail's stacked icons and on the bar's wide, evenly spaced ones.
+ * joins the cue so a touch, which has no hover, still answers.
  */
 @Composable
 private fun SectionNavItem(
@@ -178,25 +174,11 @@ private fun SectionNavItem(
                 .semantics { this.selected = selected },
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = if (selected) section.selectedIcon else section.icon,
-                contentDescription = section.label,
-                tint = contentColor,
-                modifier = Modifier.size(AppIconSize.md),
-            )
-            // The dot is reserved when idle too, so switching a section does
-            // not shift its glyph.
-            Spacer(Modifier.height(AppSpacing.xs))
-            Box(
-                modifier =
-                    Modifier
-                        .size(AppSizes.navIndicator)
-                        .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            shape = CircleShape,
-                        ),
-            )
-        }
+        Icon(
+            imageVector = section.icon,
+            contentDescription = section.label,
+            tint = contentColor,
+            modifier = Modifier.size(AppIconSize.md),
+        )
     }
 }

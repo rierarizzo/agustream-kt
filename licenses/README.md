@@ -13,7 +13,7 @@ below, which keep their own licenses.
 | mediamp mpv runtime (Linux) | bundled libmpv + FFmpeg; uses mpv's GPL-only X11 output | GPL-3.0 |
 | IBM Plex Sans | alternate UI typeface | SIL Open Font License 1.1 ([IBM-Plex-Sans-OFL.txt](IBM-Plex-Sans-OFL.txt)) |
 | Inter | UI typeface | SIL Open Font License 1.1 ([Inter-OFL.txt](Inter-OFL.txt)) |
-| Material Symbols / Material Icons | vendored UI icon set (`AppIcons.kt`) | Apache-2.0 ([Material-Symbols-Apache-2.0.txt](Material-Symbols-Apache-2.0.txt)) |
+| [Boxicons](https://github.com/atisawd/boxicons) | vendored UI icon set (`Boxicons.kt`) | MIT ([Boxicons-MIT.txt](Boxicons-MIT.txt)) |
 
 The desktop player engine is **mediamp's mpv backend**: it loads libmpv through
 a JNI wrapper and renders into the Compose/Skia canvas, so the video is normal

@@ -165,16 +165,18 @@ leer/escribir/borrar vive una sola vez.
   borde/progreso, `AppAlpha` posee toda la opacidad de overlays, y
   `Modifier.focusRing` (en `Interaction.kt`) da a cada control enfocable el mismo
   anillo de teclado.
-- **Los iconos se vendorizan, no son una dependencia.** `ui/icons/AppIcons.kt`
-  contiene los glifos del tema **Round** de Material Icons que usa la UI como
-  `ImageVector`s (filled y outlined, más las flechas auto-espejadas), cada uno
-  construido de forma perezosa desde el path SVG oficial de Round mediante
-  `PathParser`; `scripts/gen_icons.mjs` regenera el fichero desde
-  `@material-design-icons/svg`. La app ya no depende de
-  `materialIconsExtended` — congelado en 1.7.3 mientras el resto de Compose
-  seguía avanzando — así que solo se empaquetan los glifos usados. El tema Round
-  no trae una versión outlined de home, settings ni calendar, así que esos items
-  de navegación se distinguen por color, no por relleno. La escala
+- **Los iconos se vendorizan, no son una dependencia.** `ui/icons/Boxicons.kt`
+  contiene los glifos de Boxicons (MIT) que usa toda la UI como `ImageVector`s,
+  cada uno construido de forma perezosa desde el path SVG oficial de Boxicons
+  mediante `PathParser`, en su viewport de 24dp; `scripts/gen_boxicons.mjs`
+  regenera el fichero desde el set Boxicons de Iconify. La flecha de volver y los
+  glifos de inicio/cierre de sesión llevan `autoMirror = true`, que es lo que
+  hacían las variantes auto-espejadas de Material. Los botones de caption de
+  Windows conservan sus glifos nativos (`WindowsCaptionIcons` en
+  `:app:desktopApp`), para que la barra se lea como chrome de Windows. La app no
+  depende en absoluto de `materialIconsExtended`, así que solo se empaquetan los
+  glifos usados; son trazos de un solo color, así que el estado seleccionado es
+  un tinte, no un cambio de relleno. La escala
   `AppIconSize` de `theme/Tokens.kt` es la única fuente del tamaño de icono:
   `md` (24dp) es el default de Material 3 para navegación, campos y listas,
   `sm` (20dp) es para glifos compactos y dentro de botones, y `lg` (28dp) es para
@@ -411,10 +413,10 @@ leer/escribir/borrar vive una sola vez.
   marca el target de teclado/D-pad, y el item se anuncia como pestaña
   seleccionada. El rail elimina las etiquetas para mantenerse estrecho, centra el
   avatar de perfil y los items de sección en la ventana, y pinta el fondo de
-  página en vez de un color de panel, así que se funde con el contenido. Ambas
-  dibujan un pequeño punto ámbar bajo el item seleccionado: el tinte del glifo
-  solo es fácil de pasar por alto con iconos apilados o muy separados. La barra
-  añade un borde hairline `outlineVariant` arriba y mide 64dp de alto
+  página en vez de un color de panel, así que se funde con el contenido. Los
+  glifos son el set Boxicons (`Boxicons`), así que el estado seleccionado es
+  solo el tinte. La barra añade un borde hairline `outlineVariant` arriba y mide
+  64dp de alto
   (`bottomBarHeight`), no los 80dp de la barra con etiqueta que no tiene etiqueta
   que llenar. La selección se ve desde el primer frame en vez de aparecer solo
   cuando el item recibe foco.

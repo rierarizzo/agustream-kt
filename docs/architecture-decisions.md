@@ -154,14 +154,16 @@ so the atomic read/write/delete logic lives once.
   widths and the border/progress sizes, `AppAlpha` owns every overlay opacity,
   and `Modifier.focusRing` (in `Interaction.kt`) gives every focusable control
   the same keyboard ring.
-- **Icons are vendored, not a dependency.** `ui/icons/AppIcons.kt` holds the
-  Material Icons **Round** theme glyphs the UI uses as `ImageVector`s (filled and
-  outlined, plus the auto-mirrored arrows), each built lazily from the official
-  Round SVG path through `PathParser`; `scripts/gen_icons.mjs` regenerates the
-  file from `@material-design-icons/svg`. The app no longer depends on
-  `materialIconsExtended` — frozen at 1.7.3 while the rest of Compose kept
-  moving — so only the used glyphs ship. The Round theme has no separate outlined
-  house, gear or calendar, so those navigation items differ by colour, not fill.
+- **Icons are vendored, not a dependency.** `ui/icons/Boxicons.kt` holds the
+  Boxicons (MIT) glyphs the whole UI uses as `ImageVector`s, each built lazily
+  from the official SVG path through `PathParser` on Boxicons' 24dp viewport;
+  `scripts/gen_boxicons.mjs` regenerates the file from the Boxicons set on
+  Iconify. The back arrow and the sign-in/out glyphs carry `autoMirror = true`,
+  which is what Material's auto-mirrored variants did. The Windows caption
+  buttons keep their own native-shaped glyphs (`WindowsCaptionIcons` in
+  `:app:desktopApp`), so the bar reads as Windows chrome. The app does not depend on
+  `materialIconsExtended` at all, so only the used glyphs ship; the glyphs are
+  single-colour paths, so a selected state is a tint, not a fill swap.
   The `AppIconSize` scale in `theme/Tokens.kt` is the single source of icon
   size: `md` (24dp) is Material 3's default for navigation, fields and list
   affordances, `sm` (20dp) is for compact and in-button glyphs, and `lg` (28dp)
@@ -389,9 +391,9 @@ so the atomic read/write/delete logic lives once.
   a keyboard/D-pad target, and the item is announced as a selected tab. The rail
   drops the labels to stay narrow, centers the profile avatar and the section
   items in the window, and paints the page background instead of a panel colour,
-  so it blends into the content. Both draw a small amber dot under the selected
-  item: the glyph tint alone is easy to miss on stacked or widely spaced icons.
-  The bar adds a hairline `outlineVariant` top edge and stands 64dp tall
+  so it blends into the content. The glyphs are the Boxicons set (`Boxicons`),
+  so the selected state is the tint alone. The bar adds a hairline
+  `outlineVariant` top edge and stands 64dp tall
   (`bottomBarHeight`), not Material's 80dp label height that it has no label to
   fill. Selection reads from the first frame instead of appearing only once the
   item is focused.

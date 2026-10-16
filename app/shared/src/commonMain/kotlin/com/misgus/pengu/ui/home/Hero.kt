@@ -81,9 +81,10 @@ internal val HERO_COMPACT_CONTENT_BOTTOM_MARGIN = 64.dp
 /**
  * Layout size of the billboard's play glyph.
  *
- * The Material play arrow only fills ~52% of its viewBox height, against the
- * ~78% of the heart beside it, so the layout box is enlarged to make the drawn
- * triangle the same optical height as the row instead of reading smaller.
+ * The Boxicons play glyph fills only about half of its viewBox height, against
+ * the larger optical mass of the action row beside it, so the layout box is
+ * enlarged to make the drawn triangle the same optical height as the row instead
+ * of reading smaller.
  */
 internal val HERO_PLAY_ICON_SIZE = 36.dp
 

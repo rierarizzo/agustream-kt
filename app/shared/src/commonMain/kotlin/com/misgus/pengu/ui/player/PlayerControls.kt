@@ -37,7 +37,7 @@ import com.misgus.pengu.app.shared.generated.resources.player_pause
 import com.misgus.pengu.app.shared.generated.resources.player_subtitles
 import com.misgus.pengu.app.shared.generated.resources.player_volume
 import com.misgus.pengu.ui.components.AppIconButton
-import com.misgus.pengu.ui.icons.AppIcons
+import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.theme.AppColors
 import com.misgus.pengu.ui.theme.AppIconSize
 import com.misgus.pengu.ui.theme.AppScrim
@@ -85,7 +85,7 @@ fun PlayerControls(
         TopBar(state.title, onBack, Modifier.align(Alignment.TopCenter))
         if (!state.playing) {
             AppIconButton(
-                icon = AppIcons.Filled.PlayArrow,
+                icon = Boxicons.Play,
                 contentDescription = stringResource(Res.string.action_play),
                 onClick = onPlayPause,
                 tint = AppColors.playerControl,
@@ -128,7 +128,7 @@ private fun TopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AppIconButton(
-            icon = AppIcons.AutoMirrored.Filled.ArrowBack,
+            icon = Boxicons.ArrowBack,
             contentDescription = stringResource(Res.string.action_back),
             onClick = onBack,
             tint = AppColors.playerControl,
@@ -181,7 +181,7 @@ private fun BottomBar(
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             AppIconButton(
-                icon = if (state.playing) AppIcons.Filled.Pause else AppIcons.Filled.PlayArrow,
+                icon = if (state.playing) Boxicons.Pause else Boxicons.Play,
                 contentDescription =
                     if (state.playing) {
                         stringResource(
@@ -194,13 +194,13 @@ private fun BottomBar(
                 tint = AppColors.playerControl,
             )
             AppIconButton(
-                icon = AppIcons.Filled.Replay10,
+                icon = Boxicons.Replay,
                 contentDescription = stringResource(Res.string.player_back_10),
                 onClick = { onSeekBy(SEEK_BACK) },
                 tint = AppColors.playerControl,
             )
             AppIconButton(
-                icon = AppIcons.Filled.Forward10,
+                icon = Boxicons.Forward,
                 contentDescription = stringResource(Res.string.player_forward_10),
                 onClick = { onSeekBy(SEEK_FORWARD) },
                 tint = AppColors.playerControl,
@@ -213,7 +213,7 @@ private fun BottomBar(
             )
             Spacer(Modifier.weight(1f))
             Icon(
-                AppIcons.AutoMirrored.Filled.VolumeUp,
+                Boxicons.Volume,
                 contentDescription = stringResource(Res.string.player_volume),
                 tint = AppColors.playerControl,
                 modifier = Modifier.size(AppIconSize.md),
@@ -227,20 +227,20 @@ private fun BottomBar(
                 )
             }
             AppIconButton(
-                icon = AppIcons.Outlined.Subtitles,
+                icon = Boxicons.Subtitles,
                 contentDescription = stringResource(Res.string.player_subtitles),
                 onClick = onSubtitles,
                 tint = AppColors.playerControl,
             )
             AppIconButton(
-                icon = AppIcons.Outlined.Audiotrack,
+                icon = Boxicons.Audiotrack,
                 contentDescription = stringResource(Res.string.player_audio),
                 onClick = onAudio,
                 tint = AppColors.playerControl,
             )
             onToggleFullscreen?.let { toggle ->
                 AppIconButton(
-                    icon = AppIcons.Filled.Fullscreen,
+                    icon = Boxicons.Fullscreen,
                     contentDescription = stringResource(Res.string.player_fullscreen),
                     onClick = toggle,
                     tint = AppColors.playerControl,

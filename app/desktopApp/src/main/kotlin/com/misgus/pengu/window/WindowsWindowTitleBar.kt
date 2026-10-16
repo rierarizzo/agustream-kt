@@ -30,7 +30,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.misgus.pengu.ui.icons.AppIcons
 import com.misgus.pengu.ui.theme.AppSizes
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.AppWindowChrome
@@ -76,21 +75,21 @@ internal fun WindowsWindowTitleBar(
         )
         Spacer(Modifier.weight(1f))
         CaptionButton(
-            icon = AppIcons.Filled.Minimize,
+            icon = WindowsCaptionIcons.Minimize,
             contentDescription = "Minimize",
             onClick = onMinimize,
             iconSize = minimizeIconSize,
             modifier = Modifier.onGloballyPositioned { state.minimizeRect = it.boundsInWindow() },
         )
         CaptionButton(
-            icon = if (isMaximized) AppIcons.Filled.Restore else AppIcons.Filled.Maximize,
+            icon = if (isMaximized) WindowsCaptionIcons.Restore else WindowsCaptionIcons.Maximize,
             contentDescription = if (isMaximized) "Restore" else "Maximize",
             onClick = onToggleMaximize,
             iconSize = if (isMaximized) restoreIconSize else maximizeIconSize,
             modifier = Modifier.onGloballyPositioned { state.maximizeRect = it.boundsInWindow() },
         )
         CaptionButton(
-            icon = AppIcons.Filled.Close,
+            icon = WindowsCaptionIcons.Close,
             contentDescription = "Close",
             onClick = onClose,
             iconSize = closeIconSize,
@@ -147,11 +146,11 @@ private fun CaptionButton(
 /**
  * Caption glyph sizes, tuned per glyph so the set reads even.
  *
- * `Icon` scales the 24-unit viewport, not the drawn content, and the Material
- * caption glyphs fill very different boxes in it: `remove` 14×2, `crop_square`
- * 16×16, `filter_none` 22×22 and `close` ~12.6×12.6. At one shared size the
- * restore reads oversized while minimize/close read undersized. Each is sized so
- * its drawn extents land around 10dp (restore on its front square, which should
+ * `Icon` scales the 24-unit viewport, not the drawn content, and the caption
+ * glyphs fill very different boxes in it (a hairline for minimize, a full square
+ * for maximize/restore, a small X for close). At one shared size the restore
+ * reads oversized while minimize/close read undersized. Each is sized so its
+ * drawn extents land around 10dp (restore on its front square, which should
  * match maximize).
  */
 private val minimizeIconSize: Dp = 17.dp

@@ -40,7 +40,7 @@ import com.misgus.pengu.ui.components.SectionHeader
 import com.misgus.pengu.ui.components.SyncingIndicator
 import com.misgus.pengu.ui.components.contentTypeLabel
 import com.misgus.pengu.ui.components.toUserMessage
-import com.misgus.pengu.ui.icons.AppIcons
+import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.services.LocalAppServices
 import com.misgus.pengu.ui.shell.ContentNavigator
 import com.misgus.pengu.ui.shell.ContentRoute
@@ -145,13 +145,13 @@ private fun HomeContent(
             Box(Modifier.fillMaxSize())
         state.error != null && state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(
-                icon = AppIcons.Outlined.ErrorOutline,
+                icon = Boxicons.Error,
                 title = stringResource(Res.string.home_error_title),
                 message = stringResource(state.error.toUserMessage()),
             )
         state.rows.isEmpty() && state.continueWatching.isEmpty() ->
             Message(
-                icon = AppIcons.Outlined.Explore,
+                icon = Boxicons.Compass,
                 title = stringResource(Res.string.empty_nothing_to_show),
                 message = stringResource(Res.string.home_empty_message),
             )
