@@ -79,19 +79,21 @@ internal fun WindowsWindowTitleBar(
             icon = AppIcons.Filled.Minimize,
             contentDescription = "Minimize",
             onClick = onMinimize,
+            iconSize = minimizeIconSize,
             modifier = Modifier.onGloballyPositioned { state.minimizeRect = it.boundsInWindow() },
         )
         CaptionButton(
             icon = if (isMaximized) AppIcons.Filled.Restore else AppIcons.Filled.Maximize,
             contentDescription = if (isMaximized) "Restore" else "Maximize",
             onClick = onToggleMaximize,
-            iconSize = if (isMaximized) restoreIconSize else captionIconSize,
+            iconSize = if (isMaximized) restoreIconSize else maximizeIconSize,
             modifier = Modifier.onGloballyPositioned { state.maximizeRect = it.boundsInWindow() },
         )
         CaptionButton(
             icon = AppIcons.Filled.Close,
             contentDescription = "Close",
             onClick = onClose,
+            iconSize = closeIconSize,
             close = true,
             modifier = Modifier.onGloballyPositioned { state.closeRect = it.boundsInWindow() },
         )
@@ -109,9 +111,9 @@ private fun CaptionButton(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
+    iconSize: Dp,
     modifier: Modifier = Modifier,
     close: Boolean = false,
-    iconSize: Dp = captionIconSize,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
@@ -143,12 +145,16 @@ private fun CaptionButton(
 }
 
 /**
- * Caption glyphs sized to their drawn bounds, not their viewport.
+ * Caption glyph sizes, tuned per glyph so the set reads even.
  *
- * The Material restore (`filter_none`) fills a 22-unit box, while maximize
- * (`crop_square`) fills 16, so at the shared size the restore's front square
- * comes out ~larger than the maximize square. Rendering it at [restoreIconSize]
- * brings that front square back to the maximize size.
+ * `Icon` scales the 24-unit viewport, not the drawn content, and the Material
+ * caption glyphs fill very different boxes in it: `remove` 14×2, `crop_square`
+ * 16×16, `filter_none` 22×22 and `close` ~12.6×12.6. At one shared size the
+ * restore reads oversized while minimize/close read undersized. Each is sized so
+ * its drawn extents land around 10dp (restore on its front square, which should
+ * match maximize).
  */
-private val captionIconSize: Dp = 16.dp
+private val minimizeIconSize: Dp = 17.dp
+private val maximizeIconSize: Dp = 16.dp
 private val restoreIconSize: Dp = 14.dp
+private val closeIconSize: Dp = 18.dp
