@@ -8,8 +8,7 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.dp
 
 /**
- * Icon set vendored from Material Icons, Round theme (Apache License 2.0),
- * plus the window-caption glyphs from Fluent UI System Icons (MIT).
+ * Icon set vendored from Material Icons, Round theme (Apache License 2.0).
  *
  * Only the glyphs the app uses are kept, so the UI does not depend on
  * `material-icons-extended`. Each vector is built from the corresponding
@@ -25,6 +24,9 @@ object AppIcons {
     object Filled {
         val PlayArrow: ImageVector by lazy { rounded("PlayArrow", PLAY_ARROW) }
         val Close: ImageVector by lazy { rounded("Close", CLOSE) }
+        val Minimize: ImageVector by lazy { rounded("Minimize", REMOVE) }
+        val Maximize: ImageVector by lazy { rounded("Maximize", CROP_SQUARE) }
+        val Restore: ImageVector by lazy { rounded("Restore", FILTER_NONE) }
         val Search: ImageVector by lazy { rounded("Search", SEARCH) }
         val Settings: ImageVector by lazy { rounded("Settings", SETTINGS) }
         val Home: ImageVector by lazy { rounded("Home", HOME) }
@@ -80,19 +82,6 @@ object AppIcons {
             val Logout: ImageVector by lazy { rounded("Logout", LOGOUT, autoMirror = true) }
         }
     }
-
-    /**
-     * Window caption glyphs, vendored from Fluent UI System Icons (MIT), the set
-     * Windows 11 uses. They share one 48-unit viewport and a uniform stroke, so
-     * minimize/maximize/close read as a consistent set (the Material glyphs do
-     * not). Used by the desktop title bar only.
-     */
-    object Window {
-        val Minimize: ImageVector by lazy { rounded("FluentSubtract", FLUENT_SUBTRACT, viewport = 48f) }
-        val Maximize: ImageVector by lazy { rounded("FluentSquare", FLUENT_SQUARE, viewport = 48f) }
-        val Restore: ImageVector by lazy { rounded("FluentSquareMultiple", FLUENT_SQUARE_MULTIPLE, viewport = 48f) }
-        val Close: ImageVector by lazy { rounded("FluentDismiss", FLUENT_DISMISS, viewport = 48f) }
-    }
 }
 
 /**
@@ -105,15 +94,14 @@ private fun rounded(
     pathData: String,
     fillType: PathFillType = PathFillType.NonZero,
     autoMirror: Boolean = false,
-    viewport: Float = 24f,
 ): ImageVector =
     ImageVector
         .Builder(
             name = name,
-            defaultWidth = viewport.dp,
-            defaultHeight = viewport.dp,
-            viewportWidth = viewport,
-            viewportHeight = viewport,
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f,
             autoMirror = autoMirror,
         ).apply {
             addPath(
@@ -128,26 +116,6 @@ private const val ARROW_BACK =
         ".996.996 0 1 0 1.41-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"
 private const val ARROW_DROP_DOWN =
     "m8.71 11.71 2.59 2.59c.39.39 1.02.39 1.41 0l2.59-2.59c.63-.63.18-1.71-.71-1.71H9.41c-.89 0-1.33 1.08-.7 1.71z"
-private const val FLUENT_SUBTRACT =
-    "M6 23.5C6 22.6716 6.67157 22 7.5 22H40.5C41.3284 22 42 22.6716 42 23.5C42 24.3284 41.3284 25 40.5 25H7.5" +
-        "C6.67157 25 6 24.3284 6 23.5Z"
-private const val FLUENT_SQUARE =
-    "M6 12.25C6 8.79822 8.79822 6 12.25 6H35.75C39.2018 6 42 8.79822 42 12.25V35.75C42 39.2018 39.2018 42 35.75 42H12.25" +
-        "C8.79822 42 6 39.2018 6 35.75V12.25ZM12.25 8.5C10.1789 8.5 8.5 10.1789 8.5 12.25V35.75C8.5 37.8211 10.1789 39.5" +
-        " 12.25 39.5H35.75C37.8211 39.5 39.5 37.8211 39.5 35.75V12.25C39.5 10.1789 37.8211 8.5 35.75 8.5H12.25Z"
-private const val FLUENT_SQUARE_MULTIPLE =
-    "M16.4974 10H13.9941C14.1254 6.66412 16.8712 4 20.2392 4H34.7392C39.8479 4 43.9892 8.14137 43.9892 13.25V27.75" +
-        "C43.9892 31.1144 41.3309 33.8579 38 33.9947V31.4911C39.9494 31.3572 41.4892 29.7334 41.4892 27.75V13.25" +
-        "C41.4892 9.52208 38.4672 6.5 34.7392 6.5H20.2392C18.2522 6.5 16.6261 8.04549 16.4974 10ZM10.25 12" +
-        "C6.79822 12 4 14.7982 4 18.25V37.75C4 41.2018 6.79822 44 10.25 44H29.75C33.2018 44 36 41.2018 36 37.75V18.25" +
-        "C36 14.7982 33.2018 12 29.75 12H10.25ZM6.5 18.25C6.5 16.1789 8.17893 14.5 10.25 14.5H29.75C31.8211 14.5 33.5 16.1789" +
-        " 33.5 18.25V37.75C33.5 39.8211 31.8211 41.5 29.75 41.5H10.25C8.17893 41.5 6.5 39.8211 6.5 37.75V18.25Z"
-private const val FLUENT_DISMISS =
-    "M8.38388 6.61612C7.89573 6.12796 7.10427 6.12796 6.61612 6.61612C6.12796 7.10427 6.12796 7.89573 6.61612 8.38388" +
-        "L22.2322 24L6.6164 39.6158C6.12824 40.104 6.12824 40.8954 6.6164 41.3836C7.10455 41.8718 7.89601 41.8718 8.38416 41.3836" +
-        "L24 25.7678L39.6153 41.3831C40.1035 41.8713 40.895 41.8713 41.3831 41.3831C41.8713 40.895 41.8713 40.1035 41.3831 39.6153" +
-        "L25.7678 24L41.3834 8.38437C41.8716 7.89622 41.8716 7.10476 41.3834 6.6166C40.8952 6.12845 40.1038 6.12845 39.6156 6.6166" +
-        "L24 22.2322L8.38388 6.61612Z"
 private const val AUDIOTRACK =
     "M12 5v8.55c-.94-.54-2.1-.75-3.33-.32-1.34.48-2.37 1.67-2.61 3.07a4.007 4.007 0 0 0 4.59 4.65c1.96-.31 3.35-2.1" +
         "1 3.35-4.1V7h2c1.1 0 2-.9 2-2s-.9-2-2-2h-2c-1.1 0-2 .9-2 2z"
@@ -182,6 +150,9 @@ private const val CLOSE =
 private const val CONTENT_COPY =
     "M15 20H5V7c0-.55-.45-1-1-1s-1 .45-1 1v13c0 1.1.9 2 2 2h10c.55 0 1-.45 1-1s-.45-1-1-1zm5-4V4c0-1.1-.9-2-2-2H9c-" +
         "1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h9c1.1 0 2-.9 2-2zm-2 0H9V4h9v12z"
+private const val CROP_SQUARE =
+    "M18 4H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 14H7c-.55 0-1-.45-1-1V7c0-.55." +
+        "45-1 1-1h10c.55 0 1 .45 1 1v10c0 .55-.45 1-1 1z"
 private const val ERROR_OUTLINE =
     "M12 7c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1s-1-.45-1-1V8c0-.55.45-1 1-1zm-.01-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10" +
         "C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm1-3h-2v-2" +
@@ -197,6 +168,10 @@ private const val FAVORITE_BORDER =
         "99 8.55 11.76l.1.09c.76.69 1.93.69 2.69-.01l.11-.1c5.25-4.76 8.68-7.87 8.55-11.75-.06-1.7-.94-3.32-2.34-4.28zM" +
         "12.1 18.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14." +
         "96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"
+private const val FILTER_NONE =
+    "M2 5c-.55 0-1 .45-1 1v15c0 1.1.9 2 2 2h15c.55 0 1-.45 1-1s-.45-1-1-1H4c-.55 0-1-.45-1-1V6c0-.55-.45-1-1-1zm19-" +
+        "4H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-1 16H8c-.55 0-1-.45-1-1V4c0-.55.45-1" +
+        " 1-1h12c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1z"
 private const val FOLDER_OPEN =
     "M20 6h-8l-1.41-1.41C10.21 4.21 9.7 4 9.17 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1." +
         "1-.9-2-2-2zm-1 12H5c-.55 0-1-.45-1-1V9c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v8c0 .55-.45 1-1 1z"
@@ -246,6 +221,8 @@ private const val REFRESH =
         "1-4.56c.32-.67-.16-1.44-.9-1.44-.37 0-.72.2-.88.53a5.994 5.994 0 0 1-6.8 3.31c-2.22-.49-4.01-2.3-4.48-4.52A6.0" +
         "02 6.002 0 0 1 12 6c1.66 0 3.14.69 4.22 1.78l-1.51 1.51c-.63.63-.19 1.71.7 1.71H19c.55 0 1-.45 1-1V6.41c0-.89-" +
         "1.08-1.34-1.71-.71l-.64.65z"
+private const val REMOVE =
+    "M18 13H6c-.55 0-1-.45-1-1s.45-1 1-1h12c.55 0 1 .45 1 1s-.45 1-1 1z"
 private const val REPLAY_10 =
     "M11.99 5V2.21c0-.45-.54-.67-.85-.35L7.35 5.65c-.2.2-.2.51 0 .71l3.79 3.79a.5.5 0 0 0 .85-.35V7c3.73 0 6.68 3.4" +
         "2 5.86 7.29-.47 2.27-2.31 4.1-4.57 4.57-3.57.75-6.75-1.7-7.23-5.01a.984.984 0 0 0-.98-.85c-.6 0-1.08.53-1 1.13" +

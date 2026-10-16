@@ -9,6 +9,9 @@ const groups = {
   Filled: [
     ["PlayArrow", "play_arrow"],
     ["Close", "close"],
+    ["Minimize", "remove"],
+    ["Maximize", "crop_square"],
+    ["Restore", "filter_none"],
     ["Search", "search"],
     ["Settings", "settings"],
     ["Home", "home"],

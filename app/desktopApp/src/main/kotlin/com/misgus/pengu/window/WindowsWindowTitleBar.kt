@@ -75,19 +75,19 @@ internal fun WindowsWindowTitleBar(
         )
         Spacer(Modifier.weight(1f))
         CaptionButton(
-            icon = AppIcons.Window.Minimize,
+            icon = AppIcons.Filled.Minimize,
             contentDescription = "Minimize",
             onClick = onMinimize,
             modifier = Modifier.onGloballyPositioned { state.minimizeRect = it.boundsInWindow() },
         )
         CaptionButton(
-            icon = if (isMaximized) AppIcons.Window.Restore else AppIcons.Window.Maximize,
+            icon = if (isMaximized) AppIcons.Filled.Restore else AppIcons.Filled.Maximize,
             contentDescription = if (isMaximized) "Restore" else "Maximize",
             onClick = onToggleMaximize,
             modifier = Modifier.onGloballyPositioned { state.maximizeRect = it.boundsInWindow() },
         )
         CaptionButton(
-            icon = AppIcons.Window.Close,
+            icon = AppIcons.Filled.Close,
             contentDescription = "Close",
             onClick = onClose,
             close = true,
