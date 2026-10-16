@@ -534,7 +534,15 @@ leer/escribir/borrar vive una sola vez.
   un teléfono `opticalHeight` escala la caja al ancho del copy: una altura fija
   ahí era el único límite, y encajonaba un logo cuadrado a una franja mientras
   uno ancho seguía llenando la columna, así que ambas formas leen con un peso
-  similar. El hero de Home precarga el backdrop y el logo de la siguiente diapositiva a
+  similar. Los logos además se recortan al bounding box de sus píxeles no
+  transparentes (`TrimTransparentTransformation`, un escaneo de píxeles por
+  plataforma detrás de una `Transformation` de Coil), porque los proveedores los
+  entregan sobre un lienzo transparente fijo: un wordmark de serie puede ser una
+  franja de 50px dentro de un PNG de 800x310, y `Fit` escalaría todo el lienzo.
+  Recortarlos hace que la caja mida artwork, no padding, y el precargador de Home
+  lleva la misma transformación para que ambas peticiones compartan la entrada
+  de caché de Coil. El hero de Home precarga el backdrop y el logo de la
+  siguiente diapositiva a
   través del loader singleton, dimensionados al billboard, y se re-arma según
   avanza la página, para que deslizar pinte desde caché en vez de empezar una
   vuelta de red a mitad de gesto sin el pico de decodes que causaba encolar todo

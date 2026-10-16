@@ -41,6 +41,10 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.ImageRequest
+import coil3.request.transformations
+import coil3.transform.Transformation
 import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.action_see_all
 import com.misgus.pengu.app.shared.generated.resources.status_syncing
@@ -243,6 +247,10 @@ val LogoFilterQuality = FilterQuality.High
  * (bilinear), which aliases a poster or backdrop when it is downscaled. Mipmapped
  * bilinear ([FilterQuality.Medium]) removes that, and bicubic ([FilterQuality.High])
  * is reserved for text-like artwork such as title logos.
+ *
+ * [transformations] are applied before the image is measured, so a transformation
+ * that changes the image's size also changes the box it asks for (title logos trim
+ * their transparent border this way).
  */
 @Composable
 fun RemoteImage(
@@ -251,13 +259,29 @@ fun RemoteImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     filterQuality: FilterQuality = ArtworkFilterQuality,
+    transformations: List<Transformation> = emptyList(),
     /** Fade the image in once it has loaded, instead of popping. */
     fadeIn: Boolean = false,
 ) {
     if (url.isNullOrEmpty()) return
+    val model =
+        if (transformations.isEmpty()) {
+            url
+        } else {
+            val context = LocalPlatformContext.current
+            // Remembered so a recomposition reuses the request instead of
+            // rebuilding it (and its cache key) every frame.
+            remember(url, transformations, context) {
+                ImageRequest
+                    .Builder(context)
+                    .data(url)
+                    .transformations(transformations)
+                    .build()
+            }
+        }
     if (!fadeIn) {
         AsyncImage(
-            model = url,
+            model = model,
             contentDescription = contentDescription,
             contentScale = contentScale,
             filterQuality = filterQuality,
@@ -274,7 +298,7 @@ fun RemoteImage(
         label = "imageFade",
     )
     AsyncImage(
-        model = url,
+        model = model,
         contentDescription = contentDescription,
         contentScale = contentScale,
         filterQuality = filterQuality,

@@ -22,7 +22,9 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import coil3.SingletonImageLoader
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import coil3.request.transformations
 import com.misgus.pengu.core.model.MetaPreview
+import com.misgus.pengu.ui.components.LogoTrimTransformation
 import com.misgus.pengu.ui.theme.AppColors
 import com.misgus.pengu.ui.theme.motionTween
 import kotlinx.coroutines.CoroutineScope
@@ -180,6 +182,7 @@ internal fun HeroArtworkPreloader(
                     .Builder(context)
                     .data(url)
                     .size(logoMaxWidthPx, logoHeightPx)
+                    .transformations(LogoTrimTransformation)
                     .build(),
             )
         }

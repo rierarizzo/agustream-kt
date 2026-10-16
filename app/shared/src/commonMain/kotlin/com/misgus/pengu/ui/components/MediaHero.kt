@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import coil3.transform.Transformation
 import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.media_rating
 import com.misgus.pengu.core.model.ContentType
@@ -35,6 +36,18 @@ import org.jetbrains.compose.resources.stringResource
  * colour, separators or ordering. Anything a billboard shows about a title
  * belongs here, not in the screen.
  */
+
+/**
+ * Trim applied to title logos, so their transparent border does not consume the
+ * box's optical height or max width.
+ *
+ * Shared by the billboards and the Home preloader: Coil keys its cache on the
+ * transformation, so both requests must carry the same one to hit the same entry.
+ */
+internal val LogoTrimTransformation: Transformation = TrimTransparentTransformation()
+
+/** The trim as a request list, reused so [RemoteImage]'s remembered request is stable. */
+internal val LogoTransformations: List<Transformation> = listOf(LogoTrimTransformation)
 
 /** Title logo when the metadata provides one, otherwise the name as a headline. */
 @Composable
@@ -63,6 +76,7 @@ fun MediaTitle(
                 contentDescription = name,
                 contentScale = ContentScale.Fit,
                 filterQuality = LogoFilterQuality,
+                transformations = LogoTransformations,
                 fadeIn = true,
                 modifier = Modifier.height(height).widthIn(max = AppLogoSize.maxWidth),
             )

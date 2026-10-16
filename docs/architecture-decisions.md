@@ -498,7 +498,14 @@ so the atomic read/write/delete logic lives once.
   tower over the copy and a very wide one cannot overflow its column. On a phone
   `opticalHeight` scales the box to the copy width: a fixed height there was the
   only binding limit, which boxed a square logo to a sliver while a wide one
-  still filled the column, so the two shapes now read at a similar weight. The Home
+  still filled the column, so the two shapes now read at a similar weight. The
+  logos are then trimmed to the bounding box of their non-transparent pixels
+  (`TrimTransparentTransformation`, a platform pixel scan behind a Coil
+  `Transformation`), because providers ship them on a fixed transparent canvas:
+  a series wordmark can be a 50px strip inside an 800x310 PNG, and `Fit` would
+  scale that whole canvas. Trimming makes the box measure artwork, not padding,
+  and the Home preloader carries the same transformation so both requests share
+  Coil's cache entry. The Home
   hero preloads the next slide's backdrop and logo through the singleton loader,
   sized to the billboard, and re-arms as the page advances, so swiping paints
   from cache instead of starting a network round-trip mid-gesture without the
