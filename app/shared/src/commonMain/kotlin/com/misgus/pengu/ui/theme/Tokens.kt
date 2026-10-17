@@ -432,22 +432,27 @@ object AppScrim {
         }
 
     /**
-     * Phone billboard, bottom-up. Folds the flat [AppAlpha.HERO_IMAGE_DIM] that
-     * darkens the whole artwork and the bottom fade (which starts higher than
-     * [heroBottom]'s, so the taller copy sits deeper in the dark) into a
-     * single gradient, darkening the artwork in one full-screen fill instead of
-     * two. The mid stop is the composite alpha `1 - (1 - dim)(1 - mid)`, so the
-     * result matches the stacked overlays it replaces.
+     * Phone billboard, the whole wash in one fill.
+     *
+     * A fitted, centred poster is darkened by the flat [AppAlpha.HERO_IMAGE_DIM]
+     * over the middle, darkens further toward the top ([AppAlpha.HERO_TOP], never
+     * all the way to the page background, so the cover stays visible), and melts
+     * into that background at the bottom, where the next section starts.
+     *
+     * The three washes this replaces were all the same colour, so they fold into
+     * one gradient through the composite alpha `1 - (1 - dim)(1 - top)`: the
+     * result is identical, in a single full-screen fill instead of three.
      */
-    val heroBottomCompact: Brush
+    val heroCompact: Brush
         @Composable get() {
             val background = LocalBrandPalette.current.background
-            val dim = background.copy(alpha = AppAlpha.HERO_IMAGE_DIM)
-            val mid = background.copy(alpha = 1f - (1f - AppAlpha.HERO_IMAGE_DIM) * (1f - AppAlpha.HERO_BOTTOM_MID))
+            val dim = AppAlpha.HERO_IMAGE_DIM
+            val top = 1f - (1f - dim) * (1f - AppAlpha.HERO_TOP)
             return Brush.verticalGradient(
-                0f to dim,
-                0.35f to dim,
-                0.78f to mid,
+                0f to background.copy(alpha = top),
+                0.30f to background.copy(alpha = dim),
+                0.70f to background.copy(alpha = dim),
+                0.92f to background,
                 1f to background,
             )
         }

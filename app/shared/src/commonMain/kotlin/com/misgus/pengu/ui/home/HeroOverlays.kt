@@ -194,21 +194,22 @@ internal fun HeroArtworkPreloader(
     pagerState: PagerState,
     backdropWidthPx: Int,
     backdropHeightPx: Int,
+    wide: Boolean,
 ) {
     if (items.size <= 1) return
     val context = LocalPlatformContext.current
     // Reading `currentPage` here re-arms the preload only when the page settles,
     // not on every scroll frame.
     val nextPage = (pagerState.currentPage + 1) % items.size
-    LaunchedEffect(items, nextPage, backdropWidthPx, backdropHeightPx) {
+    LaunchedEffect(items, nextPage, backdropWidthPx, backdropHeightPx, wide) {
         val loader = SingletonImageLoader.get(context)
         val item = items[nextPage]
-        val backdrop = item.background ?: item.poster
-        backdrop?.let { url ->
+        val backdrop = heroArtwork(item, wide)
+        backdrop?.let { art ->
             loader.enqueue(
                 ImageRequest
                     .Builder(context)
-                    .data(url)
+                    .data(art.url)
                     .size(backdropWidthPx, backdropHeightPx)
                     .build(),
             )

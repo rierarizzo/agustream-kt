@@ -64,15 +64,15 @@ internal fun BoxScope.HeroBackdropLayer(
     pagerState: PagerState,
     onAspect: (Float) -> Unit,
 ) {
-    val backdrop = item.background ?: item.poster
-    if (backdrop.isNullOrEmpty()) return
+    val artwork = heroArtwork(item, wide) ?: return
     AsyncImage(
-        model = backdrop,
+        model = artwork.url,
         contentDescription = null,
-        // Both frames are shorter than the wide artwork, so `Crop` trims it: the
-        // desktop keeps the top edge pinned, the phone keeps the centre, where
-        // the subject usually is.
-        contentScale = ContentScale.Crop,
+        // A backdrop is wider than either frame, so `Crop` trims it: the desktop
+        // keeps the top edge pinned, the phone centres on the subject. A fitted
+        // textless poster is shown whole and fills the frame exactly, so its
+        // sides are never trimmed.
+        contentScale = if (artwork.fit) ContentScale.Fit else ContentScale.Crop,
         alignment = if (wide) Alignment.TopCenter else Alignment.Center,
         filterQuality = BackdropFilterQuality,
         onSuccess = { state ->
@@ -95,11 +95,16 @@ internal fun BoxScope.HeroBackdropLayer(
                     },
                 ).graphicsLayer {
                     alpha = heroLayerVisibility(pagerState, page)
-                    // A small drift and overscan, so the two slides read as layers
-                    // instead of a flat double exposure.
-                    translationX = -heroLayerOffset(pagerState, page) * pageWidthPx * HERO_BACKDROP_PARALLAX
-                    scaleX = HERO_BACKDROP_SCALE
-                    scaleY = HERO_BACKDROP_SCALE
+                    // A fitted poster already fills its frame edge to edge, so the
+                    // parallax overscan would trim its sides again; only a cropped
+                    // backdrop drifts.
+                    if (!artwork.fit) {
+                        // A small drift and overscan, so the two slides read as
+                        // layers instead of a flat double exposure.
+                        translationX = -heroLayerOffset(pagerState, page) * pageWidthPx * HERO_BACKDROP_PARALLAX
+                        scaleX = HERO_BACKDROP_SCALE
+                        scaleY = HERO_BACKDROP_SCALE
+                    }
                 },
     )
 }
@@ -110,8 +115,9 @@ internal fun BoxScope.HeroBackdropLayer(
  * The last child paints on top, and every gradient ends on the page background
  * so the hero has no seam. Hoisting them out of the slides means the cross-fade
  * no longer draws a second full-screen gradient while it runs. The wide
- * billboard needs its edge scrims in different directions; a phone folds its
- * flat dim and bottom fade into one gradient.
+ * billboard needs its edge scrims in different directions; a phone folds its dim,
+ * its top darkening and its bottom fade into a single gradient, so the whole
+ * compact wash is one full-screen fill.
  */
 @Composable
 internal fun HeroWashes(wide: Boolean) {
@@ -121,7 +127,10 @@ internal fun HeroWashes(wide: Boolean) {
         Box(Modifier.fillMaxSize().background(AppScrim.heroTop))
         Box(Modifier.fillMaxSize().background(AppScrim.heroRightVignette))
     } else {
-        Box(Modifier.fillMaxSize().background(AppScrim.heroBottomCompact))
+        // One gradient for the whole wash: dimmed in the middle, darker at the top
+        // (but never fully covered) and released into the page background at the
+        // bottom, where the next section starts. A single full-screen fill.
+        Box(Modifier.fillMaxSize().background(AppScrim.heroCompact))
     }
 }
 

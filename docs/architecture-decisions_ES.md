@@ -628,6 +628,27 @@ leer/escribir/borrar vive una sola vez.
   (`RemoteImage(fadeIn)`), así que una carga lenta nunca aparece de golpe. El
   reproductor está deliberadamente fuera de la transición de ruta porque maneja
   un único motor compartido.
+- **El billboard del teléfono encaja un póster sin texto en vez de recortarlo.**
+  Un backdrop ancho es 16:9 y el billboard compacto es una portada alta, así que
+  recortar uno dentro del otro deshace la composición; un póster neutral de
+  idioma ya es vertical y no lleva título incrustado, así que el logo en vivo se
+  apoya sobre el arte en vez de sobre un recorte. El enriquecimiento de TMDB
+  aporta uno (`textlessPoster`, su mejor póster con `iso_639_1 == null` por
+  votos), y `heroArtwork` lo elige en ventana compacta, encajado entero en un
+  marco que es exactamente el tamaño del póster (`1 / POSTER_ART_ASPECT`) — con
+  caída al backdrop y luego al póster, ambos recortados — mientras el billboard
+  ancho conserva el backdrop de siempre. Todo el wash compacto es un único
+  gradiente (`heroCompact`): atenúa el centro, oscurece la parte de arriba sin
+  llegar nunca al fondo de página (así la portada se ve hasta el borde superior)
+  y se libera hacia ese fondo abajo para encontrarse con la sección siguiente.
+  Los tres washes que reemplaza eran del mismo color, así que se pliegan en un
+  solo pase de pantalla completa mediante el alpha compuesto, y una diapositiva
+  encajada no se desplaza al deslizar, porque el overscan del parallax volvería a
+  recortar sus lados. El backdrop del detalle toma la misma decisión de póster
+  sin texto en un teléfono, recortado para llenar. El preloader de Home pasa por
+  el mismo helper, así que siempre precarga la URL que la capa va a dibujar, y el
+  set destacado se enriquece antes del primer pintado del billboard, así que
+  nunca muestra el arte del catálogo y luego lo cambia por el de TMDB.
 - **Tamaño de póster** es un único ajuste (`PosterSize`: default / large,
   210 / 230 dp) que solo gobierna las filas horizontales de pósters — los
   catálogos de Home, los resultados de búsqueda y "More like this" — donde una

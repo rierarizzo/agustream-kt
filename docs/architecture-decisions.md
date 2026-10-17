@@ -588,6 +588,26 @@ so the atomic read/write/delete logic lives once.
   logo and backdrop fade in when the image itself is ready (`RemoteImage(fadeIn)`),
   so a slow load never pops. The player is deliberately outside the route
   transition because it drives a single shared engine.
+- **The phone billboard fits a textless poster instead of cropping one.** A wide
+  backdrop is 16:9 and the compact billboard is a tall cover, so cropping one
+  into the other cuts the composition apart; a language-neutral poster is
+  already portrait and carries no baked-in title, so the live logo sits over the
+  art instead of a crop of it. TMDB's enrichment supplies one (`textlessPoster`,
+  its best `iso_639_1 == null` poster by votes), and `heroArtwork` selects it on
+  a compact window, fitted whole into a frame that is exactly the poster's size
+  (`1 / POSTER_ART_ASPECT`) — falling back to the backdrop, then the poster, both
+  cropped — while the wide billboard keeps the backdrop it always used. The whole
+  compact wash is a single gradient (`heroCompact`): it dims the middle, darkens
+  the top without ever reaching the page background (so the cover stays visible
+  to the very top) and releases into that background at the bottom to meet the
+  section below. The three washes it replaces were the same colour, so they fold
+  into one full-screen fill through the composite alpha, and a fitted slide
+  does not drift during a swipe, because the parallax overscan would trim its
+  sides again. The detail backdrop makes the same textless choice on a phone,
+  cropped to fill. The Home preloader goes through the same helper, so it always
+  warms the URL the layer will draw, and the featured set is enriched before the
+  billboard's first paint, so it never shows the catalog artwork and then swaps
+  to TMDB's.
 - **Poster size** is a single setting (`PosterSize`: default / large, 210 / 230
   dp) that only drives the horizontal poster rows — the Home catalogs, the
   search results and "More like this" — where a card can be resized without a

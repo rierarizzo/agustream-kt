@@ -33,7 +33,7 @@ import com.misgus.pengu.ui.components.HeroActionRowInset
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalMotionEnabled
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.POSTER_CARD_ASPECT
+import com.misgus.pengu.ui.theme.POSTER_ART_ASPECT
 import com.misgus.pengu.ui.theme.WindowSize
 import com.misgus.pengu.ui.theme.motionSpring
 import kotlinx.coroutines.delay
@@ -58,13 +58,14 @@ internal const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
 /**
  * Height of the compact billboard as a multiple of its width.
  *
- * A phone cannot show the wide desktop composition, so it crops the same
- * backdrop into a full-width movie cover: the ratio matches [POSTER_CARD_ASPECT]
- * (the app's cover), so the billboard is exactly as tall as a poster of the same
- * width, keeps the centre of the artwork where the subject usually is, and
- * gives the logo and actions the room a cover has.
+ * A phone cannot show the wide desktop composition, so it shows a portrait,
+ * language-neutral poster whole: the frame is exactly the poster's own height
+ * (`1 / POSTER_ART_ASPECT`; a 2:3 poster is 1.5 times its width), so nothing is
+ * cropped and no strip is left over. The top wash still darkens the artwork, but
+ * never all the way to the page background, so the cover stays visible up to the
+ * top edge; only the bottom fades out, to meet the section below.
  */
-internal const val HERO_COMPACT_HEIGHT_RATIO = 1f / POSTER_CARD_ASPECT
+internal const val HERO_COMPACT_HEIGHT_RATIO = 1f / POSTER_ART_ASPECT
 
 /** Widest the copy column ever grows, so the synopsis keeps a comfortable measure. */
 internal val HERO_CONTENT_MAX_WIDTH = 840.dp
@@ -430,6 +431,7 @@ private fun HeroCarousel(
         pagerState = pagerState,
         backdropWidthPx = backdropWidthPx,
         backdropHeightPx = backdropHeightPx,
+        wide = wide,
     )
 }
 
