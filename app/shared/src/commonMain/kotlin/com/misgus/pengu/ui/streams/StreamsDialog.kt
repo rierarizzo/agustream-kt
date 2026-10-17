@@ -26,12 +26,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -59,6 +59,7 @@ import com.misgus.pengu.ui.components.AppSearchField
 import com.misgus.pengu.ui.components.Message
 import com.misgus.pengu.ui.components.PosterImage
 import com.misgus.pengu.ui.icons.Boxicons
+import com.misgus.pengu.ui.platform.clipEntryOfText
 import com.misgus.pengu.ui.services.LocalAppServices
 import com.misgus.pengu.ui.shell.RouteViewModelStoreOwner
 import com.misgus.pengu.ui.theme.AppMotion
@@ -68,6 +69,7 @@ import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalWindowWidth
 import com.misgus.pengu.ui.theme.motionLayer
 import com.misgus.pengu.ui.theme.motionTween
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 /** Widest the dialog gets, and a floor so it stays usable on a small window. */
@@ -243,7 +245,8 @@ private fun StreamCard(
     addonName: String,
     onPlay: () -> Unit,
 ) {
-    val clipboard = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     val primary = listOf(stream.name, stream.title).firstOrNull { !it.isNullOrEmpty() } ?: addonName
     val secondary =
         listOf(stream.description, stream.title)
@@ -284,7 +287,9 @@ private fun StreamCard(
             icon = Boxicons.Copy,
             contentDescription = stringResource(Res.string.streams_copy_link),
             onClick = {
-                (stream.url ?: stream.externalUrl)?.let { clipboard.setText(AnnotatedString(it)) }
+                (stream.url ?: stream.externalUrl)?.let { url ->
+                    scope.launch { clipboard.setClipEntry(clipEntryOfText(url)) }
+                }
             },
         )
     }
