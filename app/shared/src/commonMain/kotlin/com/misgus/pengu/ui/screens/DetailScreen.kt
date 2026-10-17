@@ -34,7 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.action_back
-import com.misgus.pengu.app.shared.generated.resources.action_watch_now
+import com.misgus.pengu.app.shared.generated.resources.action_stream_now
 import com.misgus.pengu.app.shared.generated.resources.detail_episode_generic
 import com.misgus.pengu.app.shared.generated.resources.detail_error_library
 import com.misgus.pengu.app.shared.generated.resources.detail_error_rating
@@ -336,7 +336,7 @@ private fun HeroContent(
                 horizontalArrangement = Arrangement.spacedBy(AppSpacing.lg),
             ) {
                 ActionButton(
-                    text = stringResource(Res.string.action_watch_now),
+                    text = stringResource(Res.string.action_stream_now),
                     icon = Boxicons.Play,
                     onClick = onPlay,
                     style = ActionButtonStyle.Accent,

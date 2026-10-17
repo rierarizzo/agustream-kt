@@ -116,10 +116,11 @@ fun MediaTitle(
 @Composable
 fun MetadataRow(parts: List<String>) {
     if (parts.isEmpty()) return
-    // A phone steps the metadata down a role and tightens the separators, so it
-    // does not compete with the title above a shorter billboard.
+    // A phone tightens the separators, so the metadata does not compete with the
+    // title above a shorter billboard. The line is set in the tighter Inter
+    // Tight (see [AppType.heroMeta]).
     val compact = LocalWindowSize.current == WindowSize.COMPACT
-    val style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge
+    val style = AppType.heroMeta()
     val separatorPadding = if (compact) AppSpacing.xs else AppSpacing.sm
     Row(verticalAlignment = Alignment.CenterVertically) {
         parts.forEachIndexed { index, part ->

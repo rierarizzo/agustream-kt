@@ -30,8 +30,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.ui.components.HeroActionRowInset
+import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalMotionEnabled
 import com.misgus.pengu.ui.theme.LocalWindowSize
+import com.misgus.pengu.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.pengu.ui.theme.WindowSize
 import com.misgus.pengu.ui.theme.motionSpring
 import kotlinx.coroutines.delay
@@ -57,35 +59,37 @@ internal const val HERO_FALLBACK_ASPECT_RATIO = 1920f / 823f
  * Height of the compact billboard as a multiple of its width.
  *
  * A phone cannot show the wide desktop composition, so it crops the same
- * backdrop into a tall band: 1.3 keeps the centre of the artwork, where the
- * subject usually is, and gives the logo and actions room to breathe.
+ * backdrop into a full-width movie cover: the ratio matches [POSTER_CARD_ASPECT]
+ * (the app's cover), so the billboard is exactly as tall as a poster of the same
+ * width, keeps the centre of the artwork where the subject usually is, and
+ * gives the logo and actions the room a cover has.
  */
-internal const val HERO_COMPACT_HEIGHT_RATIO = 1.3f
+internal const val HERO_COMPACT_HEIGHT_RATIO = 1f / POSTER_CARD_ASPECT
 
 /** Widest the copy column ever grows, so the synopsis keeps a comfortable measure. */
 internal val HERO_CONTENT_MAX_WIDTH = 840.dp
+
+/**
+ * Horizontal inset of the copy block (title, metadata and synopsis).
+ *
+ * The play call to action is a transparent text button, whose container still
+ * pads its icon and label in from the row edge; the copy takes the same inset so
+ * the title block and the play glyph share a left edge.
+ */
+internal val HERO_COPY_TEXT_INSET = AppSpacing.md
 
 /** Gap between the bottom of the billboard and the copy actions. */
 internal val HERO_CONTENT_BOTTOM_MARGIN = 100.dp
 
 /**
- * Gap between the bottom of the compact billboard and the copy actions.
+ * Gap between the bottom of the compact billboard and the action row.
  *
- * Keeps the actions just above the paginator and deep in the bottom fade,
- * without letting the icon row crowd the dots (the wide billboard has far more
- * room below its row).
+ * The row sits low, just above the paginator dots and deep in the bottom fade:
+ * far enough that the buttons do not crowd the dots, but lower than the copy
+ * itself, so the actions read as a footer under the title block instead of as
+ * another line of it (the wide billboard has far more room below its row).
  */
-internal val HERO_COMPACT_CONTENT_BOTTOM_MARGIN = 64.dp
-
-/**
- * Layout size of the billboard's play glyph.
- *
- * The Boxicons play glyph fills only about half of its viewBox height, against
- * the larger optical mass of the action row beside it, so the layout box is
- * enlarged to make the drawn triangle the same optical height as the row instead
- * of reading smaller.
- */
-internal val HERO_PLAY_ICON_SIZE = 36.dp
+internal val HERO_COMPACT_CONTENT_BOTTOM_MARGIN = 48.dp
 
 /**
  * Vertical rhythm of the copy column, in order: title, metadata, synopsis,
@@ -99,6 +103,9 @@ internal val HERO_METADATA_SYNOPSIS_SPACE = 18.dp
 /**
  * Same rhythm as the metadata-to-synopsis gap, discounting the transparent
  * padding of the action row ([HeroActionRowInset]).
+ *
+ * The row leads with a transparent play control, so, like an icon-only row, its
+ * optical gap is the value written minus that padding.
  */
 internal val HERO_SYNOPSIS_ACTIONS_SPACE = HERO_METADATA_SYNOPSIS_SPACE - HeroActionRowInset
 
@@ -106,11 +113,13 @@ internal val HERO_SYNOPSIS_ACTIONS_SPACE = HERO_METADATA_SYNOPSIS_SPACE - HeroAc
  * Tighter vertical rhythm on a phone, where the copy shares a shorter band.
  *
  * The actions follow the metadata directly (no synopsis), so their spacer
- * discounts [HeroActionRowInset] too; the metadata stays a comfortable step
- * below the title instead of the row floating away from it.
+ * discounts [HeroActionRowInset] too. It is wider than the wide billboard's
+ * text gaps, since the row is a full-width footer and the extra space reads as
+ * a separation from the copy above rather than a missing synopsis; the metadata
+ * stays a comfortable step below the title.
  */
 internal val HERO_COMPACT_LOGO_METADATA_SPACE = 8.dp
-internal val HERO_COMPACT_METADATA_ACTIONS_SPACE = (12.dp - HeroActionRowInset).coerceAtLeast(0.dp)
+internal val HERO_COMPACT_METADATA_ACTIONS_SPACE = (28.dp - HeroActionRowInset).coerceAtLeast(0.dp)
 
 /**
  * Widest the hero copy (not the artwork) slides during a page change. Small on
@@ -354,7 +363,9 @@ private fun HeroCarousel(
             .fillMaxWidth()
             .height(height)
             .clipToBounds()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
+            // The home hero carries no info action: tapping it opens the title.
+            .heroTap(onOpen = { onOpen(items[pagerState.currentPage % items.size]) }),
     ) {
         // The pager is only a gesture and offset driver: its pages are empty, so
         // the artwork and the copy are drawn as separate layers below. One alpha
@@ -386,7 +397,6 @@ private fun HeroCarousel(
                         compact = compact,
                         saved = items[page % items.size].id in savedIds,
                         savedBusy = items[page % items.size].id in busyIds,
-                        onOpen = { onOpen(items[page % items.size]) },
                         onPlay = { onPlay(items[page % items.size]) },
                         onToggleSaved = { onToggleSaved(items[page % items.size]) },
                         pagerState = pagerState,

@@ -259,21 +259,32 @@ so the atomic read/write/delete logic lives once.
   cropped artwork. Metadata is one builder, so the star, separators, the type
   name and rating formatting cannot diverge.
 - **Billboards share their icon actions.** `HeroActionRow` and
-  `HeroActionState` (`ui/components/HeroActions.kt`) render the library, rate,
-  watched and info buttons next to the call to action, so Home and the detail
-  screen cannot drift in icon, size, colour or state. The Home billboard's play
-  action is icon-only too — the same 48dp icon control as the row, tinted with
-  the primary colour so it still reads first, with a larger 36dp glyph layout so
-  the play arrow's ~52%-height triangle matches the row's optical height — so the
-  row reads play, add, "More info"; the detail screen keeps the labelled "Watch
-  Now" and adds rate and watched. The spacers around an action row discount the
-  control's transparent vertical padding (`HeroActionRowInset`, in
-  `ui/components/HeroActions.kt`), the band between the 48dp touch target and its
-  smaller glyph, so the icon row reads as close to the text as the text-to-text
-  gaps do instead of 12dp wider; the detail hero applies it above and below its
-  row, and the phone copy applies it to the metadata-to-actions gap, where there
-  is no synopsis. The compact copy also keeps a larger bottom margin (64dp) so
-  the icon row does not crowd the paginator dots.
+  `HeroActionState` (`ui/components/HeroActions.kt`) render the library, rate and
+  watched buttons next to the call to action, so Home and the detail screen
+  cannot drift in icon, size, colour or state. Both billboards lead with a
+  labelled play call to action (`ActionButton` + `action_stream_now`), so Home
+  and Detail read the same stream / save grammar from one shared string: Home
+  uses the transparent text style (`ActionButtonStyle.Text`) while Detail keeps
+  the filled amber `Accent`. The home hero carries no "more
+  info" action: tapping anywhere on it opens the title through `heroTap`
+  (`ui/home/HeroOverlays.kt`), which runs on the initial pass without consuming,
+  ignores a release that followed more than the touch slop, and ignores a
+  release a child already consumed, so a tap on a control never opens the title
+  as well. On a phone the row becomes a full-width footer — play pinned to the
+  left edge and the library toggle to the right, inside the screen padding — so
+  it reads apart from the copy; a wide window keeps the actions together,
+  aligned with the text above them. The copy block takes the play button's
+  content inset (`HERO_COPY_TEXT_INSET`), so the title, metadata and synopsis
+  share a left edge with the play glyph instead of the button's transparent
+  container edge. The spacers around an action row discount
+  the control's transparent vertical padding (`HeroActionRowInset`, in
+  `ui/components/HeroActions.kt`), the band between the 48dp touch target and
+  its smaller glyph, so the icon row reads as close to the text as the
+  text-to-text gaps do instead of 12dp wider; the detail hero applies it above
+  and below its row, and the phone copy applies it to the metadata-to-actions
+  gap, where there is no synopsis. The compact copy keeps a 48dp bottom margin,
+  lower than the wide one's 100dp, so the footer sits low, just above the
+  paginator dots.
   Home's library toggle is optimistic in `HomeViewModel` and reconciled through
   `LibraryRepository.changes`, so a title added on either screen shows as added
   on both.
@@ -303,15 +314,17 @@ so the atomic read/write/delete logic lives once.
   seam, a subtle top fade, a right-edge vignette, and a flat
   `AppAlpha.HERO_IMAGE_DIM` kept over the artwork so it reads darker than the
   raw image. On a phone the billboard spans the full width and crops the same
-  backdrop into a band 1.3 times its width (centre-aligned) instead of showing
+  backdrop into the app's cover ratio (`POSTER_CARD_ASPECT`, about 1.72 times its
+  width, centre-aligned) instead of showing
   the portrait poster whole, and washes it with the same flat dim and a bottom
   fade that starts higher than the wide one's, both folded into a single
   gradient so the artwork is darkened in one full-screen fill, so the taller
   copy sits deeper in the dark: the copy is
-  left-aligned and anchored to the bottom edge, the title always prefers
+  left-aligned and anchored above the action footer, the title always prefers
   the logo (scaled to the copy width by `AppLogoSize.opticalHeight`, text only as
   a fallback) and the synopsis is
-  dropped, since there is no room to read it under the logo. On a wide
+  dropped, since there is no room to read it under the logo; a tap on the
+  artwork or the copy opens the title. On a wide
   window the copy column is
   bottom-anchored 100dp above the hero edge, up to 840dp wide, and shares the
   sections' left padding. The synopsis is a teaser — capped at the shared
@@ -347,7 +360,10 @@ so the atomic read/write/delete logic lives once.
 - **Typography.** Inter is bundled through Compose Resources in `:app:shared`
   and is the typeface rendered. IBM Plex Sans stays isolated in its own
   `:app:fonts` module so the two typefaces can be swapped for comparison through
-  `USE_IBM_PLEX_SANS` in `PenguTheme`. Every target renders the same
+  `USE_IBM_PLEX_SANS` in `PenguTheme`. Inter Tight is bundled alongside Inter and
+  applied only to the billboard metadata line (`AppType.heroMeta`), where its
+  tighter fit keeps the dot-separated `Series • 2026 • Drama` ribbon to one line.
+  Every target renders the same
   typeface, and text is written in `sp` so
   Android's system font size keeps working. `LocalDensity` is deliberately
   never overridden: that is the common hack, and it lies to every component
@@ -445,7 +461,7 @@ so the atomic read/write/delete logic lives once.
   off the screen: `ActionButton` picks its container, content and disabled
   colours from an `ActionButtonStyle` weight (Filled on the inverse surface,
   Accent on the amber `primary`/`onPrimary` for the detail billboard's
-  "Watch Now",
+  "Stream Now",
   Tonal on a translucent on-surface fill, Outline on `outline`, Text
   label-only), leaves the content colour to the button's own `LocalContentColor`
   so a disabled label dims with its container, pins elevation to zero (the app

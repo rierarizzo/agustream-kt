@@ -277,21 +277,32 @@ leer/escribir/borrar vive una sola vez.
   formato de la valoración no pueden divergir.
 - **Los billboards comparten sus acciones de icono.** `HeroActionRow` y
   `HeroActionState` (`ui/components/HeroActions.kt`) renderizan los botones de
-  biblioteca, puntuar, visto e info junto al call to action, así que Home y el
-  detalle no pueden desviarse en icono, tamaño, color ni estado. El billboard de
-  Home muestra su acción de play también solo-icono — el mismo control de icono
-  de 48dp que la fila, teñido con el color primario para que siga leyéndose
-  primero, con un layout de glyph mayor (36dp) para que el triángulo del play
-  (~52% de alto) iguale la altura óptica de la fila — así que la fila se lee
-  play, añadir, "More info"; el detalle mantiene el "Watch Now" con etiqueta y
-  añade puntuar y visto. Los spacers alrededor de una fila de acciones descuentan
-  el padding vertical transparente del control (`HeroActionRowInset`, en
-  `ui/components/HeroActions.kt`), la banda entre el touch target de 48dp y su
-  glifo menor, así que la fila de iconos se lee tan cerca del texto como los gaps
-  texto-a-texto en vez de 12dp más lejos; el hero de detalle lo aplica arriba y
-  abajo de su fila, y el copy del teléfono lo aplica al gap metadata-acciones,
-  donde no hay sinopsis. El copy compacto además mantiene un margen inferior
-  mayor (64dp) para que la fila de iconos no se pegue a los puntos del paginador.
+  biblioteca, puntuar y visto junto al call to action, así que Home y el detalle
+  no pueden desviarse en icono, tamaño, color ni estado. Ambos billboards abren
+  con un call to action de play con etiqueta (`ActionButton` + `action_stream_now`),
+  así que Home y detalle leen la misma gramática stream / guardar desde una
+  cadena compartida: Home usa el estilo de texto transparente
+  (`ActionButtonStyle.Text`) mientras detalle mantiene el `Accent` ámbar relleno.
+  El hero de Home
+  no lleva acción de "más info": tocar en cualquier punto abre el título mediante
+  `heroTap` (`ui/home/HeroOverlays.kt`), que corre en la pasada inicial sin
+  consumir, ignora un release que superó el touch slop e ignora un release que un
+  hijo ya consumió, así que tocar un control nunca abre el título además. En un
+  teléfono la fila pasa a ser un footer a ancho completo — el play pegado al
+  borde izquierdo y el toggle de biblioteca al derecho, dentro del padding de
+  pantalla — así que se lee aparte del copy; en ventana ancha las acciones se
+  mantienen juntas, alineadas con el texto de arriba. El bloque de copy toma el
+  inset de contenido del botón de play (`HERO_COPY_TEXT_INSET`), así que título,
+  metadata y sinopsis comparten borde izquierdo con el glifo del play en vez de
+  con el borde del contenedor transparente. Los spacers alrededor de
+  una fila de acciones descuentan el padding vertical transparente del control
+  (`HeroActionRowInset`, en `ui/components/HeroActions.kt`), la banda entre el
+  touch target de 48dp y su glifo menor, así que la fila de iconos se lee tan
+  cerca del texto como los gaps texto-a-texto en vez de 12dp más lejos; el hero
+  de detalle lo aplica arriba y abajo de su fila, y el copy del teléfono lo
+  aplica al gap metadata-acciones, donde no hay sinopsis. El copy compacto
+  mantiene un margen inferior de 48dp, menor que los 100dp del ancho, para que
+  el footer quede bajo, justo sobre los puntos del paginador.
   El toggle de biblioteca de Home es optimista en `HomeViewModel` y se reconcilia
   con `LibraryRepository.changes`, así que un título añadido en cualquiera de las
   dos pantallas se ve como añadido en ambas.
@@ -321,17 +332,18 @@ leer/escribir/borrar vive una sola vez.
   watching" sin costura dura, un fundido superior sutil, una viñeta en el borde
   derecho, y un `AppAlpha.HERO_IMAGE_DIM` plano mantenido sobre el artwork para
   que se lea más oscuro que la imagen cruda. En un teléfono el billboard abarca
-  el ancho completo y recorta el mismo backdrop en una banda 1.3 veces su ancho
-  (alineada al centro) en vez de mostrar el póster vertical entero, y lo lava con
+  el ancho completo y recorta el mismo backdrop en la proporción del cover de la
+  app (`POSTER_CARD_ASPECT`, unas 1.72 veces su ancho, alineada al centro) en vez
+  de mostrar el póster vertical entero, y lo lava con
   el mismo dim plano y un fundido inferior que arranca más arriba que el del
   ancho, ambos fundidos en un solo gradiente, así que el artwork se oscurece en
   un único fill a pantalla completa, para que el copy más alto quede
   más metido en lo oscuro: el copy queda alineado
-  a la izquierda y anclado al
-  borde inferior, el título prefiere siempre el logo
+  a la izquierda y anclado sobre el
+  footer de acciones, el título prefiere siempre el logo
   (escalado al ancho del copy por `AppLogoSize.opticalHeight`, el texto
   solo como reserva) y la sinopsis se omite, porque no hay sitio para leerla bajo
-  el logo. En ventana ancha la columna de copy
+  el logo; un toque en el artwork o en el copy abre el título. En ventana ancha la columna de copy
   está anclada abajo a 100dp del borde del hero, hasta 840dp de ancho, y comparte
   el padding izquierdo de las secciones. La sinopsis es un teaser — limitada a la
   medida compartida de 720dp (`AppSynopsis.maxWidth`, unos 80 caracteres), tres
@@ -367,7 +379,10 @@ leer/escribir/borrar vive una sola vez.
 - **Tipografía.** Inter se incluye mediante Compose Resources en `:app:shared` y
   es la tipografía renderizada. IBM Plex Sans queda aislada en su propio módulo
   `:app:fonts` para que las dos tipografías se puedan intercambiar para comparar
-  mediante `USE_IBM_PLEX_SANS` en `PenguTheme`. Cada target renderiza la
+  mediante `USE_IBM_PLEX_SANS` en `PenguTheme`. Inter Tight se incluye junto a
+  Inter y se aplica solo a la línea de metadata del billboard
+  (`AppType.heroMeta`), donde su ajuste más apretado mantiene en una línea la
+  cinta `Series • 2026 • Drama`. Cada target renderiza la
   misma tipografía, y el texto se escribe en `sp` para que el tamaño de fuente
   del sistema de Android siga funcionando. `LocalDensity` nunca se sobrescribe
   deliberadamente: ese es el hack común, y miente a cada componente sobre la
@@ -472,7 +487,7 @@ leer/escribir/borrar vive una sola vez.
   mantiene los defaults de Material fuera de la pantalla: `ActionButton` elige su
   contenedor, contenido y colores deshabilitados de un peso `ActionButtonStyle`
   (Filled sobre la superficie inversa, Accent sobre el `primary`/`onPrimary`
-  ámbar para el "Watch Now" del billboard de detalle, Tonal sobre un relleno
+  ámbar para el "Stream Now" del billboard de detalle, Tonal sobre un relleno
   translúcido
   de on-surface, Outline sobre `outline`, Text solo etiqueta), deja el color de
   contenido al `LocalContentColor` del propio botón para que una etiqueta

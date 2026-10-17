@@ -35,7 +35,7 @@ import com.misgus.pengu.ui.theme.motionTween
  * Visual weight of an [ActionButton], from highest to lowest emphasis.
  *
  * A screen has one primary call to action: [Accent] where the action is the
- * hero of the screen (the billboards' "Watch Now"), otherwise [Filled]. Every
+ * hero of the screen (the billboards' "Stream Now"), otherwise [Filled]. Every
  * other action steps down through [Tonal], [Outline] and [Text]. Keeping the
  * weights in an enum (instead of booleans) means a new variant is one branch
  * here, not another parameter on every call site.

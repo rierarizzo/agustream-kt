@@ -13,6 +13,7 @@ below, which keep their own licenses.
 | mediamp mpv runtime (Linux) | bundled libmpv + FFmpeg; uses mpv's GPL-only X11 output | GPL-3.0 |
 | IBM Plex Sans | alternate UI typeface | SIL Open Font License 1.1 ([IBM-Plex-Sans-OFL.txt](IBM-Plex-Sans-OFL.txt)) |
 | Inter | UI typeface | SIL Open Font License 1.1 ([Inter-OFL.txt](Inter-OFL.txt)) |
+| Inter Tight | compact billboard metadata typeface | SIL Open Font License 1.1 ([Inter-Tight-OFL.txt](Inter-Tight-OFL.txt)) |
 | [Boxicons](https://github.com/atisawd/boxicons) | vendored UI icon set (`Boxicons.kt`) | MIT ([Boxicons-MIT.txt](Boxicons-MIT.txt)) |
 
 The desktop player engine is **mediamp's mpv backend**: it loads libmpv through

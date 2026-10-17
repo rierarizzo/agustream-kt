@@ -42,7 +42,6 @@ object Boxicons {
     val VisibilityOff: ImageVector by lazy { boxicon("VisibilityOff", VISIBILITY_OFF) }
     val Subtitles: ImageVector by lazy { boxicon("Subtitles", SUBTITLES) }
     val Audiotrack: ImageVector by lazy { boxicon("Audiotrack", AUDIOTRACK) }
-    val Info: ImageVector by lazy { boxicon("Info", INFO) }
     val Error: ImageVector by lazy { boxicon("Error", ERROR) }
     val Compass: ImageVector by lazy { boxicon("Compass", COMPASS) }
     val FolderOpen: ImageVector by lazy { boxicon("FolderOpen", FOLDER_OPEN) }
@@ -183,9 +182,6 @@ private const val AUDIOTRACK =
     "M21 3H9c-.55 0-1 .45-1 1v9.56c-.59-.34-1.27-.56-2-.56c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4V5h10v8.56c-.59-" +
         ".34-1.27-.56-2-.56c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4V4c0-.55-.45-1-1-1M6 19c-1.1 0-2-.9-2-2s.9-2 2-2s2 " +
         ".9 2 2s-.9 2-2 2m12 0c-1.1 0-2-.9-2-2s.9-2 2-2s2 .9 2 2s-.9 2-2 2"
-private const val INFO =
-    "M11 11h2v6h-2zm0-4h2v2h-2zM12 22c5.51 0 10-4.49 10-10S17.51 2 12 2S2 6.49 2 12s4.49 10 10 10m0-18c4.41 0 8 3.5" +
-        "9 8 8s-3.59 8-8 8s-8-3.59-8-8s3.59-8 8-8"
 private const val ERROR =
     "M11 7h2v6h-2zm0 8h2v2h-2zM12 22c5.51 0 10-4.49 10-10S17.51 2 12 2S2 6.49 2 12s4.49 10 10 10m0-18c4.41 0 8 3.59" +
         " 8 8s-3.59 8-8 8s-8-3.59-8-8s3.59-8 8-8"

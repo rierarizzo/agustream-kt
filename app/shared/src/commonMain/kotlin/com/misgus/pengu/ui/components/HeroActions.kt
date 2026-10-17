@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import com.misgus.pengu.app.shared.generated.resources.Res
-import com.misgus.pengu.app.shared.generated.resources.action_more_info
 import com.misgus.pengu.app.shared.generated.resources.detail_add_to_library
 import com.misgus.pengu.app.shared.generated.resources.detail_rate
 import com.misgus.pengu.app.shared.generated.resources.detail_remove_from_library
@@ -49,11 +48,10 @@ data class HeroActionState(
  * The icon-only actions next to a billboard's call to action.
  *
  * Save is turned into the library toggle: a plus that becomes a check once the
- * title is in the library. Rate and watched are added
- * when their handlers are passed (the detail screen), and [onInfo] appends the
- * "more info" action (the home billboard, where it replaces the old labelled
- * button). One definition keeps these buttons identical wherever a billboard
- * appears.
+ * title is in the library. Rate and watched are added when their handlers are
+ * passed (the detail screen). One definition keeps these buttons identical
+ * wherever a billboard appears; the home billboard opens the title by tapping
+ * anywhere on it, so it carries no "more info" action.
  */
 @Composable
 fun HeroActionRow(
@@ -62,7 +60,6 @@ fun HeroActionRow(
     modifier: Modifier = Modifier,
     onRate: (() -> Unit)? = null,
     onToggleWatched: (() -> Unit)? = null,
-    onInfo: (() -> Unit)? = null,
 ) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
         AppIconButton(
@@ -93,13 +90,6 @@ fun HeroActionRow(
                 enabled = !actions.watchedBusy,
                 selected = actions.watched,
                 loading = actions.watchedLoading,
-            )
-        }
-        onInfo?.let { onInfo ->
-            AppIconButton(
-                icon = Boxicons.Info,
-                contentDescription = stringResource(Res.string.action_more_info),
-                onClick = onInfo,
             )
         }
     }

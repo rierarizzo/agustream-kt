@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,9 +22,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import coil3.compose.AsyncImage
 import com.misgus.pengu.app.shared.generated.resources.Res
-import com.misgus.pengu.app.shared.generated.resources.action_watch_now
+import com.misgus.pengu.app.shared.generated.resources.action_stream_now
 import com.misgus.pengu.core.model.MetaPreview
-import com.misgus.pengu.ui.components.AppIconButton
+import com.misgus.pengu.ui.components.ActionButton
+import com.misgus.pengu.ui.components.ActionButtonStyle
 import com.misgus.pengu.ui.components.BackdropFilterQuality
 import com.misgus.pengu.ui.components.HeroActionRow
 import com.misgus.pengu.ui.components.HeroActionState
@@ -132,7 +132,6 @@ internal fun BoxScope.HeroCopy(
     compact: Boolean,
     saved: Boolean,
     savedBusy: Boolean,
-    onOpen: () -> Unit,
     onPlay: () -> Unit,
     onToggleSaved: () -> Unit,
     pagerState: PagerState,
@@ -152,41 +151,59 @@ internal fun BoxScope.HeroCopy(
                 ).widthIn(max = HERO_CONTENT_MAX_WIDTH),
         horizontalAlignment = Alignment.Start,
     ) {
-        MediaTitle(
-            name = item.name,
-            logo = item.logo,
-            logoHeight = AppLogoSize.homeHeight,
-            textAlign = TextAlign.Start,
-        )
-        Spacer(Modifier.height(if (compact) HERO_COMPACT_LOGO_METADATA_SPACE else HERO_LOGO_METADATA_SPACE))
-        MetadataRow(metadataParts(item.releaseInfo, genres = item.genres, rating = item.imdbRating, contentType = item.type))
-        if (compact) {
-            // No synopsis on a phone: there is no room to read it under the
-            // logo, so the actions follow the metadata directly.
-            Spacer(Modifier.height(HERO_COMPACT_METADATA_ACTIONS_SPACE))
-        } else {
-            Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))
-            item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
-                HeroSynopsis(text = synopsis)
-            }
-            Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
-        }
-        Row(
-            modifier = Modifier.heroActionDrag(pagerState, scope, onManualScroll),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        // The title block takes the play button's content inset, so the logo,
+        // metadata and synopsis share a left edge with the play glyph instead of
+        // with the button's transparent container edge.
+        Column(
+            modifier = Modifier.padding(start = HERO_COPY_TEXT_INSET),
+            horizontalAlignment = Alignment.Start,
         ) {
-            AppIconButton(
+            MediaTitle(
+                name = item.name,
+                logo = item.logo,
+                logoHeight = AppLogoSize.homeHeight,
+                textAlign = TextAlign.Start,
+            )
+            Spacer(Modifier.height(if (compact) HERO_COMPACT_LOGO_METADATA_SPACE else HERO_LOGO_METADATA_SPACE))
+            MetadataRow(metadataParts(item.releaseInfo, genres = item.genres, rating = item.imdbRating, contentType = item.type))
+            if (compact) {
+                // No synopsis on a phone: there is no room to read it under the
+                // logo, so the actions follow the metadata directly.
+                Spacer(Modifier.height(HERO_COMPACT_METADATA_ACTIONS_SPACE))
+            } else {
+                Spacer(Modifier.height(HERO_METADATA_SYNOPSIS_SPACE))
+                item.description?.takeIf { it.isNotEmpty() }?.let { synopsis ->
+                    HeroSynopsis(text = synopsis)
+                }
+                Spacer(Modifier.height(HERO_SYNOPSIS_ACTIONS_SPACE))
+            }
+        }
+        // The phone spreads the labelled play action to the left edge and the
+        // library toggle to the right, so the row reads as a footer of its own
+        // rather than another line of the copy; the wide billboard keeps the
+        // actions together, aligned with the text above them.
+        Row(
+            modifier =
+                Modifier
+                    .then(if (compact) Modifier.fillMaxWidth() else Modifier)
+                    .heroActionDrag(pagerState, scope, onManualScroll),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement =
+                if (compact) {
+                    Arrangement.SpaceBetween
+                } else {
+                    Arrangement.spacedBy(AppSpacing.md)
+                },
+        ) {
+            ActionButton(
+                text = stringResource(Res.string.action_stream_now),
                 icon = Boxicons.Play,
-                contentDescription = stringResource(Res.string.action_watch_now),
                 onClick = onPlay,
-                tint = MaterialTheme.colorScheme.primary,
-                iconSize = HERO_PLAY_ICON_SIZE,
+                style = ActionButtonStyle.Text,
             )
             HeroActionRow(
                 actions = HeroActionState(saved = saved, savedBusy = savedBusy),
                 onToggleSaved = onToggleSaved,
-                onInfo = onOpen,
             )
         }
     }

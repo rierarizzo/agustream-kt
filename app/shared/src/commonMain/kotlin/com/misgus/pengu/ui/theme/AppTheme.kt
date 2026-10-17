@@ -17,6 +17,10 @@ import com.misgus.pengu.app.shared.generated.resources.inter_bold
 import com.misgus.pengu.app.shared.generated.resources.inter_medium
 import com.misgus.pengu.app.shared.generated.resources.inter_regular
 import com.misgus.pengu.app.shared.generated.resources.inter_semibold
+import com.misgus.pengu.app.shared.generated.resources.inter_tight_bold
+import com.misgus.pengu.app.shared.generated.resources.inter_tight_medium
+import com.misgus.pengu.app.shared.generated.resources.inter_tight_regular
+import com.misgus.pengu.app.shared.generated.resources.inter_tight_semibold
 import com.misgus.pengu.core.repository.AppTheme
 import com.misgus.pengu.fonts.generated.resources.ibm_plex_sans_bold
 import com.misgus.pengu.fonts.generated.resources.ibm_plex_sans_medium
@@ -132,6 +136,23 @@ private fun ibmPlexSansFontFamily(): FontFamily =
         Font(FontsRes.font.ibm_plex_sans_medium, FontWeight.Medium),
         Font(FontsRes.font.ibm_plex_sans_semibold, FontWeight.SemiBold),
         Font(FontsRes.font.ibm_plex_sans_bold, FontWeight.Bold),
+    )
+
+/**
+ * Inter Tight, the compact companion of the UI typeface.
+ *
+ * Used where a line has to read as one ribbon, such as the billboard metadata,
+ * instead of the default Inter spacing. It is an accent of the app's own
+ * typeface, not the IBM Plex comparison target, so it stays Inter Tight in both
+ * modes.
+ */
+@Composable
+internal fun interTightFontFamily(): FontFamily =
+    FontFamily(
+        Font(Res.font.inter_tight_regular, FontWeight.Normal),
+        Font(Res.font.inter_tight_medium, FontWeight.Medium),
+        Font(Res.font.inter_tight_semibold, FontWeight.SemiBold),
+        Font(Res.font.inter_tight_bold, FontWeight.Bold),
     )
 
 /**

@@ -8,8 +8,7 @@
     <string name="action_clear">Clear</string>
     <string name="action_back">Back</string>
     <string name="action_play">Play</string>
-    <string name="action_watch_now">Watch Now</string>
-    <string name="action_more_info">More info</string>
+    <string name="action_stream_now">Stream Now</string>
     <string name="action_try_again">Try again</string>
     <string name="action_sign_in">Sign in</string>
     <string name="action_sign_out">Sign out</string>

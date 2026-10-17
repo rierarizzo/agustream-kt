@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -106,6 +107,41 @@ internal fun Modifier.heroActionDrag(
             }
         }
     }
+
+/**
+ * Opens [onOpen] when the surface is tapped, so the whole billboard reads as
+ * the "more info" target now that the home hero has no info action.
+ *
+ * Runs in the main pass and never consumes, so a swipe still reaches the pager
+ * or the action row's drag forwarder. Main runs child-to-parent, so by the time
+ * this sees the release every control under the pointer has handled it already:
+ * a release a child consumed (the action buttons, the play call to action) is
+ * ignored, so tapping a control never opens the title as well. A release that
+ * followed more than the touch slop is not a tap either.
+ */
+@Composable
+internal fun Modifier.heroTap(onOpen: () -> Unit): Modifier {
+    // The copy and actions are rebuilt per page, so read the latest handler
+    // instead of restarting the gesture detector on every recomposition.
+    val open = rememberUpdatedState(onOpen)
+    return pointerInput(Unit) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            var moved = false
+            while (true) {
+                val event = awaitPointerEvent()
+                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                if (!change.pressed) {
+                    if (!moved && !change.isConsumed) open.value()
+                    break
+                }
+                if ((change.position - down.position).getDistance() > viewConfiguration.touchSlop) {
+                    moved = true
+                }
+            }
+        }
+    }
+}
 
 /** Carousel paginator: an equal dot per page, grey when idle and white when active. */
 @Composable

@@ -33,7 +33,6 @@ const icons = [
   ["VisibilityOff", "eye-slash", false],
   ["Subtitles", "captions", false],
   ["Audiotrack", "music", false],
-  ["Info", "info-circle", false],
   ["Error", "alert-circle", false],
   ["Compass", "compass", false],
   ["FolderOpen", "folder-open", false],
