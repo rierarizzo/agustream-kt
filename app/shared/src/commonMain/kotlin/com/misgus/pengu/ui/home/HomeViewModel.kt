@@ -7,11 +7,16 @@ import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.model.ProgressThresholds
 import com.misgus.pengu.core.model.WatchProgress
+import com.misgus.pengu.core.model.enrichedWith
+import com.misgus.pengu.core.model.releaseYear
 import com.misgus.pengu.core.repository.AccountRepository
 import com.misgus.pengu.core.repository.CatalogRef
 import com.misgus.pengu.core.repository.CatalogRepository
 import com.misgus.pengu.core.repository.LibraryRepository
+import com.misgus.pengu.core.repository.NoTmdbRepository
 import com.misgus.pengu.core.repository.ProgressRepository
+import com.misgus.pengu.core.repository.TmdbLookup
+import com.misgus.pengu.core.repository.TmdbRepository
 import com.misgus.pengu.core.util.runCatchingCancellable
 import com.misgus.pengu.core.watched.WatchedBadgeResolver
 import com.misgus.pengu.core.watched.WatchedCandidate
@@ -27,6 +32,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlin.random.Random
 import kotlin.time.Instant
 
@@ -71,6 +78,7 @@ class HomeViewModel(
     private val library: LibraryRepository,
     private val progress: ProgressRepository,
     badges: WatchedBadgeResolver,
+    private val tmdb: TmdbRepository = NoTmdbRepository(),
     private val random: Random = Random.Default,
 ) : AccountScopedViewModel(account) {
     private val _state = MutableStateFlow(HomeUiState())
@@ -133,13 +141,17 @@ class HomeViewModel(
                     .take(MAX_CONTINUE)
 
             val rows = loadRows(refs)
+            // Enriched before the first paint, so the billboard never shows the
+            // catalog artwork and then swaps to TMDB's. A title TMDB has no match
+            // for keeps its catalog artwork, and with no key the set is unchanged.
+            val featured = enrichFeatured(pickFeatured(rows, MAX_FEATURED, random))
             _state.update {
                 it.copy(
                     isLoading = false,
                     hasLoaded = true,
                     continueWatching = continueWatching,
                     rows = rows,
-                    featured = pickFeatured(rows, MAX_FEATURED, random),
+                    featured = featured,
                     savedIds = libraryItems.map { item -> item.contentId }.toSet(),
                 )
             }
@@ -260,7 +272,41 @@ class HomeViewModel(
             _state.value.featured
                 .map { it.type to it.id }
                 .toSet()
-        _state.update { it.copy(featured = pickFeatured(rows, MAX_FEATURED, random, exclude = current)) }
+        viewModelScope.launch {
+            val featured = enrichFeatured(pickFeatured(rows, MAX_FEATURED, random, exclude = current))
+            _state.update { it.copy(featured = featured) }
+        }
+    }
+
+    /**
+     * Fills each featured billboard item's missing artwork from TMDB.
+     *
+     * Only the handful of slides on screen are looked up, never the whole
+     * catalog, and the requests run in parallel behind a small semaphore so a
+     * wide window's six slides do not open six sockets at once. Without a key,
+     * or when a lookup fails, the catalog item is returned untouched.
+     */
+    private suspend fun enrichFeatured(items: List<MetaPreview>): List<MetaPreview> {
+        if (!tmdb.isConfigured || items.isEmpty()) return items
+        return coroutineScope {
+            val permits = Semaphore(MAX_ENRICH_CONCURRENCY)
+            items
+                .map { item ->
+                    async {
+                        permits.withPermit {
+                            val lookup =
+                                TmdbLookup(
+                                    type = item.type,
+                                    contentId = item.id,
+                                    name = item.name,
+                                    year = releaseYear(item.releaseInfo),
+                                )
+                            val title = runCatchingCancellable { tmdb.lookup(lookup) }.getOrNull()
+                            item.enrichedWith(title)
+                        }
+                    }
+                }.awaitAll()
+        }
     }
 
     private fun clear() {
@@ -273,6 +319,7 @@ class HomeViewModel(
         const val MAX_ITEMS_PER_ROW = 20
         const val MAX_CONTINUE = 12
         const val MAX_FEATURED = 6
+        const val MAX_ENRICH_CONCURRENCY = 4
     }
 }
 

@@ -18,6 +18,7 @@ import com.misgus.pengu.data.store.FileSessionStore
 import com.misgus.pengu.data.store.AppPaths
 import com.misgus.pengu.data.store.JsonMapStore
 import com.misgus.pengu.data.store.JsonSettingsRepository
+import com.misgus.pengu.data.tmdb.TmdbMetadataRepository
 import com.misgus.pengu.player.MediampPlayerService
 import com.misgus.pengu.ui.PenguApp
 import com.misgus.pengu.ui.services.AppServices
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
             streams = StremioStreamRepository(addons, httpClient),
             catalogs = StremioCatalogRepository(addons, httpClient),
             subtitles = StremioSubtitleRepository(addons, httpClient),
+            tmdb = TmdbMetadataRepository(httpClient, settings),
             player = player,
             window = NoopWindowController(),
             addons = addons,

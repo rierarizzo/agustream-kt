@@ -8,8 +8,11 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.PosixFilePermissions
+import java.util.Locale
 
 actual val ioDispatcher = Dispatchers.IO
+
+actual fun systemLanguageTag(): String = Locale.getDefault().toLanguageTag()
 
 actual fun createHttpClient(): HttpClient =
     HttpClient(CIO) {

@@ -165,6 +165,9 @@
     <string name="detail_season_short">S%1$d</string>
     <string name="detail_episode_code">S%1$dE%2$d</string>
     <string name="media_rating">★ %1$s</string>
+    <string name="media_runtime_hours">%1$d h</string>
+    <string name="media_runtime_hours_minutes">%1$d h %2$d min</string>
+    <string name="media_runtime_minutes">%1$d min</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -198,6 +201,22 @@
     <string name="settings_video_url">Video URL</string>
     <string name="settings_play_url">Play URL</string>
     <string name="settings_open_local">Open local file</string>
+    <string name="settings_metadata">Metadata (TMDB)</string>
+    <string name="settings_metadata_subtitle">Fill missing artwork, synopses and cast, and build &quot;You may also like&quot;, from TMDB.</string>
+    <string name="settings_tmdb_api_key">TMDB API key</string>
+    <string name="settings_tmdb_api_key_subtitle">A v3 API key or a v4 read access token. Leave empty to disable.</string>
+    <string name="settings_tmdb_api_key_show">Show API key</string>
+    <string name="settings_tmdb_api_key_hide">Hide API key</string>
+    <string name="settings_tmdb_language">Language</string>
+    <string name="settings_tmdb_language_subtitle">The language TMDB answers in.</string>
+    <string name="settings_tmdb_language_system">System</string>
+    <string name="settings_tmdb_language_english">English</string>
+    <string name="settings_tmdb_language_spanish">Spanish</string>
+    <string name="settings_tmdb_test">Test</string>
+    <string name="settings_tmdb_test_ok">The key works.</string>
+    <string name="settings_tmdb_test_invalid">TMDB rejected this key.</string>
+    <string name="settings_tmdb_test_unreachable">Could not reach TMDB. Check your connection and try again.</string>
+    <string name="settings_tmdb_attribution">This product uses the TMDB API but is not endorsed or certified by TMDB.</string>
     <string name="dialog_open_video">Open video</string>
     <string name="poster_size_default">Default</string>
     <string name="poster_size_large">Large</string>

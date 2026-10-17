@@ -44,6 +44,7 @@ fun SectionHost(
                         library = services.library,
                         progress = services.progress,
                         badges = services.watchedBadges,
+                        tmdb = services.tmdb,
                     )
                 }
             HomeScreen(viewModel, navigator, onOpenStreams)

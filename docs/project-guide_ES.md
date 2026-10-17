@@ -20,7 +20,8 @@ app/fonts        Assets de IBM Plex Sans (se mantienen para comparar)
 app/player       Adaptador compartido de PlayerService sobre mediamp (lo usan ambos roots)
 app/shared       UI Compose + ViewModels (toda la UI del producto)
 core             Dominio puro: modelos, contratos de repositorio, reglas, constantes
-data             Implementaciones: addons Stremio, backend Nuvio, ficheros locales
+data             Implementaciones: addons Stremio, backend Nuvio, ficheros
+                 locales, enriquecimiento opcional con TMDB
 ```
 
 La única regla que importa:
@@ -59,6 +60,7 @@ usan ambas plataformas (ver §7).
 | Usar una constante compartida (tipo de contenido, extra, umbral) | `core/.../core/model/` (`ContentTypes`, `CatalogExtras`, `ProgressThresholds`) |
 | Cambiar un contrato de repositorio | `core/.../core/repository/` |
 | Cambiar cómo se piden metadata/streams/subtítulos | `data/.../data/addons/` |
+| Cambiar el enriquecimiento opcional con TMDB (resolución de ids, artwork, recomendaciones) | `data/.../data/tmdb/`, `core/.../model/Tmdb.kt` |
 | Cambiar el comportamiento del backend Nuvio | `data/.../data/backend/` |
 | Cambiar el modo local/offline | `data/.../data/local/` y `data/.../data/store/` |
 | Añadir un backend | `data/.../data/BackendFactory.kt` (`BackendKind`, `createBackend`) |

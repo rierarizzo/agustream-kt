@@ -108,7 +108,8 @@ so the atomic read/write/delete logic lives once.
   where the OS allows it; that is best-effort hardening, not a keychain.
 - **Settings** live in `settings.json` as a flat JSON object with dotted keys,
   like VS Code's `settings.json` (`animations.enabled`, `player.resumePlayback`,
-  `player.autoPlayNext`, `poster.size`, `labels.hidden`).
+  `player.autoPlayNext`, `poster.size`, `labels.hidden`,
+  `metadata.tmdbApiKey`, `metadata.tmdbLanguage`).
   `JsonSettingsRepository` reads it defensively, keeps unknown keys on write and
   can `reload()` after a manual edit; the settings screen groups the toggles by
   category, edits the same file, shows its path and can open it in the OS
@@ -119,6 +120,27 @@ so the atomic read/write/delete logic lives once.
   to fill the freed caption space, so the poster keeps the base size the setting
   defines. The content-type subtitle of the Home rows and the billboard metadata
   are unaffected.
+- **TMDB enrichment is optional and presentation-only.** A key set in Settings
+  (`metadata.tmdbApiKey`, with `metadata.tmdbLanguage` for the answer language,
+  system locale by default) turns on a second metadata provider used only by the
+  detail screen and the home billboard; the addon metadata stays the source of
+  truth and the merge only fills fields an addon left empty, never an identifier
+  (`MetaDetail.id` and `MetaVideo.id` still address streams).
+  `TmdbMetadataRepository` resolves any content id to a TMDB one — an explicit
+  `tmdb:` id, IMDb/TVDB
+  through `/find`, otherwise a title-and-year search that rejects an ambiguous
+  match — then fetches the detail with its images, external ids and credits. A
+  title only TMDB knows (a recommendation) is retried on the addons through the
+  IMDb id TMDB reports, and that id then drives its streams, so a `tmdb:`
+  preview still plays. Both
+  the resolved id and the payload are cached for the process. The addon answer is
+  published first and the enrichment lands right after, so a slow lookup never
+  delays the page. The "You may also like" row is built from TMDB's
+  recommendations (its similar list as a fallback), and falls back to the addon's
+  own similar catalog when there is no key or no match. Without a key the
+  repository short-circuits and no request leaves the app. The key lives in
+  `settings.json` like every other preference, so it stays hand-editable; it is
+  masked in the UI and never logged, and TMDB's attribution is shown in the card.
 - **Session renewal**: `NuvioAuth` renews the token before a request when it
   has expired, and `NuvioRest` renews once more when the backend answers `401`.
   Renewals are serialized with a mutex so parallel requests do not refresh

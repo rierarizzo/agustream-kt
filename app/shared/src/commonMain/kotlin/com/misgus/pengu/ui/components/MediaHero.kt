@@ -19,6 +19,9 @@ import coil3.size.Size
 import coil3.transform.Transformation
 import com.misgus.pengu.app.shared.generated.resources.Res
 import com.misgus.pengu.app.shared.generated.resources.media_rating
+import com.misgus.pengu.app.shared.generated.resources.media_runtime_hours
+import com.misgus.pengu.app.shared.generated.resources.media_runtime_hours_minutes
+import com.misgus.pengu.app.shared.generated.resources.media_runtime_minutes
 import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.releaseYear
 import com.misgus.pengu.ui.theme.AppAlpha
@@ -141,18 +144,21 @@ fun MetadataRow(parts: List<String>) {
  * Content type, release year, (first) genre, runtime and rating, in the order a
  * billboard shows them.
  *
- * [runtime] and [genres] are optional because a catalog preview may not carry
- * them; when absent the remaining parts keep their relative order. Only the
- * first genre is used — the line is a glance, not a genre list. [releaseInfo] is
- * reduced to its year through [releaseYear], so a raw `2022-` never leaks into
- * the line. The detail
- * billboard shows genres under the synopsis instead, so it does not pass them.
- * [contentType] is the raw Stremio type, named through [contentTypeName].
+ * [runtime] and [runtimeMinutes] are the two shapes a runtime arrives in: the
+ * addons spell it themselves, while TMDB answers in minutes and the label is
+ * built here so it stays localizable. [genres] is optional because a catalog
+ * preview may not carry them; when absent the remaining parts keep their
+ * relative order. Only the first genre is used — the line is a glance, not a
+ * genre list. [releaseInfo] is reduced to its year through [releaseYear], so a
+ * raw `2022-` never leaks into the line. The detail billboard shows genres under
+ * the synopsis instead, so it does not pass them. [contentType] is the raw
+ * Stremio type, named through [contentTypeName].
  */
 @Composable
 fun metadataParts(
     releaseInfo: String?,
     runtime: String? = null,
+    runtimeMinutes: Int? = null,
     genres: List<String> = emptyList(),
     rating: Double? = null,
     contentType: ContentType? = null,
@@ -161,9 +167,22 @@ fun metadataParts(
         contentType?.let { contentTypeName(it) }?.let { add(it) }
         releaseYear(releaseInfo)?.let { add(it.toString()) }
         genres.firstOrNull()?.let { add(it) }
-        runtime?.takeIf { it.isNotEmpty() }?.let { add(it) }
+        val runtimeText = runtime?.takeIf { it.isNotEmpty() } ?: runtimeMinutes?.let { runtimeLabel(it) }
+        runtimeText?.let { add(it) }
         rating?.let { add(stringResource(Res.string.media_rating, ratingText(it))) }
     }
+
+/** A runtime in minutes as `1 h 37 min`, `2 h` or `45 min`. */
+@Composable
+private fun runtimeLabel(minutes: Int): String {
+    val hours = minutes / 60
+    val rest = minutes % 60
+    return when {
+        hours <= 0 -> stringResource(Res.string.media_runtime_minutes, minutes)
+        rest == 0 -> stringResource(Res.string.media_runtime_hours, hours)
+        else -> stringResource(Res.string.media_runtime_hours_minutes, hours, rest)
+    }
+}
 
 /**
  * Hero synopsis: a teaser of at most [AppSynopsis.MAX_LINES] lines.

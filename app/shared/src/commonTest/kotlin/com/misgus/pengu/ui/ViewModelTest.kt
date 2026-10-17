@@ -3,6 +3,8 @@ package com.misgus.pengu.ui
 import com.misgus.pengu.core.model.ContentType
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaPreview
+import com.misgus.pengu.core.model.TmdbMediaType
+import com.misgus.pengu.core.model.TmdbTitle
 import com.misgus.pengu.core.repository.CatalogRef
 import com.misgus.pengu.core.watched.WatchedBadgeResolver
 import com.misgus.pengu.ui.home.HomeViewModel
@@ -12,6 +14,7 @@ import com.misgus.pengu.ui.support.FakeCatalogRepository
 import com.misgus.pengu.ui.support.FakeLibraryRepository
 import com.misgus.pengu.ui.support.FakeMetadataRepository
 import com.misgus.pengu.ui.support.FakeProgressRepository
+import com.misgus.pengu.ui.support.FakeTmdbRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -125,5 +128,73 @@ class HomeViewModelTest {
                     .single()
                     .id,
             )
+        }
+
+    @Test
+    fun fillsTheFeaturedArtworkFromTmdb() =
+        runTest(dispatcher) {
+            val ref =
+                CatalogRef(
+                    addonName = "Addon",
+                    addonBaseUrl = "https://addon",
+                    type = ContentType("movie"),
+                    id = "top",
+                    name = "Top",
+                )
+            val preview = MetaPreview(id = "tt1", type = ContentType("movie"), name = "Movie")
+            val tmdb =
+                TmdbTitle(
+                    tmdbId = 1,
+                    mediaType = TmdbMediaType.MOVIE,
+                    title = "Movie",
+                    backdrop = "https://img/backdrop.jpg",
+                    textlessPoster = "https://img/textless.jpg",
+                )
+            val repository = FakeTmdbRepository(titles = mapOf("tt1" to tmdb))
+            val viewModel =
+                HomeViewModel(
+                    account = FakeAccountRepository(),
+                    catalogs = FakeCatalogRepository(listOf(ref), mapOf(ref.key to listOf(preview))),
+                    library = FakeLibraryRepository(),
+                    progress = FakeProgressRepository(),
+                    badges = WatchedBadgeResolver(FakeProgressRepository(), FakeMetadataRepository()),
+                    tmdb = repository,
+                )
+            viewModel.load()
+            advanceUntilIdle()
+
+            val featured =
+                viewModel.state.value.featured
+                    .single()
+            assertEquals("https://img/backdrop.jpg", featured.background)
+            assertEquals("https://img/textless.jpg", featured.textlessPoster)
+        }
+
+    @Test
+    fun doesNotQueryTmdbWhenItIsNotConfigured() =
+        runTest(dispatcher) {
+            val ref =
+                CatalogRef(
+                    addonName = "Addon",
+                    addonBaseUrl = "https://addon",
+                    type = ContentType("movie"),
+                    id = "top",
+                    name = "Top",
+                )
+            val preview = MetaPreview(id = "tt1", type = ContentType("movie"), name = "Movie")
+            val repository = FakeTmdbRepository(isConfigured = false)
+            val viewModel =
+                HomeViewModel(
+                    account = FakeAccountRepository(),
+                    catalogs = FakeCatalogRepository(listOf(ref), mapOf(ref.key to listOf(preview))),
+                    library = FakeLibraryRepository(),
+                    progress = FakeProgressRepository(),
+                    badges = WatchedBadgeResolver(FakeProgressRepository(), FakeMetadataRepository()),
+                    tmdb = repository,
+                )
+            viewModel.load()
+            advanceUntilIdle()
+
+            assertEquals(0, repository.lookups)
         }
 }

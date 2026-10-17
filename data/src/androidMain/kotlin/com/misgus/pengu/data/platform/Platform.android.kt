@@ -6,8 +6,11 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.Dispatchers
 import java.io.File
+import java.util.Locale
 
 actual val ioDispatcher = Dispatchers.IO
+
+actual fun systemLanguageTag(): String = Locale.getDefault().toLanguageTag()
 
 private var applicationContext: Context? = null
 

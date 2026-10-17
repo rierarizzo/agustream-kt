@@ -1,0 +1,174 @@
+package com.misgus.pengu.ui
+
+import com.misgus.pengu.core.model.ContentTypes
+import com.misgus.pengu.core.model.LibraryItem
+import com.misgus.pengu.core.model.MetaDetail
+import com.misgus.pengu.core.model.MetaPreview
+import com.misgus.pengu.core.model.TmdbMediaType
+import com.misgus.pengu.core.model.TmdbTitle
+import com.misgus.pengu.ui.detail.DetailViewModel
+import com.misgus.pengu.ui.support.FakeMetadataRepository
+import com.misgus.pengu.ui.support.FakeTmdbRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class DetailViewModelTest {
+    private val dispatcher = StandardTestDispatcher()
+
+    @BeforeTest
+    fun setUp() = Dispatchers.setMain(dispatcher)
+
+    @AfterTest
+    fun tearDown() = Dispatchers.resetMain()
+
+    private fun item() =
+        LibraryItem(
+            id = "tt1",
+            contentId = "tt1",
+            contentType = ContentTypes.MOVIE,
+            name = "Movie",
+        )
+
+    private fun addonDetail() =
+        MetaDetail(
+            id = "tt1",
+            type = ContentTypes.MOVIE,
+            name = "Movie",
+            description = "From the addon",
+        )
+
+    @Test
+    fun previewsTheAddonMetadataWhileThePageLoads() =
+        runTest(dispatcher) {
+            val viewModel = DetailViewModel(FakeMetadataRepository(), FakeTmdbRepository(), item())
+
+            assertEquals("Movie", viewModel.state.value.name)
+        }
+
+    @Test
+    fun enrichesTheDetailFromTmdb() =
+        runTest(dispatcher) {
+            val tmdb =
+                TmdbTitle(
+                    tmdbId = 1,
+                    mediaType = TmdbMediaType.MOVIE,
+                    title = "Movie",
+                    backdrop = "https://img/backdrop.jpg",
+                    textlessPoster = "https://img/textless.jpg",
+                    runtimeMinutes = 136,
+                )
+            val viewModel =
+                DetailViewModel(
+                    metadata = FakeMetadataRepository(detail = addonDetail()),
+                    tmdb = FakeTmdbRepository(titles = mapOf("tt1" to tmdb)),
+                    item = item(),
+                )
+            viewModel.load()
+            advanceUntilIdle()
+
+            val state = viewModel.state.value
+            assertEquals("https://img/backdrop.jpg", state.background)
+            assertEquals("https://img/textless.jpg", state.textlessPoster)
+            assertEquals(136, state.runtimeMinutes)
+            // The addon keeps winning the fields it already answered with.
+            assertEquals("From the addon", state.description)
+        }
+
+    @Test
+    fun buildsFromTmdbWhenNoAddonHasTheTitle() =
+        runTest(dispatcher) {
+            val tmdb =
+                TmdbTitle(
+                    tmdbId = 603,
+                    mediaType = TmdbMediaType.MOVIE,
+                    title = "The Matrix",
+                    backdrop = "https://img/backdrop.jpg",
+                )
+            val viewModel =
+                DetailViewModel(
+                    metadata = FakeMetadataRepository(),
+                    tmdb = FakeTmdbRepository(titles = mapOf("tt1" to tmdb)),
+                    item = item(),
+                )
+            viewModel.load()
+            advanceUntilIdle()
+
+            assertEquals("The Matrix", viewModel.state.value.name)
+            assertEquals("https://img/backdrop.jpg", viewModel.state.value.background)
+        }
+
+    @Test
+    fun takesTheSimilarRowFromTmdb() =
+        runTest(dispatcher) {
+            val recommended = listOf(MetaPreview(id = "tmdb:2", type = ContentTypes.MOVIE, name = "Other"))
+            val viewModel =
+                DetailViewModel(
+                    metadata =
+                        FakeMetadataRepository(
+                            detail = addonDetail(),
+                            similar = listOf(MetaPreview(id = "addon:1", type = ContentTypes.MOVIE, name = "Addon")),
+                        ),
+                    tmdb = FakeTmdbRepository(recommended = recommended),
+                    item = item(),
+                )
+            viewModel.load()
+            advanceUntilIdle()
+
+            assertEquals(recommended, viewModel.state.value.similar)
+        }
+
+    @Test
+    fun keepsTheAddonSimilarRowWhenTmdbHasNothing() =
+        runTest(dispatcher) {
+            val fromAddon = listOf(MetaPreview(id = "addon:1", type = ContentTypes.MOVIE, name = "Addon"))
+            val viewModel =
+                DetailViewModel(
+                    metadata = FakeMetadataRepository(detail = addonDetail(), similar = fromAddon),
+                    tmdb = FakeTmdbRepository(recommended = emptyList()),
+                    item = item(),
+                )
+            viewModel.load()
+            advanceUntilIdle()
+
+            assertEquals(fromAddon, viewModel.state.value.similar)
+        }
+
+    @Test
+    fun resolvesARecommendationThroughItsImdbId() =
+        runTest(dispatcher) {
+            val addonMeta = MetaDetail(id = "tt0133093", type = ContentTypes.MOVIE, name = "From the addon")
+            val tmdb =
+                TmdbTitle(
+                    tmdbId = 603,
+                    mediaType = TmdbMediaType.MOVIE,
+                    title = "The Matrix",
+                    imdbId = "tt0133093",
+                )
+            val viewModel =
+                DetailViewModel(
+                    metadata = FakeMetadataRepository(details = mapOf("tt0133093" to addonMeta)),
+                    tmdb = FakeTmdbRepository(titles = mapOf("tmdb:603" to tmdb)),
+                    item =
+                        LibraryItem(
+                            id = "tmdb:603",
+                            contentId = "tmdb:603",
+                            contentType = ContentTypes.MOVIE,
+                            name = "The Matrix",
+                        ),
+                )
+            viewModel.load()
+            advanceUntilIdle()
+
+            // Streams use the id every addon understands, not the tmdb: one.
+            assertEquals("tt0133093", viewModel.state.value.contentId)
+            assertEquals("From the addon", viewModel.state.value.name)
+        }
+}

@@ -20,7 +20,8 @@ app/fonts        IBM Plex Sans assets (kept for comparison)
 app/player       Shared PlayerService adapter over mediamp (both roots use it)
 app/shared       Compose UI + ViewModels (the whole product UI)
 core             Pure domain: models, repository contracts, rules, constants
-data             Implementations: Stremio addons, Nuvio backend, local files
+data             Implementations: Stremio addons, Nuvio backend, local files,
+                 optional TMDB enrichment
 ```
 
 The one rule that matters:
@@ -59,6 +60,7 @@ inject in-memory fakes.
 | Use a shared constant (content type, catalog extra, threshold) | `core/.../core/model/` (`ContentTypes`, `CatalogExtras`, `ProgressThresholds`) |
 | Change a repository contract | `core/.../core/repository/` |
 | Change how metadata/streams/subtitles are fetched | `data/.../data/addons/` |
+| Change the optional TMDB enrichment (id resolution, artwork, recommendations) | `data/.../data/tmdb/`, `core/.../model/Tmdb.kt` |
 | Change the Nuvio backend behavior | `data/.../data/backend/` |
 | Change local/offline mode | `data/.../data/local/` and `data/.../data/store/` |
 | Add a backend | `data/.../data/BackendFactory.kt` (`BackendKind`, `createBackend`) |

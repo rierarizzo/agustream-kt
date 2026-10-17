@@ -34,6 +34,7 @@ import com.misgus.pengu.data.store.FileWatchedSeriesCache
 import com.misgus.pengu.data.store.JsonMapStore
 import com.misgus.pengu.data.store.JsonSettingsRepository
 import com.misgus.pengu.data.store.LocalRatingRepository
+import com.misgus.pengu.data.tmdb.TmdbMetadataRepository
 import com.misgus.pengu.imaging.configureImageLoader
 import com.misgus.pengu.player.MediampPlayerService
 import com.misgus.pengu.ui.PenguApp
@@ -96,6 +97,7 @@ fun main(args: Array<String>) {
                     catalogs = catalogs,
                     subtitles = subtitles,
                     ratings = ratings,
+                    tmdb = TmdbMetadataRepository(httpClient, settings),
                     watchedCache = watchedCache,
                     player = player,
                     window = windowController,

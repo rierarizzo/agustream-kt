@@ -10,11 +10,13 @@ import com.misgus.pengu.core.repository.LibraryRepository
 import com.misgus.pengu.core.repository.MetadataRepository
 import com.misgus.pengu.core.repository.NoRatingRepository
 import com.misgus.pengu.core.repository.NoSubtitleRepository
+import com.misgus.pengu.core.repository.NoTmdbRepository
 import com.misgus.pengu.core.repository.ProgressRepository
 import com.misgus.pengu.core.repository.RatingRepository
 import com.misgus.pengu.core.repository.SettingsRepository
 import com.misgus.pengu.core.repository.StreamRepository
 import com.misgus.pengu.core.repository.SubtitleRepository
+import com.misgus.pengu.core.repository.TmdbRepository
 import com.misgus.pengu.core.watched.NoopWatchedSeriesCache
 import com.misgus.pengu.core.watched.WatchedBadgeResolver
 import com.misgus.pengu.core.watched.WatchedSeriesCache
@@ -53,6 +55,11 @@ class AppServices(
     val subtitles: SubtitleRepository = NoSubtitleRepository(),
     /** Local per-title ratings (the backend has no server field for them). */
     val ratings: RatingRepository = NoRatingRepository(),
+    /**
+     * Optional TMDB enrichment (artwork, text, cast) used by the detail screen
+     * and the home billboard. A no-op unless an API key is set in Settings.
+     */
+    val tmdb: TmdbRepository = NoTmdbRepository(),
     /** Remembered per-series "fully watched" results. */
     val watchedCache: WatchedSeriesCache = NoopWatchedSeriesCache(),
     /** Immersive-mode state, shared with the player. */

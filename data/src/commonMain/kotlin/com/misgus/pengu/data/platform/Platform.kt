@@ -19,6 +19,14 @@ const val HTTP_SOCKET_TIMEOUT_MS = 30_000L
 /** Builds the platform HTTP client (CIO on desktop, OkHttp on Android). */
 expect fun createHttpClient(): HttpClient
 
+/**
+ * BCP-47 tag of the current system locale, e.g. `es-ES`.
+ *
+ * Used to pick the language TMDB answers in; the app falls back to English when
+ * the locale cannot be read.
+ */
+expect fun systemLanguageTag(): String
+
 /** `%APPDATA%\Pengu` on Windows, XDG config elsewhere. */
 expect fun configDirectory(): String
 

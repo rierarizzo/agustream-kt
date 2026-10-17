@@ -8,6 +8,7 @@ import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaDetail
 import com.misgus.pengu.core.model.MetaPreview
 import com.misgus.pengu.core.model.Season
+import com.misgus.pengu.core.model.TmdbTitle
 import com.misgus.pengu.core.model.WatchProgress
 import com.misgus.pengu.core.model.WatchedEntry
 import com.misgus.pengu.core.repository.AccountRepository
@@ -22,6 +23,9 @@ import com.misgus.pengu.core.repository.SignInMethod
 import com.misgus.pengu.core.repository.SignInRequest
 import com.misgus.pengu.core.repository.StreamGroup
 import com.misgus.pengu.core.repository.StreamRepository
+import com.misgus.pengu.core.repository.TmdbLookup
+import com.misgus.pengu.core.repository.TmdbRepository
+import com.misgus.pengu.core.repository.TmdbVerifyResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -112,6 +116,7 @@ class FakeProgressRepository(
 class FakeMetadataRepository(
     private val detail: MetaDetail? = null,
     private val details: Map<String, MetaDetail> = emptyMap(),
+    private val similar: List<MetaPreview> = emptyList(),
 ) : MetadataRepository {
     override suspend fun detail(
         type: ContentType,
@@ -122,7 +127,7 @@ class FakeMetadataRepository(
         type: ContentType,
         id: String,
         genre: String?,
-    ): List<MetaPreview> = emptyList()
+    ): List<MetaPreview> = similar
 }
 
 /** In-memory [CatalogRepository] for tests. */
@@ -159,4 +164,25 @@ class FakeAddonRepository(
     private val addons: List<Addon> = emptyList(),
 ) : AddonRepository {
     override suspend fun all(): List<Addon> = addons
+}
+
+/** In-memory [TmdbRepository] for tests. */
+class FakeTmdbRepository(
+    private val titles: Map<String, TmdbTitle> = emptyMap(),
+    private val recommended: List<MetaPreview> = emptyList(),
+    private val verified: TmdbVerifyResult = TmdbVerifyResult.VALID,
+    override val isConfigured: Boolean = true,
+) : TmdbRepository {
+    /** Number of lookups, so a test can assert the disabled path makes none. */
+    var lookups: Int = 0
+        private set
+
+    override suspend fun lookup(request: TmdbLookup): TmdbTitle? {
+        lookups += 1
+        return titles[request.contentId]
+    }
+
+    override suspend fun recommendations(request: TmdbLookup): List<MetaPreview> = recommended
+
+    override suspend fun verify(apiKey: String): TmdbVerifyResult = verified
 }

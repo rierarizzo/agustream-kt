@@ -116,7 +116,8 @@ leer/escribir/borrar vive una sola vez.
 - **Los ajustes** viven en `settings.json` como un objeto JSON plano con claves
   punteadas, como el `settings.json` de VS Code (`animations.enabled`,
   `player.resumePlayback`, `player.autoPlayNext`, `poster.size`,
-  `labels.hidden`). `JsonSettingsRepository` lo lee de
+  `labels.hidden`, `metadata.tmdbApiKey`, `metadata.tmdbLanguage`).
+  `JsonSettingsRepository` lo lee de
   forma defensiva, conserva las claves desconocidas al escribir y puede
   `reload()` tras una edición manual; la pantalla de ajustes agrupa los toggles
   por categoría, edita el mismo fichero, muestra su ruta y puede abrirlo en el
@@ -127,6 +128,28 @@ leer/escribir/borrar vive una sola vez.
   imagen para llenar el hueco liberado, así el póster conserva el tamaño base que
   define el ajuste. El subtítulo de tipo de las filas de Home y la metadata del
   billboard no se ven afectados.
+- **El enriquecimiento con TMDB es opcional y solo de presentación.** Una clave
+  puesta en Ajustes (`metadata.tmdbApiKey`, con `metadata.tmdbLanguage` para el
+  idioma de respuesta, el del sistema por defecto) activa un segundo proveedor de
+  metadata que solo usan la pantalla de detalle y el billboard de Home; la
+  metadata de los addons sigue siendo la fuente de verdad y el merge solo rellena
+  los campos que un addon dejó vacíos, nunca un identificador (`MetaDetail.id` y
+  `MetaVideo.id` siguen direccionando los streams). `TmdbMetadataRepository`
+  resuelve cualquier content id a uno de TMDB — un id `tmdb:` explícito,
+  IMDb/TVDB vía `/find`, y si no una búsqueda por título y año que rechaza un
+  match ambiguo — y luego pide el detalle con sus imágenes, ids externos y
+  créditos. Un título que solo conoce TMDB (una recomendación) se reintenta en
+  los addons con el id de IMDb que TMDB reporta, y ese id pasa a manejar sus
+  streams, así que un preview `tmdb:` igual reproduce. Tanto el id resuelto como
+  el payload se cachean durante el proceso.
+  La respuesta del addon se publica primero y el enriquecimiento llega justo
+  después, así que una búsqueda lenta nunca retrasa la página. La fila "More like
+  this" se construye con las recomendaciones de TMDB (su lista similar como
+  respaldo) y cae al catálogo similar del addon cuando no hay clave o no hay
+  match. Sin clave el repositorio corta y ninguna petición sale de la app. La
+  clave vive en `settings.json` como el resto de preferencias, así que sigue
+  siendo editable a mano; se enmascara en la UI y nunca se registra, y la
+  atribución de TMDB se muestra en la card.
 - **Renovación de sesión**: `NuvioAuth` renueva el token antes de una petición
   cuando ha caducado, y `NuvioRest` renueva una vez más cuando el backend
   responde `401`. Las renovaciones se serializan con un mutex para que peticiones

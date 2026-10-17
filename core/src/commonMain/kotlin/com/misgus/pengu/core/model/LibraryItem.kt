@@ -14,6 +14,8 @@ data class LibraryItem(
     val posterShape: String? = null,
     val background: String? = null,
     val logo: String? = null,
+    /** Language-neutral (textless) poster, when the metadata source has one. */
+    val textlessPoster: String? = null,
     val description: String? = null,
     val releaseInfo: String? = null,
     val imdbRating: Double? = null,
@@ -49,6 +51,7 @@ data class LibraryItem(
                 posterShape = preview.posterShape,
                 background = preview.background,
                 logo = preview.logo,
+                textlessPoster = preview.textlessPoster,
                 description = preview.description,
                 releaseInfo = preview.releaseInfo,
                 imdbRating = preview.imdbRating,

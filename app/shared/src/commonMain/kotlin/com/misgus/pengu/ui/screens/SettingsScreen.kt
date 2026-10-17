@@ -26,8 +26,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.misgus.pengu.app.shared.generated.resources.Res
+import com.misgus.pengu.app.shared.generated.resources.action_save
 import com.misgus.pengu.app.shared.generated.resources.action_sign_out
 import com.misgus.pengu.app.shared.generated.resources.error_open_file
 import com.misgus.pengu.app.shared.generated.resources.poster_size_default
@@ -43,6 +46,8 @@ import com.misgus.pengu.app.shared.generated.resources.settings_config_file
 import com.misgus.pengu.app.shared.generated.resources.settings_config_file_subtitle
 import com.misgus.pengu.app.shared.generated.resources.settings_hide_labels
 import com.misgus.pengu.app.shared.generated.resources.settings_hide_labels_subtitle
+import com.misgus.pengu.app.shared.generated.resources.settings_metadata
+import com.misgus.pengu.app.shared.generated.resources.settings_metadata_subtitle
 import com.misgus.pengu.app.shared.generated.resources.settings_open_file
 import com.misgus.pengu.app.shared.generated.resources.settings_open_local
 import com.misgus.pengu.app.shared.generated.resources.settings_open_video
@@ -62,14 +67,31 @@ import com.misgus.pengu.app.shared.generated.resources.settings_signed_in_as
 import com.misgus.pengu.app.shared.generated.resources.settings_theme
 import com.misgus.pengu.app.shared.generated.resources.settings_theme_subtitle
 import com.misgus.pengu.app.shared.generated.resources.settings_title
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_api_key
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_api_key_hide
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_api_key_show
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_api_key_subtitle
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_attribution
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_language
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_language_english
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_language_spanish
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_language_subtitle
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_language_system
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_test
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_test_invalid
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_test_ok
+import com.misgus.pengu.app.shared.generated.resources.settings_tmdb_test_unreachable
 import com.misgus.pengu.app.shared.generated.resources.settings_video_url
 import com.misgus.pengu.app.shared.generated.resources.theme_coffee
 import com.misgus.pengu.core.player.PlaybackTarget
 import com.misgus.pengu.core.repository.AppTheme
 import com.misgus.pengu.core.repository.PosterSize
 import com.misgus.pengu.core.repository.SignInMethod
+import com.misgus.pengu.core.repository.TmdbLanguage
+import com.misgus.pengu.core.repository.TmdbVerifyResult
 import com.misgus.pengu.ui.components.ActionButton
 import com.misgus.pengu.ui.components.ActionButtonStyle
+import com.misgus.pengu.ui.components.AppIconButton
 import com.misgus.pengu.ui.components.AppTextField
 import com.misgus.pengu.ui.components.sectionHeading
 import com.misgus.pengu.ui.components.toUserMessage
@@ -137,6 +159,13 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
                 autoPlayNext = state.autoPlayNext,
                 onResumeChange = { value -> save { settings.setResumePlayback(value) } },
                 onAutoPlayChange = { value -> save { settings.setAutoPlayNext(value) } },
+            )
+            Spacer(Modifier.height(AppSpacing.lg))
+            MetadataCard(
+                apiKey = state.tmdbApiKey,
+                language = state.tmdbLanguage,
+                onSaveKey = { value -> save { settings.setTmdbApiKey(value) } },
+                onLanguageChange = { value -> save { settings.setTmdbLanguage(value) } },
             )
             Spacer(Modifier.height(AppSpacing.lg))
             ConfigFileCard(
@@ -283,6 +312,119 @@ private fun PlaybackSettingsCard(
                 subtitle = stringResource(Res.string.settings_autoplay_subtitle),
                 checked = autoPlayNext,
                 onCheckedChange = onAutoPlayChange,
+            )
+        }
+    }
+}
+
+/**
+ * Optional TMDB enrichment: the API key, the answer language, a connection
+ * test and the attribution the TMDB terms require.
+ *
+ * The key lives in `settings.json` like the rest of the preferences, so it stays
+ * hand-editable; it is masked here and never logged.
+ */
+@Composable
+private fun MetadataCard(
+    apiKey: String,
+    language: TmdbLanguage,
+    onSaveKey: (String) -> Unit,
+    onLanguageChange: (TmdbLanguage) -> Unit,
+) {
+    val tmdb = LocalAppServices.current.tmdb
+    val scope = rememberCoroutineScope()
+    var draft by remember(apiKey) { mutableStateOf(apiKey) }
+    var visible by remember { mutableStateOf(false) }
+    var testing by remember { mutableStateOf(false) }
+    var result by remember(apiKey, draft) { mutableStateOf<TmdbVerifyResult?>(null) }
+    val languageLabels =
+        mapOf(
+            TmdbLanguage.SYSTEM to stringResource(Res.string.settings_tmdb_language_system),
+            TmdbLanguage.ENGLISH to stringResource(Res.string.settings_tmdb_language_english),
+            TmdbLanguage.SPANISH to stringResource(Res.string.settings_tmdb_language_spanish),
+        )
+    SettingsCard(
+        title = stringResource(Res.string.settings_metadata),
+        subtitle = stringResource(Res.string.settings_metadata_subtitle),
+    ) {
+        Column {
+            AppTextField(
+                value = draft,
+                onValueChange = {
+                    draft = it
+                    result = null
+                },
+                label = stringResource(Res.string.settings_tmdb_api_key),
+                singleLine = true,
+                visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    AppIconButton(
+                        icon = if (visible) Boxicons.VisibilityOff else Boxicons.Visibility,
+                        contentDescription =
+                            stringResource(
+                                if (visible) Res.string.settings_tmdb_api_key_hide else Res.string.settings_tmdb_api_key_show,
+                            ),
+                        onClick = { visible = !visible },
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+            )
+            Spacer(Modifier.height(AppSpacing.xs))
+            Text(
+                stringResource(Res.string.settings_tmdb_api_key_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SettingsChoice(
+                title = stringResource(Res.string.settings_tmdb_language),
+                subtitle = stringResource(Res.string.settings_tmdb_language_subtitle),
+                options = TmdbLanguage.entries,
+                selected = language,
+                label = { languageLabels.getValue(it) },
+                onSelect = onLanguageChange,
+            )
+            Spacer(Modifier.height(AppSpacing.sm))
+            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
+                ActionButton(
+                    text = stringResource(Res.string.action_save),
+                    onClick = { onSaveKey(draft.trim()) },
+                    enabled = draft.trim() != apiKey,
+                )
+                ActionButton(
+                    text = stringResource(Res.string.settings_tmdb_test),
+                    onClick = {
+                        testing = true
+                        result = null
+                        scope.launch {
+                            result = tmdb.verify(draft.trim())
+                            testing = false
+                        }
+                    },
+                    style = ActionButtonStyle.Tonal,
+                    loading = testing,
+                    enabled = draft.isNotBlank() && !testing,
+                )
+            }
+            result?.let { outcome ->
+                Spacer(Modifier.height(AppSpacing.sm))
+                val message =
+                    when (outcome) {
+                        TmdbVerifyResult.VALID -> Res.string.settings_tmdb_test_ok
+                        TmdbVerifyResult.INVALID_KEY -> Res.string.settings_tmdb_test_invalid
+                        TmdbVerifyResult.UNREACHABLE -> Res.string.settings_tmdb_test_unreachable
+                    }
+                Text(
+                    stringResource(message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (outcome == TmdbVerifyResult.VALID) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                )
+            }
+            Spacer(Modifier.height(AppSpacing.md))
+            Text(
+                stringResource(Res.string.settings_tmdb_attribution),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

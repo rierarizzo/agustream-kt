@@ -2,6 +2,7 @@ package com.misgus.pengu.data.store
 
 import com.misgus.pengu.core.repository.AppTheme
 import com.misgus.pengu.core.repository.PosterSize
+import com.misgus.pengu.core.repository.TmdbLanguage
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -32,6 +33,24 @@ class SettingsRepositoryTest {
             assertTrue(settings.state.value.autoPlayNext)
             assertFalse(settings.state.value.hideLabels)
             assertEquals(AppTheme.COFFEE, settings.state.value.theme)
+            assertEquals("", settings.state.value.tmdbApiKey)
+            assertEquals(TmdbLanguage.SYSTEM, settings.state.value.tmdbLanguage)
+        }
+
+    @Test
+    fun persistsTheTmdbKeyAndLanguage() =
+        runTest {
+            val store = JsonMapStore(File(tempDir(), "settings.json").path, pretty = true)
+
+            val settings = JsonSettingsRepository(store)
+            settings.load()
+            settings.setTmdbApiKey("  abc  ")
+            settings.setTmdbLanguage(TmdbLanguage.SPANISH)
+
+            val reloaded = JsonSettingsRepository(store)
+            reloaded.load()
+            assertEquals("abc", reloaded.state.value.tmdbApiKey)
+            assertEquals(TmdbLanguage.SPANISH, reloaded.state.value.tmdbLanguage)
         }
 
     @Test

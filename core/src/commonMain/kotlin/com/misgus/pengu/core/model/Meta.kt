@@ -10,6 +10,14 @@ data class MetaPreview(
     val posterShape: String? = null,
     val background: String? = null,
     val logo: String? = null,
+    /**
+     * Language-neutral (textless) poster, when the provider has one.
+     *
+     * The mobile billboard prefers it over the wide backdrop, which a phone
+     * crops too aggressively: a textless poster is portrait and carries no
+     * baked-in title, so the copy sits over the artwork instead of a crop of it.
+     */
+    val textlessPoster: String? = null,
     val description: String? = null,
     val releaseInfo: String? = null,
     val imdbRating: Double? = null,
@@ -29,10 +37,20 @@ data class MetaDetail(
     val poster: String? = null,
     val background: String? = null,
     val logo: String? = null,
+    /** Language-neutral (textless) poster, when the provider has one. */
+    val textlessPoster: String? = null,
     val description: String? = null,
     val releaseInfo: String? = null,
     val imdbRating: Double? = null,
+    /** Runtime as the metadata source spells it (Stremio's `1 h 37 min`). */
     val runtime: String? = null,
+    /**
+     * Runtime in minutes, when the source gives a number instead of a string.
+     *
+     * Kept apart from [runtime] because the formatted label is language
+     * dependent and is resolved in the UI, where the string resources live.
+     */
+    val runtimeMinutes: Int? = null,
     val genres: List<String> = emptyList(),
     /** Episodes for series, or a single entry for movies. */
     val videos: List<MetaVideo> = emptyList(),

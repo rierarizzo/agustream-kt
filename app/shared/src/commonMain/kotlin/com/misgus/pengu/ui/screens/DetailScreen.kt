@@ -86,7 +86,7 @@ fun DetailScreen(
     val services = LocalAppServices.current
     val viewModel: DetailViewModel =
         viewModel(key = "detail-${item.contentId}") {
-            DetailViewModel(services.metadata, item)
+            DetailViewModel(services.metadata, services.tmdb, item)
         }
     LaunchedEffect(item.contentId) { viewModel.load() }
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -184,7 +184,7 @@ fun DetailScreen(
                         if (state.isSeries && first != null) {
                             openStreams(ContentTypes.SERIES, first.id, "${state.name} · ${first.title ?: episodeFallback}")
                         } else {
-                            openStreams(item.contentType, item.contentId, state.name)
+                            openStreams(item.contentType, state.contentId, state.name)
                         }
                     },
                     actions =
@@ -277,7 +277,11 @@ private fun DetailBackdrop(
     state: DetailUiState,
     fade: Float,
 ) {
-    val backdrop = state.background ?: state.poster
+    val compact = LocalWindowSize.current == WindowSize.COMPACT
+    // A phone crops a wide backdrop too aggressively, so it prefers the
+    // language-neutral poster when TMDB supplied one; the wide billboard keeps
+    // the backdrop it always had.
+    val artwork = if (compact) state.textlessPoster ?: state.background ?: state.poster else state.background ?: state.poster
     // The library fallback is not the final artwork, so it is not painted as if
     // it were: the image fades in once the metadata is in.
     val imageAlpha by animateFloatAsState(
@@ -289,9 +293,9 @@ private fun DetailBackdrop(
         // Dark base so a slow or failed image never shows a bright gap; the
         // artwork fills the box on top when it can.
         Box(Modifier.fillMaxSize().background(AppScrim.detailBackdrop))
-        if (!backdrop.isNullOrEmpty()) {
+        if (!artwork.isNullOrEmpty()) {
             RemoteImage(
-                url = backdrop,
+                url = artwork,
                 contentDescription = null,
                 fadeIn = true,
                 modifier = Modifier.fillMaxSize().graphicsLayer { alpha = imageAlpha },
@@ -327,7 +331,14 @@ private fun HeroContent(
         ) {
             MediaTitle(state.name, state.logo, loading = !state.hasLoaded)
             Spacer(Modifier.height(AppSpacing.md))
-            MetadataRow(metadataParts(state.releaseInfo, runtime = state.runtime, rating = state.imdbRating))
+            MetadataRow(
+                metadataParts(
+                    state.releaseInfo,
+                    runtime = state.runtime,
+                    runtimeMinutes = state.runtimeMinutes,
+                    rating = state.imdbRating,
+                ),
+            )
             // Discount the icon controls' transparent padding, so the row reads as
             // close to the metadata and the synopsis as the text gaps do.
             Spacer(Modifier.height(AppSpacing.lg - HeroActionRowInset))

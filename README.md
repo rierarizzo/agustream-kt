@@ -21,6 +21,7 @@ against the same shared code; each composition root picks its player engine.
 | Playback | mediamp (mpv on desktop, ExoPlayer on Android), isolated behind `PlayerService` |
 | Accounts/sync | Nuvio API (Supabase) |
 | Sources | Stremio addons (HTTP/JSON) |
+| Metadata | Stremio addons, optionally enriched with TMDB |
 
 ## Modules
 
@@ -42,6 +43,13 @@ decision record.
 
 - Desktop: `./gradlew :app:desktopApp:run`
 - Android: `./gradlew :app:androidApp:assembleDebug`
+
+Metadata comes from the Stremio addons. Setting a TMDB API key in
+Settings → Metadata enables the optional enrichment: missing artwork, synopses
+and cast are filled in, and the "You may also like" row is built from TMDB's
+recommendations (the addon's own list is the fallback when there is no key).
+The phone billboard also prefers TMDB's language-neutral (textless) poster over
+the wide backdrop, which a narrow screen crops too aggressively.
 
 Development shortcuts (environment variables, read for the run only):
 
@@ -74,6 +82,8 @@ Development shortcuts (environment variables, read for the run only):
 
 The UI/UX draws inspiration from HBO Max. Some implementation details were
 informed by reviewing the Nuvio and Animeko codebases.
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.
 
 ## License
 
