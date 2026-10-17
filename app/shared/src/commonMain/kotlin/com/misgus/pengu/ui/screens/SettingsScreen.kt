@@ -32,7 +32,6 @@ import com.misgus.pengu.app.shared.generated.resources.action_sign_out
 import com.misgus.pengu.app.shared.generated.resources.error_open_file
 import com.misgus.pengu.app.shared.generated.resources.poster_size_default
 import com.misgus.pengu.app.shared.generated.resources.poster_size_large
-import com.misgus.pengu.app.shared.generated.resources.poster_size_small
 import com.misgus.pengu.app.shared.generated.resources.settings_account
 import com.misgus.pengu.app.shared.generated.resources.settings_animations
 import com.misgus.pengu.app.shared.generated.resources.settings_animations_subtitle
@@ -44,8 +43,6 @@ import com.misgus.pengu.app.shared.generated.resources.settings_config_file
 import com.misgus.pengu.app.shared.generated.resources.settings_config_file_subtitle
 import com.misgus.pengu.app.shared.generated.resources.settings_hide_labels
 import com.misgus.pengu.app.shared.generated.resources.settings_hide_labels_subtitle
-import com.misgus.pengu.app.shared.generated.resources.settings_library_poster_size
-import com.misgus.pengu.app.shared.generated.resources.settings_library_poster_size_subtitle
 import com.misgus.pengu.app.shared.generated.resources.settings_open_file
 import com.misgus.pengu.app.shared.generated.resources.settings_open_local
 import com.misgus.pengu.app.shared.generated.resources.settings_open_video
@@ -131,8 +128,6 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
                 onThemeChange = { value -> save { settings.setTheme(value) } },
                 posterSize = state.posterSize,
                 onPosterSizeChange = { value -> save { settings.setPosterSize(value) } },
-                libraryPosterSize = state.libraryPosterSize,
-                onLibraryPosterSizeChange = { value -> save { settings.setLibraryPosterSize(value) } },
                 hideLabels = state.hideLabels,
                 onHideLabelsChange = { value -> save { settings.setHideLabels(value) } },
             )
@@ -219,15 +214,12 @@ private fun AppearanceCard(
     onThemeChange: (AppTheme) -> Unit,
     posterSize: PosterSize,
     onPosterSizeChange: (PosterSize) -> Unit,
-    libraryPosterSize: PosterSize,
-    onLibraryPosterSizeChange: (PosterSize) -> Unit,
     hideLabels: Boolean,
     onHideLabelsChange: (Boolean) -> Unit,
 ) {
     val themeLabels = mapOf(AppTheme.COFFEE to stringResource(Res.string.theme_coffee))
     val posterSizeLabels =
         mapOf(
-            PosterSize.SMALL to stringResource(Res.string.poster_size_small),
             PosterSize.DEFAULT to stringResource(Res.string.poster_size_default),
             PosterSize.LARGE to stringResource(Res.string.poster_size_large),
         )
@@ -257,14 +249,6 @@ private fun AppearanceCard(
                 selected = posterSize,
                 label = { posterSizeLabels.getValue(it) },
                 onSelect = onPosterSizeChange,
-            )
-            SettingsChoice(
-                title = stringResource(Res.string.settings_library_poster_size),
-                subtitle = stringResource(Res.string.settings_library_poster_size_subtitle),
-                options = PosterSize.entries,
-                selected = libraryPosterSize,
-                label = { posterSizeLabels.getValue(it) },
-                onSelect = onLibraryPosterSizeChange,
             )
             SettingsToggle(
                 title = stringResource(Res.string.settings_hide_labels),

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -40,7 +39,6 @@ import com.misgus.pengu.app.shared.generated.resources.empty_nothing_to_show
 import com.misgus.pengu.app.shared.generated.resources.error_try_again_later
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.repository.CatalogRef
-import com.misgus.pengu.core.repository.PosterSize
 import com.misgus.pengu.ui.catalog.CatalogUiState
 import com.misgus.pengu.ui.catalog.CatalogViewModel
 import com.misgus.pengu.ui.components.AppIconButton
@@ -53,7 +51,7 @@ import com.misgus.pengu.ui.services.LocalAppServices
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.AppType
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.cellWidth
+import com.misgus.pengu.ui.theme.gridCells
 import com.misgus.pengu.ui.theme.gridSpacing
 import com.misgus.pengu.ui.theme.posterCardAspect
 import com.misgus.pengu.ui.theme.safeBottomInset
@@ -123,7 +121,7 @@ fun CatalogScreen(
         }
         Spacer(Modifier.height(AppSpacing.md))
         Box(Modifier.weight(1f)) {
-            CatalogContent(state, settings.posterSize, settings.hideLabels, gridState, onOpenDetail)
+            CatalogContent(state, settings.hideLabels, gridState, onOpenDetail)
         }
     }
 }
@@ -131,14 +129,13 @@ fun CatalogScreen(
 @Composable
 private fun CatalogContent(
     state: CatalogUiState,
-    posterSize: PosterSize,
     hideLabels: Boolean,
     gridState: LazyGridState,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
     when {
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize, hideLabels)
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(hideLabels)
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Boxicons.Error,
@@ -154,7 +151,7 @@ private fun CatalogContent(
         else ->
             LazyVerticalGrid(
                 state = gridState,
-                columns = GridCells.Adaptive(posterSize.cellWidth(windowSize)),
+                columns = gridCells(windowSize),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding =
                     PaddingValues(

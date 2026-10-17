@@ -35,6 +35,22 @@ class SettingsRepositoryTest {
         }
 
     @Test
+    fun mapsTheLegacySmallPosterSizeToDefault() =
+        runTest {
+            val store = JsonMapStore(File(tempDir(), "settings.json").path, pretty = true)
+            store.write(
+                JsonObject(
+                    mapOf(JsonSettingsRepository.KEY_POSTER_SIZE to JsonPrimitive("small")),
+                ),
+            )
+
+            val settings = JsonSettingsRepository(store)
+            settings.load()
+
+            assertEquals(PosterSize.DEFAULT, settings.state.value.posterSize)
+        }
+
+    @Test
     fun persistsTogglesAndKeepsUnknownKeys() =
         runTest {
             val path = File(tempDir(), "settings.json").path
@@ -47,7 +63,6 @@ class SettingsRepositoryTest {
             settings.setAutoPlayNext(false)
             settings.setTheme(AppTheme.COFFEE)
             settings.setPosterSize(PosterSize.LARGE)
-            settings.setLibraryPosterSize(PosterSize.SMALL)
             settings.setHideLabels(true)
 
             val reloaded = JsonSettingsRepository(store)
@@ -56,7 +71,6 @@ class SettingsRepositoryTest {
             assertFalse(reloaded.state.value.autoPlayNext)
             assertEquals(AppTheme.COFFEE, reloaded.state.value.theme)
             assertEquals(PosterSize.LARGE, reloaded.state.value.posterSize)
-            assertEquals(PosterSize.SMALL, reloaded.state.value.libraryPosterSize)
             assertTrue(reloaded.state.value.hideLabels)
             assertEquals("value", (store.read()["custom.key"] as JsonPrimitive).content)
             // The file is written indented, so it can be read and edited by hand.

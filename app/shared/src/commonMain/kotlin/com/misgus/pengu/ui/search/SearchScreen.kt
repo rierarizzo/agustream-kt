@@ -69,7 +69,7 @@ import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalWindowSize
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
-import com.misgus.pengu.ui.theme.railHeight
+import com.misgus.pengu.ui.theme.posterCardHeight
 import com.misgus.pengu.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
 
@@ -151,7 +151,6 @@ fun SearchScreen(
                 DiscoverFeed(
                     state = discoverState,
                     items = discoverState.items.filter(matches),
-                    posterSize = settings.posterSize,
                     hideLabels = settings.hideLabels,
                     onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
                     onLoadMore = discoverViewModel::loadMore,
@@ -345,15 +344,16 @@ private fun ResultsRail(
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
+    val cardWidth = posterSize.cellWidth(windowSize)
     LazyRow(
-        modifier = Modifier.height(posterSize.railHeight(windowSize, hideLabels)),
+        modifier = Modifier.height(posterCardHeight(cardWidth, hideLabels)),
         contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
         horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
     ) {
         items(previews, key = { "${it.type}:${it.id}" }) { item ->
             MetaPosterCard(
                 preview = item,
-                width = posterSize.cellWidth(windowSize),
+                width = cardWidth,
                 hideLabels = hideLabels,
                 onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },
             )

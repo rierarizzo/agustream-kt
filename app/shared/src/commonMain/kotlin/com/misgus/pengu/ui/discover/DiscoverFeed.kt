@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -27,7 +26,6 @@ import com.misgus.pengu.app.shared.generated.resources.discover_empty_title
 import com.misgus.pengu.app.shared.generated.resources.discover_error_title
 import com.misgus.pengu.core.model.LibraryItem
 import com.misgus.pengu.core.model.MetaPreview
-import com.misgus.pengu.core.repository.PosterSize
 import com.misgus.pengu.ui.components.Message
 import com.misgus.pengu.ui.components.MetaPosterCard
 import com.misgus.pengu.ui.components.SkeletonPosterGrid
@@ -35,7 +33,7 @@ import com.misgus.pengu.ui.components.toUserMessage
 import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.cellWidth
+import com.misgus.pengu.ui.theme.gridCells
 import com.misgus.pengu.ui.theme.gridSpacing
 import com.misgus.pengu.ui.theme.posterCardAspect
 import com.misgus.pengu.ui.theme.screenPadding
@@ -54,14 +52,13 @@ import org.jetbrains.compose.resources.stringResource
 fun DiscoverFeed(
     state: DiscoverUiState,
     items: List<MetaPreview>,
-    posterSize: PosterSize,
     hideLabels: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when {
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize, hideLabels, modifier)
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(hideLabels, modifier)
         state.error != null && state.items.isEmpty() ->
             Box(modifier, contentAlignment = Alignment.Center) {
                 Message(
@@ -82,7 +79,6 @@ fun DiscoverFeed(
             DiscoverGrid(
                 items = items,
                 isLoadingMore = state.isLoadingMore,
-                posterSize = posterSize,
                 hideLabels = hideLabels,
                 onOpenDetail = onOpenDetail,
                 onLoadMore = onLoadMore,
@@ -95,7 +91,6 @@ fun DiscoverFeed(
 private fun DiscoverGrid(
     items: List<MetaPreview>,
     isLoadingMore: Boolean,
-    posterSize: PosterSize,
     hideLabels: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
@@ -124,7 +119,7 @@ private fun DiscoverGrid(
 
     LazyVerticalGrid(
         state = gridState,
-        columns = GridCells.Adaptive(posterSize.cellWidth(windowSize)),
+        columns = gridCells(windowSize),
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(windowSize.screenPadding),
         verticalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),

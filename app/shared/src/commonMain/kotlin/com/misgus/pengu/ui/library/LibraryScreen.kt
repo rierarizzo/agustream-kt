@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
@@ -20,7 +19,6 @@ import com.misgus.pengu.app.shared.generated.resources.empty_nothing_to_show
 import com.misgus.pengu.app.shared.generated.resources.library_empty_message
 import com.misgus.pengu.app.shared.generated.resources.library_error_title
 import com.misgus.pengu.core.model.LibraryItem
-import com.misgus.pengu.core.repository.PosterSize
 import com.misgus.pengu.ui.components.Message
 import com.misgus.pengu.ui.components.PosterTile
 import com.misgus.pengu.ui.components.SkeletonPosterGrid
@@ -32,7 +30,7 @@ import com.misgus.pengu.ui.shell.ContentNavigator
 import com.misgus.pengu.ui.shell.ContentRoute
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.cellWidth
+import com.misgus.pengu.ui.theme.gridCells
 import com.misgus.pengu.ui.theme.gridSpacing
 import com.misgus.pengu.ui.theme.posterCardAspect
 import com.misgus.pengu.ui.theme.screenPadding
@@ -52,7 +50,6 @@ fun LibraryScreen(
     Box(Modifier.fillMaxSize()) {
         LibraryContent(
             state = state,
-            posterSize = settings.libraryPosterSize,
             hideLabels = settings.hideLabels,
             onOpen = { navigator.push(ContentRoute.Detail(it, knownSaved = true)) },
         )
@@ -67,13 +64,12 @@ fun LibraryScreen(
 @Composable
 private fun LibraryContent(
     state: LibraryUiState,
-    posterSize: PosterSize,
     hideLabels: Boolean,
     onOpen: (LibraryItem) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
     when {
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize, hideLabels)
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(hideLabels)
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Boxicons.Error,
@@ -90,7 +86,7 @@ private fun LibraryContent(
             // The grid owns the padding through contentPadding: the scroll area
             // reaches the window edges, so the last row is never clipped.
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(posterSize.cellWidth(windowSize)),
+                columns = gridCells(windowSize),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(windowSize.screenPadding),
                 verticalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),

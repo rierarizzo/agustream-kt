@@ -108,7 +108,7 @@ so the atomic read/write/delete logic lives once.
   where the OS allows it; that is best-effort hardening, not a keychain.
 - **Settings** live in `settings.json` as a flat JSON object with dotted keys,
   like VS Code's `settings.json` (`animations.enabled`, `player.resumePlayback`,
-  `player.autoPlayNext`, `poster.size`, `library.poster.size`, `labels.hidden`).
+  `player.autoPlayNext`, `poster.size`, `labels.hidden`).
   `JsonSettingsRepository` reads it defensively, keeps unknown keys on write and
   can `reload()` after a manual edit; the settings screen groups the toggles by
   category, edits the same file, shows its path and can open it in the OS
@@ -202,8 +202,9 @@ so the atomic read/write/delete logic lives once.
   without measuring anything itself. Compact windows (phones) always get an
   icon-only bottom bar and reserve its height; wider windows always get a left
   navigation rail and reserve its width.
-  The poster grids and rails scale their cell width down on compact windows
-  (the user's small / default / large choice still applies), the Home hero swaps
+  The poster rows scale their card width down on compact windows (the user's
+  default / large choice applies there) and the grids keep a fixed
+  three-per-row layout on a phone, the Home hero swaps
   the wide billboard for the poster crop without the title logo, the detail
   billboard is capped on an expanded window so the content stays close, and the
   streams dialog clamps to the app window because it opens its own. The detail
@@ -565,12 +566,16 @@ so the atomic read/write/delete logic lives once.
   logo and backdrop fade in when the image itself is ready (`RemoteImage(fadeIn)`),
   so a slow load never pops. The player is deliberately outside the route
   transition because it drives a single shared engine.
-- **Poster sizes** are a setting (`PosterSize`: small / default / large, 210 /
-  230 / 250 dp). `poster.size` is shared by Home, the discover feed, the catalog
-  grids and "More like this", while `library.poster.size` applies only to the
-  Library grid. A grid uses the size as its minimum cell width and a rail derives its
-  height from it (`width / 0.58`), so the card aspect is the same everywhere and
-  every surface can be resized from a single key.
+- **Poster size** is a single setting (`PosterSize`: default / large, 210 / 230
+  dp) that only drives the horizontal poster rows — the Home catalogs, the
+  search results and "More like this" — where a card can be resized without a
+  grid side effect; a row uses the width as-is and derives its height from it
+  (`width / 0.58`, or `width / (2/3)` when the labels are hidden). Grids
+  (Library, the full catalog, Discover) ignore the setting and keep a fixed
+  layout: `gridCells` lays out three posters per row on a phone and fits as many
+  `GRID_CELL_WIDTH` cells as it can on a wider window, so a phone never shows a
+  size the user did not choose. On a compact window the rail width shrinks by
+  `COMPACT_SCALE` (0.65).
 - **Window**: the desktop window keeps its **native frame** (`WS_CAPTION`,
   `WS_THICKFRAME`) but erases the OS-drawn non-client area, so the Compose title
   bar is the caption. On Windows a native `WindowProc` (JNA, via

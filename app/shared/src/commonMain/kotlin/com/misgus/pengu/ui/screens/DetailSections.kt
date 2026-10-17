@@ -70,7 +70,7 @@ import com.misgus.pengu.ui.theme.PosterCaption
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
 import com.misgus.pengu.ui.theme.motionTween
-import com.misgus.pengu.ui.theme.railHeight
+import com.misgus.pengu.ui.theme.posterCardHeight
 import com.misgus.pengu.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
 
@@ -183,8 +183,9 @@ internal fun SimilarRow(
             style = MaterialTheme.typography.titleLarge,
         )
         Spacer(Modifier.height(AppSpacing.sm))
+        val cardWidth = posterSize.cellWidth(windowSize)
         LazyRow(
-            modifier = Modifier.height(posterSize.railHeight(windowSize, settings.hideLabels)),
+            modifier = Modifier.height(posterCardHeight(cardWidth, settings.hideLabels)),
             contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
             horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
         ) {
@@ -204,7 +205,7 @@ internal fun SimilarRow(
                 Column(
                     modifier =
                         Modifier
-                            .width(posterSize.cellWidth(windowSize))
+                            .width(cardWidth)
                             .clickableSurface(interaction, onClick = { onOpen(item) }, indication = null),
                 ) {
                     Box(

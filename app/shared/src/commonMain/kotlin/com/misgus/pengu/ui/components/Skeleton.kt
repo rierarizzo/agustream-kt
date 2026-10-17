@@ -27,10 +27,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
-import com.misgus.pengu.core.repository.PosterSize
 import com.misgus.pengu.ui.theme.LocalMotionEnabled
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.cellWidth
+import com.misgus.pengu.ui.theme.gridColumnCount
 import com.misgus.pengu.ui.theme.gridSpacing
 import com.misgus.pengu.ui.theme.posterCardAspect
 import com.misgus.pengu.ui.theme.screenPadding
@@ -59,23 +58,21 @@ private fun shimmerColors(): List<Color> {
  */
 @Composable
 fun SkeletonPosterGrid(
-    posterSize: PosterSize,
     hideLabels: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val progress = rememberShimmerProgress()
     val windowSize = LocalWindowSize.current
-    val cellWidth = posterSize.cellWidth(windowSize)
     val screenPadding = windowSize.screenPadding
     val spacing = windowSize.gridSpacing
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val columns = columnsThatFit(maxWidth, cellWidth, screenPadding, spacing)
-        // `Adaptive` stretches the cells to fill the row, so measure with the real
-        // cell width instead of the nominal one to know how tall a row is.
+        val columns = gridColumnCount(windowSize, maxWidth, screenPadding, spacing)
+        // The cells stretch to fill the row, so measure with the real cell width
+        // to know how tall a row is.
         val cell = (maxWidth - screenPadding * 2 - spacing * (columns - 1)) / columns
         val rows = rowsThatFit(maxHeight, cell / posterCardAspect(hideLabels), screenPadding, spacing)
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(cellWidth),
+            columns = GridCells.Fixed(columns),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(windowSize.screenPadding),
             verticalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
@@ -89,17 +86,6 @@ fun SkeletonPosterGrid(
             }
         }
     }
-}
-
-/** How many [cellWidth] columns fit in [width] once the grid padding is removed. */
-private fun columnsThatFit(
-    width: Dp,
-    cellWidth: Dp,
-    screenPadding: Dp,
-    spacing: Dp,
-): Int {
-    val usable = width - screenPadding * 2 + spacing
-    return maxOf(1, (usable / (cellWidth + spacing)).toInt())
 }
 
 /** How many [rowHeight] rows are needed to cover [height], including the spacing. */

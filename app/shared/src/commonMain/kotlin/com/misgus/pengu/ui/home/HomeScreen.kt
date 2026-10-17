@@ -52,7 +52,7 @@ import com.misgus.pengu.ui.theme.LocalWindowSize
 import com.misgus.pengu.ui.theme.WindowSize
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
-import com.misgus.pengu.ui.theme.railHeight
+import com.misgus.pengu.ui.theme.posterCardHeight
 import com.misgus.pengu.ui.theme.safeTopInset
 import com.misgus.pengu.ui.theme.screenPadding
 import kotlinx.coroutines.delay
@@ -225,15 +225,16 @@ private fun HomeContent(
                             subtitle = contentTypeLabel(row.ref.type),
                             onSeeAll = { onOpenCatalog(row.ref) },
                         )
+                        val cardWidth = posterSize.cellWidth(windowSize)
                         LazyRow(
-                            modifier = Modifier.height(posterSize.railHeight(windowSize, hideLabels)),
+                            modifier = Modifier.height(posterCardHeight(cardWidth, hideLabels)),
                             contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
                             horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
                         ) {
                             items(row.items) { item ->
                                 MetaPosterCard(
                                     preview = item,
-                                    width = posterSize.cellWidth(windowSize),
+                                    width = cardWidth,
                                     watched = item.id in state.watchedIds,
                                     hideLabels = hideLabels,
                                     onTap = { onOpenPreview(item) },

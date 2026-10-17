@@ -56,8 +56,6 @@ class JsonSettingsRepository(
 
     override suspend fun setPosterSize(size: PosterSize) = update { it.copy(posterSize = size) }
 
-    override suspend fun setLibraryPosterSize(size: PosterSize) = update { it.copy(libraryPosterSize = size) }
-
     override suspend fun setHideLabels(enabled: Boolean) = update { it.copy(hideLabels = enabled) }
 
     /** Writes first, then publishes, so a failed save leaves the UI unchanged. */
@@ -75,7 +73,6 @@ class JsonSettingsRepository(
         data[KEY_RESUME] = JsonPrimitive(settings.resumePlayback)
         data[KEY_AUTOPLAY] = JsonPrimitive(settings.autoPlayNext)
         data[KEY_POSTER_SIZE] = JsonPrimitive(settings.posterSize.name.lowercase())
-        data[KEY_LIBRARY_POSTER_SIZE] = JsonPrimitive(settings.libraryPosterSize.name.lowercase())
         data[KEY_HIDE_LABELS] = JsonPrimitive(settings.hideLabels)
         store.write(JsonObject(data))
     }
@@ -87,14 +84,14 @@ class JsonSettingsRepository(
             resumePlayback = this[KEY_RESUME].boolOrNull() ?: true,
             autoPlayNext = this[KEY_AUTOPLAY].boolOrNull() ?: true,
             posterSize = this[KEY_POSTER_SIZE].stringOrNull().toPosterSize() ?: PosterSize.DEFAULT,
-            libraryPosterSize = this[KEY_LIBRARY_POSTER_SIZE].stringOrNull().toPosterSize() ?: PosterSize.DEFAULT,
             hideLabels = this[KEY_HIDE_LABELS].boolOrNull() ?: false,
         )
 
     private fun String?.toPosterSize(): PosterSize? =
         when (this?.lowercase()) {
-            "small" -> PosterSize.SMALL
-            "default" -> PosterSize.DEFAULT
+            // "small" was the old smallest option; the new default reuses its
+            // width, so it maps to DEFAULT for existing settings files.
+            "small", "default" -> PosterSize.DEFAULT
             "large" -> PosterSize.LARGE
             else -> null
         }
@@ -107,7 +104,6 @@ class JsonSettingsRepository(
         const val KEY_RESUME = "player.resumePlayback"
         const val KEY_AUTOPLAY = "player.autoPlayNext"
         const val KEY_POSTER_SIZE = "poster.size"
-        const val KEY_LIBRARY_POSTER_SIZE = "library.poster.size"
         const val KEY_HIDE_LABELS = "labels.hidden"
     }
 }

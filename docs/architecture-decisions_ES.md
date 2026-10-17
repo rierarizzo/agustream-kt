@@ -116,7 +116,7 @@ leer/escribir/borrar vive una sola vez.
 - **Los ajustes** viven en `settings.json` como un objeto JSON plano con claves
   punteadas, como el `settings.json` de VS Code (`animations.enabled`,
   `player.resumePlayback`, `player.autoPlayNext`, `poster.size`,
-  `library.poster.size`, `labels.hidden`). `JsonSettingsRepository` lo lee de
+  `labels.hidden`). `JsonSettingsRepository` lo lee de
   forma defensiva, conserva las claves desconocidas al escribir y puede
   `reload()` tras una edición manual; la pantalla de ajustes agrupa los toggles
   por categoría, edita el mismo fichero, muestra su ruta y puede abrirlo en el
@@ -216,8 +216,9 @@ leer/escribir/borrar vive una sola vez.
   layout sin medir nada por sí misma. Las ventanas compactas (teléfonos) reciben
   siempre una barra inferior solo-iconos y reservan su altura; las ventanas más
   anchas reciben siempre un rail de navegación izquierdo y reservan su ancho.
-  Las rejillas y raíles de pósters reducen su ancho de celda en ventanas
-  compactas (la elección small / default / large del usuario sigue aplicando), el
+  Las filas de pósters reducen su ancho de tarjeta en ventanas compactas (la
+  elección default / large del usuario aplica ahí) y las rejillas mantienen un
+  layout fijo de tres por fila en el teléfono, el
   hero de Home cambia el billboard ancho por el recorte del póster sin el logo
   del título, el billboard de detalle se limita en ventana expandida para que el
   contenido quede cerca, y el diálogo de streams se ajusta a la ventana de la app
@@ -604,13 +605,17 @@ leer/escribir/borrar vive una sola vez.
   (`RemoteImage(fadeIn)`), así que una carga lenta nunca aparece de golpe. El
   reproductor está deliberadamente fuera de la transición de ruta porque maneja
   un único motor compartido.
-- **Los tamaños de póster** son un ajuste (`PosterSize`: small / default / large,
-  210 / 230 / 250 dp). `poster.size` lo comparten Home, el feed de discover, las
-  rejillas de catálogo y "More like this", mientras que `library.poster.size`
-  aplica solo a la rejilla de Library. Una rejilla usa el tamaño como su ancho
-  mínimo de celda y un raíl deriva su altura de él (`width / 0.58`), así que el
-  aspect de la tarjeta es el mismo en todas partes y cada superficie se puede
-  redimensionar desde una sola clave.
+- **Tamaño de póster** es un único ajuste (`PosterSize`: default / large,
+  210 / 230 dp) que solo gobierna las filas horizontales de pósters — los
+  catálogos de Home, los resultados de búsqueda y "More like this" — donde una
+  tarjeta se puede redimensionar sin efecto colateral en la rejilla; una fila usa
+  el ancho tal cual y deriva su altura de él (`width / 0.58`, o `width / (2/3)`
+  cuando los labels están ocultos). Las rejillas (Library, catálogo completo,
+  Discover) ignoran el ajuste y mantienen un layout fijo: `gridCells` coloca tres
+  pósters por fila en el teléfono y encaja tantas celdas de `GRID_CELL_WIDTH`
+  como pueda en ventana ancha, así que un teléfono nunca muestra un tamaño que el
+  usuario no eligió. En ventana compacta el ancho del raíl se reduce con
+  `COMPACT_SCALE` (0.65).
 - **Ventana**: la ventana de desktop conserva su **marco nativo** (`WS_CAPTION`,
   `WS_THICKFRAME`) pero borra el área non-client dibujada por el SO, así que la
   barra de título Compose es el caption. En Windows un `WindowProc` nativo (JNA,
