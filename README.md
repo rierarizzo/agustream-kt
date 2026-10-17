@@ -70,6 +70,11 @@ Development shortcuts (environment variables, read for the run only):
 - Nuvio backend (self-host): `https://github.com/NuvioMedia/self-host`
 - Compose Multiplatform: `https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-multiplatform.html`
 
+## Acknowledgements
+
+The UI/UX draws inspiration from HBO Max. Some implementation details were
+informed by reviewing the Nuvio and Animeko codebases.
+
 ## License
 
 Pengu is licensed under the [GNU General Public License v3.0](LICENSE)
