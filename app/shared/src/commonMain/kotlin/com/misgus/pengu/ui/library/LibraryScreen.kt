@@ -32,9 +32,9 @@ import com.misgus.pengu.ui.shell.ContentNavigator
 import com.misgus.pengu.ui.shell.ContentRoute
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
+import com.misgus.pengu.ui.theme.posterCardAspect
 import com.misgus.pengu.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
 
@@ -53,6 +53,7 @@ fun LibraryScreen(
         LibraryContent(
             state = state,
             posterSize = settings.libraryPosterSize,
+            hideLabels = settings.hideLabels,
             onOpen = { navigator.push(ContentRoute.Detail(it, knownSaved = true)) },
         )
         if (state.isSyncingWatched) {
@@ -67,11 +68,12 @@ fun LibraryScreen(
 private fun LibraryContent(
     state: LibraryUiState,
     posterSize: PosterSize,
+    hideLabels: Boolean,
     onOpen: (LibraryItem) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
     when {
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize, hideLabels)
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Boxicons.Error,
@@ -95,11 +97,12 @@ private fun LibraryContent(
                 horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
             ) {
                 items(state.items, key = { it.contentId }) { item ->
-                    Box(Modifier.aspectRatio(POSTER_CARD_ASPECT)) {
+                    Box(Modifier.aspectRatio(posterCardAspect(hideLabels))) {
                         PosterTile(
                             item = item,
                             progress = state.progressByContentId[item.contentId],
                             watched = item.contentId in state.watchedIds,
+                            hideLabels = hideLabels,
                             onTap = { onOpen(item) },
                         )
                     }

@@ -35,9 +35,9 @@ import com.misgus.pengu.ui.components.toUserMessage
 import com.misgus.pengu.ui.icons.Boxicons
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
+import com.misgus.pengu.ui.theme.posterCardAspect
 import com.misgus.pengu.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
 
@@ -55,12 +55,13 @@ fun DiscoverFeed(
     state: DiscoverUiState,
     items: List<MetaPreview>,
     posterSize: PosterSize,
+    hideLabels: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when {
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize, modifier)
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize, hideLabels, modifier)
         state.error != null && state.items.isEmpty() ->
             Box(modifier, contentAlignment = Alignment.Center) {
                 Message(
@@ -82,6 +83,7 @@ fun DiscoverFeed(
                 items = items,
                 isLoadingMore = state.isLoadingMore,
                 posterSize = posterSize,
+                hideLabels = hideLabels,
                 onOpenDetail = onOpenDetail,
                 onLoadMore = onLoadMore,
                 modifier = modifier,
@@ -94,6 +96,7 @@ private fun DiscoverGrid(
     items: List<MetaPreview>,
     isLoadingMore: Boolean,
     posterSize: PosterSize,
+    hideLabels: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
@@ -128,9 +131,10 @@ private fun DiscoverGrid(
         horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
     ) {
         items(items, key = { "${it.type}:${it.id}" }) { item ->
-            Box(Modifier.aspectRatio(POSTER_CARD_ASPECT)) {
+            Box(Modifier.aspectRatio(posterCardAspect(hideLabels))) {
                 MetaPosterCard(
                     preview = item,
+                    hideLabels = hideLabels,
                     onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },
                 )
             }

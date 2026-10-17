@@ -30,6 +30,7 @@ class SettingsRepositoryTest {
             assertTrue(settings.state.value.animationsEnabled)
             assertTrue(settings.state.value.resumePlayback)
             assertTrue(settings.state.value.autoPlayNext)
+            assertFalse(settings.state.value.hideLabels)
             assertEquals(AppTheme.COFFEE, settings.state.value.theme)
         }
 
@@ -47,6 +48,7 @@ class SettingsRepositoryTest {
             settings.setTheme(AppTheme.COFFEE)
             settings.setPosterSize(PosterSize.LARGE)
             settings.setLibraryPosterSize(PosterSize.SMALL)
+            settings.setHideLabels(true)
 
             val reloaded = JsonSettingsRepository(store)
             reloaded.load()
@@ -55,6 +57,7 @@ class SettingsRepositoryTest {
             assertEquals(AppTheme.COFFEE, reloaded.state.value.theme)
             assertEquals(PosterSize.LARGE, reloaded.state.value.posterSize)
             assertEquals(PosterSize.SMALL, reloaded.state.value.libraryPosterSize)
+            assertTrue(reloaded.state.value.hideLabels)
             assertEquals("value", (store.read()["custom.key"] as JsonPrimitive).content)
             // The file is written indented, so it can be read and edited by hand.
             assertTrue(File(path).readText().contains('\n'))

@@ -108,11 +108,17 @@ so the atomic read/write/delete logic lives once.
   where the OS allows it; that is best-effort hardening, not a keychain.
 - **Settings** live in `settings.json` as a flat JSON object with dotted keys,
   like VS Code's `settings.json` (`animations.enabled`, `player.resumePlayback`,
-  `player.autoPlayNext`, `poster.size`, `library.poster.size`).
+  `player.autoPlayNext`, `poster.size`, `library.poster.size`, `labels.hidden`).
   `JsonSettingsRepository` reads it defensively, keeps unknown keys on write and
   can `reload()` after a manual edit; the settings screen groups the toggles by
   category, edits the same file, shows its path and can open it in the OS
-  editor.
+  editor. `labels.hidden` suppresses the title and year captions under every
+  poster (Home, catalog grids, Discover, Search, the detail's "More like this"
+  and the library) so the artwork reads on its own; a label-less card collapses
+  to the artwork's 2:3 ratio (`POSTER_ART_ASPECT`) instead of stretching the art
+  to fill the freed caption space, so the poster keeps the base size the setting
+  defines. The content-type subtitle of the Home rows and the billboard metadata
+  are unaffected.
 - **Session renewal**: `NuvioAuth` renews the token before a request when it
   has expired, and `NuvioRest` renews once more when the backend answers `401`.
   Renewals are serialized with a mutex so parallel requests do not refresh

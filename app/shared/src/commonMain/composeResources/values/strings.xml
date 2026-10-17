@@ -183,6 +183,8 @@
     <string name="settings_poster_size_subtitle">Catalogs, Discover and &quot;More like this&quot;.</string>
     <string name="settings_library_poster_size">Library poster size</string>
     <string name="settings_library_poster_size_subtitle">The library grid only.</string>
+    <string name="settings_hide_labels">Hide labels</string>
+    <string name="settings_hide_labels_subtitle">Hide the title and year under every poster.</string>
     <string name="settings_playback">Playback</string>
     <string name="settings_playback_subtitle">How titles play.</string>
     <string name="settings_resume">Resume playback</string>

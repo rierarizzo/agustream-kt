@@ -32,12 +32,14 @@ import com.misgus.pengu.ui.theme.motionTween
  * Poster card for a catalog item ([MetaPreview]), used by Home rows.
  *
  * [width] is the fixed width for horizontal rows; when null the card fills its
- * parent (used inside a grid).
+ * parent (used inside a grid). [hideLabels] drops the title and release-info
+ * captions, leaving the artwork alone.
  */
 @Composable
 fun MetaPosterCard(
     preview: MetaPreview,
     watched: Boolean = false,
+    hideLabels: Boolean = false,
     width: Dp? = null,
     onTap: () -> Unit,
 ) {
@@ -76,21 +78,23 @@ fun MetaPosterCard(
                 Box(Modifier.align(Alignment.TopEnd).padding(AppSpacing.xs)) { WatchedBadge() }
             }
         }
-        Spacer(Modifier.height(AppSpacing.sm))
-        MarqueeText(
-            text = preview.name,
-            style = PosterCaption.title(),
-            active = interaction.active,
-        )
-        val releaseInfo = preview.releaseInfo
-        if (!releaseInfo.isNullOrEmpty()) {
-            Text(
-                text = releaseInfo,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = PosterCaption.meta(),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        if (!hideLabels) {
+            Spacer(Modifier.height(AppSpacing.sm))
+            MarqueeText(
+                text = preview.name,
+                style = PosterCaption.title(),
+                active = interaction.active,
             )
+            val releaseInfo = preview.releaseInfo
+            if (!releaseInfo.isNullOrEmpty()) {
+                Text(
+                    text = releaseInfo,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = PosterCaption.meta(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

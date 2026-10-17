@@ -23,7 +23,8 @@ import kotlinx.serialization.json.JsonPrimitive
  *   "appearance.theme": "coffee",
  *   "animations.enabled": true,
  *   "player.resumePlayback": true,
- *   "player.autoPlayNext": true
+ *   "player.autoPlayNext": true,
+ *   "labels.hidden": false
  * }
  * ```
  *
@@ -57,6 +58,8 @@ class JsonSettingsRepository(
 
     override suspend fun setLibraryPosterSize(size: PosterSize) = update { it.copy(libraryPosterSize = size) }
 
+    override suspend fun setHideLabels(enabled: Boolean) = update { it.copy(hideLabels = enabled) }
+
     /** Writes first, then publishes, so a failed save leaves the UI unchanged. */
     private suspend fun update(transform: (AppSettings) -> AppSettings) =
         mutex.withLock {
@@ -73,6 +76,7 @@ class JsonSettingsRepository(
         data[KEY_AUTOPLAY] = JsonPrimitive(settings.autoPlayNext)
         data[KEY_POSTER_SIZE] = JsonPrimitive(settings.posterSize.name.lowercase())
         data[KEY_LIBRARY_POSTER_SIZE] = JsonPrimitive(settings.libraryPosterSize.name.lowercase())
+        data[KEY_HIDE_LABELS] = JsonPrimitive(settings.hideLabels)
         store.write(JsonObject(data))
     }
 
@@ -84,6 +88,7 @@ class JsonSettingsRepository(
             autoPlayNext = this[KEY_AUTOPLAY].boolOrNull() ?: true,
             posterSize = this[KEY_POSTER_SIZE].stringOrNull().toPosterSize() ?: PosterSize.DEFAULT,
             libraryPosterSize = this[KEY_LIBRARY_POSTER_SIZE].stringOrNull().toPosterSize() ?: PosterSize.DEFAULT,
+            hideLabels = this[KEY_HIDE_LABELS].boolOrNull() ?: false,
         )
 
     private fun String?.toPosterSize(): PosterSize? =
@@ -103,5 +108,6 @@ class JsonSettingsRepository(
         const val KEY_AUTOPLAY = "player.autoPlayNext"
         const val KEY_POSTER_SIZE = "poster.size"
         const val KEY_LIBRARY_POSTER_SIZE = "library.poster.size"
+        const val KEY_HIDE_LABELS = "labels.hidden"
     }
 }

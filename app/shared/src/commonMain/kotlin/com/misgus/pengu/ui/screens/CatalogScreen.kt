@@ -53,9 +53,9 @@ import com.misgus.pengu.ui.services.LocalAppServices
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.AppType
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
+import com.misgus.pengu.ui.theme.posterCardAspect
 import com.misgus.pengu.ui.theme.safeBottomInset
 import com.misgus.pengu.ui.theme.screenPadding
 import org.jetbrains.compose.resources.stringResource
@@ -123,7 +123,7 @@ fun CatalogScreen(
         }
         Spacer(Modifier.height(AppSpacing.md))
         Box(Modifier.weight(1f)) {
-            CatalogContent(state, settings.posterSize, gridState, onOpenDetail)
+            CatalogContent(state, settings.posterSize, settings.hideLabels, gridState, onOpenDetail)
         }
     }
 }
@@ -132,12 +132,13 @@ fun CatalogScreen(
 private fun CatalogContent(
     state: CatalogUiState,
     posterSize: PosterSize,
+    hideLabels: Boolean,
     gridState: LazyGridState,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
     when {
-        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize)
+        state.isLoading && !state.hasLoaded -> SkeletonPosterGrid(posterSize, hideLabels)
         state.error != null && !state.hasLoaded ->
             Message(
                 icon = Boxicons.Error,
@@ -165,9 +166,10 @@ private fun CatalogContent(
                 horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
             ) {
                 items(state.items, key = { it.id }) { item ->
-                    Box(Modifier.aspectRatio(POSTER_CARD_ASPECT)) {
+                    Box(Modifier.aspectRatio(posterCardAspect(hideLabels))) {
                         MetaPosterCard(
                             preview = item,
+                            hideLabels = hideLabels,
                             onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },
                         )
                     }

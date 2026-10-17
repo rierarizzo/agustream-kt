@@ -65,6 +65,7 @@ import com.misgus.pengu.ui.theme.AppCorner
 import com.misgus.pengu.ui.theme.AppSizes
 import com.misgus.pengu.ui.theme.AppSpacing
 import com.misgus.pengu.ui.theme.LocalWindowSize
+import com.misgus.pengu.ui.theme.POSTER_ART_ASPECT
 import com.misgus.pengu.ui.theme.PosterCaption
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
@@ -183,7 +184,7 @@ internal fun SimilarRow(
         )
         Spacer(Modifier.height(AppSpacing.sm))
         LazyRow(
-            modifier = Modifier.height(posterSize.railHeight(windowSize)),
+            modifier = Modifier.height(posterSize.railHeight(windowSize, settings.hideLabels)),
             contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
             horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
         ) {
@@ -209,25 +210,27 @@ internal fun SimilarRow(
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .aspectRatio(2f / 3f)
+                            .aspectRatio(POSTER_ART_ASPECT)
                             .motionBorder(color = { borderColor.value }, width = AppSizes.borderWidth, cornerRadius = AppCorner.small)
                             .clip(MaterialTheme.shapes.small),
                     ) {
                         PosterImage(item.poster, Modifier.fillMaxSize())
                     }
-                    Spacer(Modifier.height(AppSpacing.sm))
-                    MarqueeText(
-                        text = item.name,
-                        style = PosterCaption.title(),
-                        active = interaction.active,
-                    )
-                    item.releaseInfo?.takeIf { it.isNotEmpty() }?.let {
-                        Text(
-                            it,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = PosterCaption.meta(),
+                    if (!settings.hideLabels) {
+                        Spacer(Modifier.height(AppSpacing.sm))
+                        MarqueeText(
+                            text = item.name,
+                            style = PosterCaption.title(),
+                            active = interaction.active,
                         )
+                        item.releaseInfo?.takeIf { it.isNotEmpty() }?.let {
+                            Text(
+                                it,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = PosterCaption.meta(),
+                            )
+                        }
                     }
                 }
             }

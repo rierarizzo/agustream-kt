@@ -116,10 +116,17 @@ leer/escribir/borrar vive una sola vez.
 - **Los ajustes** viven en `settings.json` como un objeto JSON plano con claves
   punteadas, como el `settings.json` de VS Code (`animations.enabled`,
   `player.resumePlayback`, `player.autoPlayNext`, `poster.size`,
-  `library.poster.size`). `JsonSettingsRepository` lo lee de forma defensiva,
-  conserva las claves desconocidas al escribir y puede `reload()` tras una
-  edición manual; la pantalla de ajustes agrupa los toggles por categoría, edita
-  el mismo fichero, muestra su ruta y puede abrirlo en el editor del SO.
+  `library.poster.size`, `labels.hidden`). `JsonSettingsRepository` lo lee de
+  forma defensiva, conserva las claves desconocidas al escribir y puede
+  `reload()` tras una edición manual; la pantalla de ajustes agrupa los toggles
+  por categoría, edita el mismo fichero, muestra su ruta y puede abrirlo en el
+  editor del SO. `labels.hidden` suprime las etiquetas de título y año bajo cada
+  póster (Home, rejillas de catálogo, Discover, Search, el "More like this" del
+  detalle y la biblioteca) para que el artwork se lea solo; un card sin labels
+  colapsa al ratio 2:3 del artwork (`POSTER_ART_ASPECT`) en vez de estirar la
+  imagen para llenar el hueco liberado, así el póster conserva el tamaño base que
+  define el ajuste. El subtítulo de tipo de las filas de Home y la metadata del
+  billboard no se ven afectados.
 - **Renovación de sesión**: `NuvioAuth` renueva el token antes de una petición
   cuando ha caducado, y `NuvioRest` renueva una vez más cuando el backend
   responde `401`. Las renovaciones se serializan con un mutex para que peticiones

@@ -7,6 +7,15 @@ import com.misgus.pengu.core.repository.PosterSize
 /** Card ratio shared by the poster grids, so a card looks the same everywhere. */
 const val POSTER_CARD_ASPECT = 0.58f
 
+/**
+ * Ratio of a poster's artwork on its own.
+ *
+ * A card with its caption hidden ([posterCardAspect]) collapses to just the
+ * artwork, so the freed caption space is dropped instead of stretching the art
+ * and cropping its sides.
+ */
+const val POSTER_ART_ASPECT = 2f / 3f
+
 /** How much a poster shrinks on a compact window (phone). */
 private const val COMPACT_SCALE = 0.45f
 
@@ -30,5 +39,14 @@ private val PosterSize.nominalCellWidth: Dp
 fun PosterSize.cellWidth(windowSize: WindowSize): Dp =
     if (windowSize == WindowSize.COMPACT) nominalCellWidth * COMPACT_SCALE else nominalCellWidth
 
-/** Height of a poster card (art plus caption) for [windowSize]. */
-fun PosterSize.railHeight(windowSize: WindowSize): Dp = cellWidth(windowSize) / POSTER_CARD_ASPECT
+/** Card ratio for a poster: the art plus its caption, or just the art when [hideLabels]. */
+fun posterCardAspect(hideLabels: Boolean): Float = if (hideLabels) POSTER_ART_ASPECT else POSTER_CARD_ASPECT
+
+/**
+ * Height of a poster card for [windowSize]: the art plus its caption, or just
+ * the art when [hideLabels] drops the caption.
+ */
+fun PosterSize.railHeight(
+    windowSize: WindowSize,
+    hideLabels: Boolean,
+): Dp = cellWidth(windowSize) / posterCardAspect(hideLabels)

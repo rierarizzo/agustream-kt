@@ -42,6 +42,8 @@ import com.misgus.pengu.app.shared.generated.resources.settings_autoplay
 import com.misgus.pengu.app.shared.generated.resources.settings_autoplay_subtitle
 import com.misgus.pengu.app.shared.generated.resources.settings_config_file
 import com.misgus.pengu.app.shared.generated.resources.settings_config_file_subtitle
+import com.misgus.pengu.app.shared.generated.resources.settings_hide_labels
+import com.misgus.pengu.app.shared.generated.resources.settings_hide_labels_subtitle
 import com.misgus.pengu.app.shared.generated.resources.settings_library_poster_size
 import com.misgus.pengu.app.shared.generated.resources.settings_library_poster_size_subtitle
 import com.misgus.pengu.app.shared.generated.resources.settings_open_file
@@ -131,6 +133,8 @@ fun SettingsScreen(onOpenPlayer: (PlaybackTarget) -> Unit) {
                 onPosterSizeChange = { value -> save { settings.setPosterSize(value) } },
                 libraryPosterSize = state.libraryPosterSize,
                 onLibraryPosterSizeChange = { value -> save { settings.setLibraryPosterSize(value) } },
+                hideLabels = state.hideLabels,
+                onHideLabelsChange = { value -> save { settings.setHideLabels(value) } },
             )
             Spacer(Modifier.height(AppSpacing.lg))
             PlaybackSettingsCard(
@@ -217,6 +221,8 @@ private fun AppearanceCard(
     onPosterSizeChange: (PosterSize) -> Unit,
     libraryPosterSize: PosterSize,
     onLibraryPosterSizeChange: (PosterSize) -> Unit,
+    hideLabels: Boolean,
+    onHideLabelsChange: (Boolean) -> Unit,
 ) {
     val themeLabels = mapOf(AppTheme.COFFEE to stringResource(Res.string.theme_coffee))
     val posterSizeLabels =
@@ -259,6 +265,12 @@ private fun AppearanceCard(
                 selected = libraryPosterSize,
                 label = { posterSizeLabels.getValue(it) },
                 onSelect = onLibraryPosterSizeChange,
+            )
+            SettingsToggle(
+                title = stringResource(Res.string.settings_hide_labels),
+                subtitle = stringResource(Res.string.settings_hide_labels_subtitle),
+                checked = hideLabels,
+                onCheckedChange = onHideLabelsChange,
             )
         }
     }

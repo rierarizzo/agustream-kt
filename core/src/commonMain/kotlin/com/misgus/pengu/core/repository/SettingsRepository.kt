@@ -32,6 +32,8 @@ data class AppSettings(
     val posterSize: PosterSize = PosterSize.DEFAULT,
     /** Poster size for the library grid, kept apart from [posterSize]. */
     val libraryPosterSize: PosterSize = PosterSize.DEFAULT,
+    /** Hide the title and year captions under every poster. */
+    val hideLabels: Boolean = false,
 )
 
 /**
@@ -65,4 +67,6 @@ interface SettingsRepository {
     suspend fun setPosterSize(size: PosterSize)
 
     suspend fun setLibraryPosterSize(size: PosterSize)
+
+    suspend fun setHideLabels(enabled: Boolean)
 }

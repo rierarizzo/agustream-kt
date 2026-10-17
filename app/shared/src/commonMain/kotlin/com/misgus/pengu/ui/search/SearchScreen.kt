@@ -152,6 +152,7 @@ fun SearchScreen(
                     state = discoverState,
                     items = discoverState.items.filter(matches),
                     posterSize = settings.posterSize,
+                    hideLabels = settings.hideLabels,
                     onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
                     onLoadMore = discoverViewModel::loadMore,
                     modifier = Modifier.fillMaxSize(),
@@ -162,6 +163,7 @@ fun SearchScreen(
                     matches = matches,
                     emptyMessage = emptyMessage(state, typeFilter, genreFilter),
                     posterSize = settings.posterSize,
+                    hideLabels = settings.hideLabels,
                     onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
                 )
             }
@@ -268,6 +270,7 @@ private fun SearchResults(
     matches: (MetaPreview) -> Boolean,
     emptyMessage: String,
     posterSize: PosterSize,
+    hideLabels: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     when {
@@ -295,15 +298,15 @@ private fun SearchResults(
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 if (movies.isNotEmpty()) {
                     SectionHeader(stringResource(Res.string.search_type_movies))
-                    ResultsRail(movies, posterSize, onOpenDetail)
+                    ResultsRail(movies, posterSize, hideLabels, onOpenDetail)
                 }
                 if (series.isNotEmpty()) {
                     SectionHeader(stringResource(Res.string.search_type_series))
-                    ResultsRail(series, posterSize, onOpenDetail)
+                    ResultsRail(series, posterSize, hideLabels, onOpenDetail)
                 }
                 if (other.isNotEmpty()) {
                     SectionHeader(stringResource(Res.string.search_type_other))
-                    ResultsRail(other, posterSize, onOpenDetail)
+                    ResultsRail(other, posterSize, hideLabels, onOpenDetail)
                 }
                 Spacer(Modifier.height(AppSpacing.xl))
             }
@@ -338,11 +341,12 @@ private fun emptyMessage(
 private fun ResultsRail(
     previews: List<MetaPreview>,
     posterSize: PosterSize,
+    hideLabels: Boolean,
     onOpenDetail: (LibraryItem) -> Unit,
 ) {
     val windowSize = LocalWindowSize.current
     LazyRow(
-        modifier = Modifier.height(posterSize.railHeight(windowSize)),
+        modifier = Modifier.height(posterSize.railHeight(windowSize, hideLabels)),
         contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
         horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
     ) {
@@ -350,6 +354,7 @@ private fun ResultsRail(
             MetaPosterCard(
                 preview = item,
                 width = posterSize.cellWidth(windowSize),
+                hideLabels = hideLabels,
                 onTap = { onOpenDetail(LibraryItem.fromPreview(item)) },
             )
         }

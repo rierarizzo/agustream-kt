@@ -30,9 +30,9 @@ import androidx.compose.ui.unit.Dp
 import com.misgus.pengu.core.repository.PosterSize
 import com.misgus.pengu.ui.theme.LocalMotionEnabled
 import com.misgus.pengu.ui.theme.LocalWindowSize
-import com.misgus.pengu.ui.theme.POSTER_CARD_ASPECT
 import com.misgus.pengu.ui.theme.cellWidth
 import com.misgus.pengu.ui.theme.gridSpacing
+import com.misgus.pengu.ui.theme.posterCardAspect
 import com.misgus.pengu.ui.theme.screenPadding
 import kotlin.math.ceil
 
@@ -60,6 +60,7 @@ private fun shimmerColors(): List<Color> {
 @Composable
 fun SkeletonPosterGrid(
     posterSize: PosterSize,
+    hideLabels: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val progress = rememberShimmerProgress()
@@ -72,7 +73,7 @@ fun SkeletonPosterGrid(
         // `Adaptive` stretches the cells to fill the row, so measure with the real
         // cell width instead of the nominal one to know how tall a row is.
         val cell = (maxWidth - screenPadding * 2 - spacing * (columns - 1)) / columns
-        val rows = rowsThatFit(maxHeight, cell / POSTER_CARD_ASPECT, screenPadding, spacing)
+        val rows = rowsThatFit(maxHeight, cell / posterCardAspect(hideLabels), screenPadding, spacing)
         LazyVerticalGrid(
             columns = GridCells.Adaptive(cellWidth),
             modifier = Modifier.fillMaxSize(),
@@ -82,7 +83,7 @@ fun SkeletonPosterGrid(
             userScrollEnabled = false,
         ) {
             items(columns * rows) {
-                Box(Modifier.aspectRatio(POSTER_CARD_ASPECT)) {
+                Box(Modifier.aspectRatio(posterCardAspect(hideLabels))) {
                     SkeletonBox(progress = progress, modifier = Modifier.fillMaxSize())
                 }
             }

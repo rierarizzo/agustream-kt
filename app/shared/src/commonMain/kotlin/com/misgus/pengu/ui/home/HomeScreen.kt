@@ -96,6 +96,7 @@ fun HomeScreen(
         HomeContent(
             state = state,
             posterSize = settings.posterSize,
+            hideLabels = settings.hideLabels,
             savedIds = state.savedIds,
             busyIds = state.savingIds,
             onOpenDetail = { navigator.push(ContentRoute.Detail(it)) },
@@ -130,6 +131,7 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeUiState,
     posterSize: PosterSize,
+    hideLabels: Boolean,
     savedIds: Set<String>,
     busyIds: Set<String>,
     onOpenDetail: (LibraryItem) -> Unit,
@@ -224,7 +226,7 @@ private fun HomeContent(
                             onSeeAll = { onOpenCatalog(row.ref) },
                         )
                         LazyRow(
-                            modifier = Modifier.height(posterSize.railHeight(windowSize)),
+                            modifier = Modifier.height(posterSize.railHeight(windowSize, hideLabels)),
                             contentPadding = PaddingValues(horizontal = windowSize.screenPadding),
                             horizontalArrangement = Arrangement.spacedBy(windowSize.gridSpacing),
                         ) {
@@ -233,6 +235,7 @@ private fun HomeContent(
                                     preview = item,
                                     width = posterSize.cellWidth(windowSize),
                                     watched = item.id in state.watchedIds,
+                                    hideLabels = hideLabels,
                                     onTap = { onOpenPreview(item) },
                                 )
                             }

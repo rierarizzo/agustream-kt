@@ -36,13 +36,15 @@ import com.misgus.pengu.ui.theme.motionTween
  * One poster in the library grid.
  *
  * Shows the artwork, title, year and — when there is watch progress — either a
- * progress bar (started) or a check badge (finished).
+ * progress bar (started) or a check badge (finished). [hideLabels] drops the
+ * title and year captions, leaving the artwork alone.
  */
 @Composable
 fun PosterTile(
     item: LibraryItem,
     progress: WatchProgress? = null,
     watched: Boolean = false,
+    hideLabels: Boolean = false,
     onTap: () -> Unit,
 ) {
     val interaction = rememberInteraction()
@@ -96,18 +98,20 @@ fun PosterTile(
                 )
             }
         }
-        Spacer(Modifier.height(AppSpacing.sm))
-        MarqueeText(
-            text = item.name,
-            style = PosterCaption.title(),
-            active = interaction.active,
-        )
-        item.year?.let { year ->
-            Text(
-                text = year.toString(),
-                style = PosterCaption.meta(),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        if (!hideLabels) {
+            Spacer(Modifier.height(AppSpacing.sm))
+            MarqueeText(
+                text = item.name,
+                style = PosterCaption.title(),
+                active = interaction.active,
             )
+            item.year?.let { year ->
+                Text(
+                    text = year.toString(),
+                    style = PosterCaption.meta(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
